@@ -123,6 +123,14 @@
             <h5 class="text-[10px] font-black text-zinc-600 uppercase tracking-[0.2em] mb-4 pl-4">Eksplorasi</h5>
             <ul class="space-y-1.5">
                 <li>
+                    <a href="{{ url('/') }}" class="flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-400 font-semibold hover:bg-blue-600/10 hover:text-white transition-all group border border-transparent hover:border-blue-500/20">
+                        <div class="w-9 h-9 rounded-xl bg-zinc-800/50 group-hover:bg-blue-600 text-zinc-500 group-hover:text-white flex items-center justify-center transition-all shadow-sm group-hover:shadow-[0_0_15px_rgba(37,99,235,0.4)]">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        Beranda Utama
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('produk.index') }}" class="flex items-center gap-4 px-4 py-3 rounded-2xl text-zinc-400 font-semibold hover:bg-blue-600/10 hover:text-white transition-all group border border-transparent hover:border-blue-500/20">
                         <div class="w-9 h-9 rounded-xl bg-zinc-800/50 group-hover:bg-blue-600 text-zinc-500 group-hover:text-white flex items-center justify-center transition-all shadow-sm group-hover:shadow-[0_0_15px_rgba(37,99,235,0.4)]">
                             <i class="fas fa-layer-group"></i>

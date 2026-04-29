@@ -137,6 +137,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <label id="card-saved" class="address-card selected relative flex flex-col p-5 border-2 border-zinc-200 rounded-2xl cursor-pointer transition-all duration-300 group">
                                 <input type="radio" name="address_type" value="saved" checked class="peer sr-only">
+                                
                                 <div class="flex items-start justify-between mb-3">
                                     <div class="flex items-center gap-2 text-zinc-900 font-bold">
                                         <i class="fas fa-home text-blue-500 bg-blue-50 p-2 rounded-lg"></i> Alamat Profil
@@ -149,11 +150,23 @@
                                         <p class="font-bold text-black">{{ $alamatUser->nama_penerima }} <span class="text-zinc-400 font-medium">({{ $alamatUser->telepon_penerima }})</span></p>
                                         <p class="line-clamp-2">{{ $alamatUser->alamat_lengkap }}</p>
                                         <p class="font-medium">{{ $alamatUser->district_name }}, {{ $alamatUser->city_name }}</p>
+                                        
+                                        {{-- Tambahan Opsional: Tombol Ubah jika alamat sudah ada --}}
+                                        <a href="{{ route('profil.index') }}" onclick="event.stopPropagation();" class="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-800 mt-2 transition-colors">
+                                            <i class="fas fa-edit"></i> Ubah Alamat
+                                        </a>
                                     </div>
                                 @else
-                                    <div class="text-sm text-red-500 bg-red-50 p-3 rounded-xl mt-2 flex items-start gap-2">
-                                        <i class="fas fa-exclamation-triangle mt-0.5"></i>
-                                        <span>Data alamat profil Anda belum lengkap. Silakan pilih alamat manual.</span>
+                                    <div class="text-sm text-red-600 bg-red-50 border border-red-100 p-4 rounded-xl mt-2 flex flex-col gap-3">
+                                        <div class="flex items-start gap-2">
+                                            <i class="fas fa-exclamation-triangle mt-0.5"></i>
+                                            <span class="font-medium">Data alamat profil Anda belum lengkap. Silakan lengkapi terlebih dahulu.</span>
+                                        </div>
+                                        
+                                        {{-- TOMBOL DIRECT KE PROFIL --}}
+                                        <a href="{{ route('profil.edit') }}#titik-lokasi"  onclick="event.stopPropagation();" class="inline-flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-4 rounded-lg transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 w-max text-xs">
+                                            Lengkapi Alamat Sekarang <i class="fas fa-external-link-alt text-[10px] ml-1"></i>
+                                        </a>
                                     </div>
                                 @endif
                             </label>
