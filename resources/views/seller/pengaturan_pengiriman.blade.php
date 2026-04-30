@@ -66,8 +66,9 @@
                     Konfigurasikan armada logistik internal toko Anda dan aktifkan layanan ekspedisi nasional yang terintegrasi dengan API pusat.
                 </p>
             </div>
-            <button type="button" onclick="openModal('tambah')" class="px-5 py-2.5 bg-white border border-slate-300 hover:border-blue-500 hover:bg-blue-50 hover:text-blue-700 text-slate-700 text-sm font-bold rounded-lg shadow-sm transition-all flex items-center gap-2 flex-shrink-0">
-                <i class="mdi mdi-plus-circle-outline text-lg"></i> Buat Layanan Kustom
+            {{-- PERUBAHAN: Tombol Custom Dimatikan Sementara --}}
+            <button type="button" class="px-5 py-2.5 bg-slate-100 border border-slate-200 text-slate-400 text-sm font-bold rounded-lg shadow-sm cursor-not-allowed flex items-center gap-2 flex-shrink-0" title="Dalam Pengembangan">
+                <i class="mdi mdi-tools text-lg"></i> Custom Layanan (Coming Soon)
             </button>
         </div>
     </div>
@@ -160,41 +161,46 @@
                             </div>
                             @endif
 
+                            {{-- PERUBAHAN: Pengiriman Darurat (CITO/Sameday) --}}
+                            @if(($adminSettings['enable_emergency_delivery'] ?? '0') == '1')
+                            <label class="service-tile w-full mt-4">
+                                <input type="checkbox" name="preferences[emergency_delivery]" value="1" class="service-input" {{ isset($tokoPrefs['emergency_delivery']) && $tokoPrefs['emergency_delivery'] == '1' ? 'checked' : '' }}>
+                                <div class="service-content !border-amber-200 hover:!border-amber-400">
+                                    <div class="icon-box !bg-amber-50 !text-amber-600 !border-amber-200"><i class="mdi mdi-truck-fast"></i></div>
+                                    <div class="flex-1">
+                                        <strong class="block text-sm font-bold text-slate-900 mb-0.5">Pengiriman Darurat (CITO)</strong>
+                                        <span class="text-xs font-medium text-slate-500">Sanggup mengirim material hari itu juga dengan tarif ekstra.</span>
+                                    </div>
+                                    <i class="mdi mdi-check-circle check-icon !text-amber-500"></i>
+                                </div>
+                            </label>
+                            @endif
+
                         </div>
                     </div>
 
-                    {{-- Card: Layanan Custom Seller --}}
-                    @if(isset($customServices) && count($customServices) > 0)
-                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    {{-- PERUBAHAN: Card Layanan Custom Diganti Jadi COMING SOON --}}
+                    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden relative">
                         <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                            <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-3 opacity-50">
                                 <div class="w-8 h-8 rounded bg-blue-100 text-blue-600 flex items-center justify-center"><i class="mdi mdi-cube-send"></i></div>
                                 <h3 class="text-base font-bold text-slate-800 m-0">Layanan Buatan Anda</h3>
                             </div>
                         </div>
-                        <div class="divide-y divide-slate-100">
-                            @foreach($customServices as $kurir)
-                                <div class="p-5 flex justify-between items-center hover:bg-slate-50 transition-colors">
-                                    <div>
-                                        <div class="flex items-center gap-2 mb-1">
-                                            <h6 class="text-sm font-bold text-slate-900 m-0">{{ $kurir->nama_kurir }}</h6>
-                                            @if($kurir->is_active)
-                                                <span class="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">Aktif</span>
-                                            @else
-                                                <span class="bg-slate-200 text-slate-600 text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wider">Off</span>
-                                            @endif
-                                        </div>
-                                        <p class="text-xs font-medium text-slate-500 m-0">Tarif: Rp {{ number_format($kurir->biaya, 0, ',', '.') }} &bull; Tiba: {{ $kurir->estimasi_waktu }}</p>
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <button type="button" onclick="openModal('edit', {{ json_encode($kurir) }})" class="text-slate-400 hover:text-blue-600 p-2 transition-colors"><i class="mdi mdi-pencil text-lg"></i></button>
-                                        <button type="button" onclick="confirmDelete({{ $kurir->id }})" class="text-slate-400 hover:text-red-500 p-2 transition-colors"><i class="mdi mdi-delete text-lg"></i></button>
-                                    </div>
-                                </div>
-                            @endforeach
+
+                        {{-- Overlay Coming Soon --}}
+                        <div class="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center">
+                            <div class="bg-slate-800 text-white text-xs font-black px-3 py-1.5 rounded-md tracking-widest uppercase mb-2 shadow-lg">Segera Hadir</div>
+                        </div>
+
+                        <div class="p-8 text-center opacity-40">
+                            <i class="mdi mdi-crane text-5xl text-slate-300 mb-3"></i>
+                            <h4 class="text-sm font-bold text-slate-700 mb-1">Fitur Sedang Dibangun</h4>
+                            <p class="text-xs font-medium text-slate-500 max-w-xs mx-auto">
+                                Nantinya Anda bisa membuat layanan mandiri seperti "Sewa Kuli Angkut" atau "Jasa Bongkar Muat" dengan tarif yang Anda tentukan sendiri.
+                            </p>
                         </div>
                     </div>
-                    @endif
 
                 </div>
 
@@ -289,7 +295,7 @@
     </button>
 </div>
 
-{{-- MODAL LAYANAN CUSTOM --}}
+{{-- MODAL LAYANAN CUSTOM (TETAP ADA DI KODE TAPI DISEMBUNYIKAN FUNGSI TOMBOLNYA) --}}
 <div id="kurirModal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div id="modalOverlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity opacity-0 duration-300" onclick="closeModal()"></div>
 
