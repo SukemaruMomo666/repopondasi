@@ -94,7 +94,7 @@
                 </div>
                 <h2 class="text-3xl font-black text-white tracking-tight mb-2">Logistik & Distribusi Platform</h2>
                 <p class="text-slate-400 text-sm font-bold m-0 max-w-2xl leading-relaxed">
-                    Atur ketersediaan ekspedisi API pihak ketiga (Paket Starter RajaOngkir) dan regulasikan sistem pengiriman armada mandiri toko.
+                    Atur ketersediaan ekspedisi API pihak ketiga dan regulasikan sistem pengiriman armada mandiri toko.
                 </p>
             </div>
 
@@ -105,7 +105,7 @@
                 </div>
                 <div>
                     <div class="text-[10px] font-black text-slate-300 uppercase tracking-widest">RajaOngkir</div>
-                    <div class="text-sm font-black text-white"><span class="text-emerald-400">Starter</span> Tier</div>
+                    <div class="text-sm font-black text-white"><span class="text-emerald-400">Tersinkronisasi</span></div>
                 </div>
             </div>
         </div>
@@ -208,9 +208,11 @@
                     <h3 class="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2 m-0">
                         <i class="mdi mdi-api text-blue-500 text-2xl"></i> Ekspedisi Sistem (API)
                     </h3>
-                    <p class="text-xs font-bold text-slate-500 dark:text-slate-400 mt-2 mb-0 leading-relaxed">
-                        Hanya kurir di bawah ini yang didukung oleh API RajaOngkir Starter Anda.
-                    </p>
+                    <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl mt-4">
+                        <p class="text-[11px] font-bold text-amber-700 m-0 leading-relaxed">
+                            <i class="mdi mdi-alert"></i> <strong>Peringatan API:</strong> Centang HANYA kurir yang didukung oleh paket RajaOngkir Anda saat ini (Starter: <strong>JNE, POS, TIKI</strong>). Mengaktifkan kurir lain akan menyebabkan error saat pembeli checkout. Jika Anda sudah upgrade ke PRO, Anda bebas mencentang kurir lain.
+                        </p>
+                    </div>
                 </div>
 
                 @php
