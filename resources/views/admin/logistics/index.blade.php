@@ -94,18 +94,18 @@
                 </div>
                 <h2 class="text-3xl font-black text-white tracking-tight mb-2">Logistik & Distribusi Platform</h2>
                 <p class="text-slate-400 text-sm font-bold m-0 max-w-2xl leading-relaxed">
-                    Atur ketersediaan ekspedisi API pihak ketiga (JNE, J&T, dll) dan regulasikan sistem pengiriman menggunakan armada mandiri dari mitra toko bangunan.
+                    Atur ketersediaan ekspedisi API pihak ketiga (Paket Starter RajaOngkir) dan regulasikan sistem pengiriman armada mandiri toko.
                 </p>
             </div>
 
             {{-- Quick Stats Snippet --}}
             <div class="bg-white/10 backdrop-blur-md border border-white/20 px-5 py-3 rounded-2xl flex items-center gap-4 hidden sm:flex">
                 <div class="w-10 h-10 rounded-full bg-blue-500/20 text-blue-300 flex items-center justify-center text-xl">
-                    <i class="mdi mdi-truck-fast"></i>
+                    <i class="mdi mdi-api"></i>
                 </div>
                 <div>
-                    <div class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Sistem Logistik</div>
-                    <div class="text-sm font-black text-white"><span class="text-emerald-400">Online</span> & Tersinkronisasi</div>
+                    <div class="text-[10px] font-black text-slate-300 uppercase tracking-widest">RajaOngkir</div>
+                    <div class="text-sm font-black text-white"><span class="text-emerald-400">Starter</span> Tier</div>
                 </div>
             </div>
         </div>
@@ -209,38 +209,13 @@
                         <i class="mdi mdi-api text-blue-500 text-2xl"></i> Ekspedisi Sistem (API)
                     </h3>
                     <p class="text-xs font-bold text-slate-500 dark:text-slate-400 mt-2 mb-0 leading-relaxed">
-                        Pilih layanan kurir pihak ketiga untuk paket reguler (paku, engsel, cat, dll).
+                        Hanya kurir di bawah ini yang didukung oleh API RajaOngkir Starter Anda.
                     </p>
                 </div>
-@php
+
+                @php
                     $active_api_couriers = json_decode($settings['api_active_couriers'] ?? '[]', true);
                     if(!is_array($active_api_couriers)) $active_api_couriers = [];
-
-                    // =========================================================================
-                    // DATA REAL SESUAI DOKUMENTASI API RAJAONGKIR PRO / KOMERCE
-                    // Key (seperti 'jne', 'indah', 'wahana') adalah kode valid untuk API Request
-                    // =========================================================================
-                    $api_couriers = [
-                        // EKSPEDISI KARGO (WAJIB UNTUK MATERIAL BERAT)
-                        'indah'    => ['name' => 'Indah Logistik', 'type' => 'Spesialis Kargo Berat', 'icon' => 'mdi-truck-flatbed'],
-                        'wahana'   => ['name' => 'Wahana Express', 'type' => 'Kargo & Ekonomi', 'icon' => 'mdi-weight-kilogram'],
-                        'sentral'  => ['name' => 'Sentral Cargo', 'type' => 'Kargo Darat/Udara', 'icon' => 'mdi-package-variant-closed'],
-                        'rex'      => ['name' => 'REX Express', 'type' => 'Kargo & Reguler', 'icon' => 'mdi-truck-cargo-container'],
-
-                        // EKSPEDISI REGULER & JARINGAN LUAS (Mendukung layanan kargo internal mereka spt JTR/Gokil)
-                        'jne'      => ['name' => 'JNE Express', 'type' => 'Reguler & Kargo (JTR)', 'icon' => 'mdi-truck-fast'],
-                        'jnt'      => ['name' => 'J&T Express', 'type' => 'Reguler & J&T Cargo', 'icon' => 'mdi-truck-delivery'],
-                        'sicepat'  => ['name' => 'SiCepat', 'type' => 'Reguler & Gokil (Kargo)', 'icon' => 'mdi-lightning-bolt'],
-                        'pos'      => ['name' => 'POS Indonesia', 'type' => 'Reguler & Jumbo', 'icon' => 'mdi-postbox'],
-                        'tiki'     => ['name' => 'TIKI', 'type' => 'Reguler & TRC', 'icon' => 'mdi-truck-outline'],
-
-                        // EKSPEDISI LAINNYA YANG DIDUKUNG RAJAONGKIR
-                        'ninja'    => ['name' => 'Ninja Xpress', 'type' => 'Reguler', 'icon' => 'mdi-ninja'],
-                        'anteraja' => ['name' => 'AnterAja', 'type' => 'Reguler & Kargo', 'icon' => 'mdi-truck-check'],
-                        'lion'     => ['name' => 'Lion Parcel', 'type' => 'Reguler', 'icon' => 'mdi-airplane-takeoff'],
-                        'sap'      => ['name' => 'SAP Express', 'type' => 'Reguler', 'icon' => 'mdi-map-marker-path'],
-                        'ide'      => ['name' => 'ID Express', 'type' => 'Reguler', 'icon' => 'mdi-truck-fast-outline'],
-                    ];
                 @endphp
 
                 <div class="p-6">

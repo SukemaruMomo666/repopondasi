@@ -17,13 +17,14 @@ class LogisticSettingController extends Controller
             $settings[$row->setting_nama] = $row->setting_nilai;
         }
 
-        // Daftar Kurir Pihak Ketiga (Reguler & Kargo)
+        // =========================================================================
+        // DATA REAL SESUAI API RAJAONGKIR (PAKET STARTER)
+        // Paket Starter HANYA mendukung 3 kurir ini. Jangan tambahkan kurir lain.
+        // =========================================================================
         $api_couriers = [
-            'jne' => ['name' => 'JNE Express', 'type' => 'Reguler & Kargo', 'icon' => 'mdi-truck-fast'],
-            'jnt' => ['name' => 'J&T Express', 'type' => 'Reguler', 'icon' => 'mdi-truck-delivery'],
-            'sicepat' => ['name' => 'SiCepat', 'type' => 'Reguler & Kargo', 'icon' => 'mdi-flash'],
-            'indah' => ['name' => 'Indah Logistik', 'type' => 'Kargo Berat', 'icon' => 'mdi-truck-trailer'],
-            'deliveree' => ['name' => 'Deliveree', 'type' => 'Kargo Instan', 'icon' => 'mdi-car-pickup'],
+            'jne'  => ['name' => 'JNE Express', 'type' => 'Reguler, OKE, YES', 'icon' => 'mdi-truck-fast'],
+            'pos'  => ['name' => 'POS Indonesia', 'type' => 'Kilat Khusus, Express', 'icon' => 'mdi-postbox'],
+            'tiki' => ['name' => 'TIKI', 'type' => 'Reguler, ONS, ECO', 'icon' => 'mdi-truck-outline'],
         ];
 
         return view('admin.logistics.index', compact('settings', 'api_couriers'));
@@ -38,7 +39,14 @@ class LogisticSettingController extends Controller
         unset($data['couriers']); // Hapus array asli agar tidak masuk DB langsung
 
         // Handle Toggle Switch (Jika off, POST tidak mengirim data, jadi kita set 0 manual)
-        $toggles = ['enable_custom_fleet', 'enable_emergency_delivery'];
+        // PERBAIKAN: Menambahkan toggle pickup dan asuransi agar tidak error saat dimatikan
+        $toggles = [
+            'enable_store_pickup',
+            'enable_custom_fleet',
+            'enable_emergency_delivery',
+            'force_insurance'
+        ];
+
         foreach ($toggles as $toggle) {
             if (!isset($data[$toggle])) {
                 $data[$toggle] = '0';
