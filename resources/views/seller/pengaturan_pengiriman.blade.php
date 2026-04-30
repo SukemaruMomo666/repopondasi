@@ -6,7 +6,7 @@
 
 <style>
     /* ========================================= */
-    /* ==  ENTERPRISE SELLER LOGISTICS CSS    == */
+    /* ==  ENTERPRISE SELLER LOGISTICS CSS  == */
     /* ========================================= */
 
     .form-control-custom { width: 100%; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; outline: none; border: 1px solid #cbd5e1; background-color: #f8fafc; }
@@ -91,7 +91,9 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-                {{-- KIRI: LAYANAN INTERNAL & CUSTOM --}}
+                {{-- ================================================= --}}
+                {{-- KIRI: LAYANAN INTERNAL & CUSTOM (ARMADA TOKO)     --}}
+                {{-- ================================================= --}}
                 <div class="space-y-8">
 
                     @php
@@ -196,7 +198,9 @@
 
                 </div>
 
-                {{-- KANAN: EKSPEDISI NASIONAL (API) --}}
+                {{-- ================================================= --}}
+                {{-- KANAN: EKSPEDISI NASIONAL (API RAJAONGKIR)        --}}
+                {{-- ================================================= --}}
                 <div class="space-y-6">
 
                     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
@@ -213,50 +217,38 @@
                         </div>
 
                         @php
-                            // Data Asli Kurir RajaOngkir Pro (WAJIB ADA)
+                            // 1. Ambil Kurir yang DIAKTIFKAN Admin dari Database
+                            $admin_api_couriers = json_decode($adminSettings['api_active_couriers'] ?? '[]', true);
+                            if(!is_array($admin_api_couriers)) $admin_api_couriers = [];
+
+                            // 2. Ambil Kurir yang DICENTANG Seller dari Database
+                            $seller_active_couriers = json_decode($toko->active_api_couriers ?? '[]', true);
+                            if(!is_array($seller_active_couriers)) $seller_active_couriers = [];
+
+                            // 3. Master Kamus Kurir (Hanya untuk Referensi Tampilan)
                             $master_couriers = [
+                                'jne'      => ['name' => 'JNE Express', 'type' => 'Reguler & Kargo', 'icon' => 'mdi-truck-fast'],
+                                'pos'      => ['name' => 'POS Indonesia', 'type' => 'Reguler', 'icon' => 'mdi-postbox'],
+                                'tiki'     => ['name' => 'TIKI', 'type' => 'Reguler', 'icon' => 'mdi-truck-outline'],
+                                'jnt'      => ['name' => 'J&T Express', 'type' => 'Reguler & Cargo', 'icon' => 'mdi-truck-delivery'],
+                                'sicepat'  => ['name' => 'SiCepat', 'type' => 'Reguler & Kargo', 'icon' => 'mdi-lightning-bolt'],
+                                'ninja'    => ['name' => 'Ninja Xpress', 'type' => 'Reguler', 'icon' => 'mdi-ninja'],
+                                'lion'     => ['name' => 'Lion Parcel', 'type' => 'Reguler', 'icon' => 'mdi-airplane-takeoff'],
+                                'anteraja' => ['name' => 'AnterAja', 'type' => 'Reguler & Kargo', 'icon' => 'mdi-truck-check'],
                                 'indah'    => ['name' => 'Indah Logistik', 'type' => 'Kargo Berat', 'icon' => 'mdi-truck-flatbed'],
                                 'wahana'   => ['name' => 'Wahana Express', 'type' => 'Kargo & Ekonomi', 'icon' => 'mdi-weight-kilogram'],
-                                'sentral'  => ['name' => 'Sentral Cargo', 'type' => 'Kargo Darat', 'icon' => 'mdi-package-variant-closed'],
+                                'sap'      => ['name' => 'SAP Express', 'type' => 'Reguler', 'icon' => 'mdi-map-marker-path'],
+                                'ide'      => ['name' => 'ID Express', 'type' => 'Reguler', 'icon' => 'mdi-truck-fast-outline'],
+                                'sentral'  => ['name' => 'Sentral Cargo', 'type' => 'Kargo', 'icon' => 'mdi-package-variant-closed'],
                                 'rex'      => ['name' => 'REX Express', 'type' => 'Kargo', 'icon' => 'mdi-truck-cargo-container'],
-                                'jne'      => ['name' => 'JNE Express', 'type' => 'Reguler & JTR', 'icon' => 'mdi-truck-fast'],
-                                'jnt'      => ['name' => 'J&T Express', 'type' => 'Reguler & Cargo', 'icon' => 'mdi-truck-delivery'],
-                                'sicepat'  => ['name' => 'SiCepat', 'type' => 'Reguler & Gokil', 'icon' => 'mdi-lightning-bolt'],
-                                'pos'      => ['name' => 'POS Indonesia', 'type' => 'Reguler & Jumbo', 'icon' => 'mdi-postbox'],
-                                'tiki'     => ['name' => 'TIKI', 'type' => 'Reguler', 'icon' => 'mdi-truck-outline'],
-                                'ninja'    => ['name' => 'Ninja Xpress', 'type' => 'Reguler', 'icon' => 'mdi-ninja'],
-                                'anteraja' => ['name' => 'AnterAja', 'type' => 'Reguler & Kargo', 'icon' => 'mdi-truck-check'],
-                                'lion'     => ['name' => 'Lion Parcel', 'type' => 'Reguler', 'icon' => 'mdi-airplane-takeoff']
                             ];
-
-                            // LOGIKA KEBAL ERROR: Cari konfigurasi admin dari segala penjuru nama key
-                            $rawAdminApi = $adminSettings['rajaongkir_active_couriers']
-                                        ?? $adminSettings['api_active_couriers']
-                                        ?? $adminSettings['couriers']
-                                        ?? null;
-
-                            $admin_api_couriers = [];
-                            if ($rawAdminApi) {
-                                // Bersihkan string dari karakter [ ] " yang tersimpan di DB
-                                $cleanString = trim(str_replace(['"', '[', ']', '\\', ' '], '', $rawAdminApi));
-                                $admin_api_couriers = array_filter(explode(',', $cleanString));
-                            }
-
-                            // GOD-TIER FALLBACK: Jika ternyata Admin Bena-Benar Kosong/Error,
-                            // Kita paksakan agar daftar kurir ini TETAP MUNCUL semua untuk Seller!
-                            if (empty($admin_api_couriers)) {
-                                $admin_api_couriers = array_keys($master_couriers);
-                            }
-
-                            // Kurir yang dicentang oleh Seller ini
-                            $seller_active_couriers = json_decode($toko->active_api_couriers ?? '[]', true) ?: [];
                         @endphp
 
                         <div class="p-6">
-                            <p class="text-xs font-medium text-slate-500 mb-4">Pilih layanan kurir pihak ketiga untuk paket reguler (paku, engsel, dll). Tarif dihitung real-time oleh sistem pusat.</p>
+                            <p class="text-xs font-medium text-slate-500 mb-4">Pilih layanan kurir pihak ketiga untuk paket reguler (paku, engsel, dll). Opsi yang muncul di bawah ini adalah ekspedisi yang telah diizinkan oleh Admin Pusat.</p>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                @foreach($admin_api_couriers as $code)
+                                @forelse($admin_api_couriers as $code)
                                     @if(isset($master_couriers[$code]))
                                         <label class="service-tile w-full" for="api_{{ $code }}">
                                             <input type="checkbox" name="api_couriers[]" value="{{ $code }}" id="api_{{ $code }}" class="service-input" {{ in_array($code, $seller_active_couriers) ? 'checked' : '' }}>
@@ -272,7 +264,12 @@
                                             </div>
                                         </label>
                                     @endif
-                                @endforeach
+                                @empty
+                                    <div class="col-span-full p-5 bg-red-50 text-red-600 rounded-xl text-sm font-bold text-center border border-red-200">
+                                        <i class="mdi mdi-alert-circle outline text-2xl block mb-2"></i>
+                                        Admin pusat belum mengaktifkan ekspedisi apapun. Hubungi Admin.
+                                    </div>
+                                @endforelse
                             </div>
                         </div>
                     </div>
