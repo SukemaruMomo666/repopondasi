@@ -39,29 +39,35 @@ class ShopController extends Controller
     {
         $toko = $this->getToko();
 
-        // Validasi Super Ketat
+        // Validasi Super Ketat (Termasuk Fitur B2B Baru)
         $request->validate([
-            'nama_toko'      => 'required|string|max:50',
-            'slogan'         => 'nullable|string|max:100',
-            'deskripsi'      => 'nullable|string|max:1000',
-            'no_telepon'     => 'required|string|max:20',
-            'alamat_lengkap' => 'required|string|max:255',
-            'kota'           => 'required|string|max:100',
-            'kode_pos'       => 'required|numeric|digits_between:5,6',
-            'logo_toko'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'banner_toko'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'nama_toko'       => 'required|string|max:50',
+            'slogan'          => 'nullable|string|max:100',
+            'deskripsi_toko'  => 'nullable|string|max:1000',
+            'catatan_toko'    => 'nullable|string|max:2000',
+            'kebijakan_retur' => 'nullable|string|max:2000',
+            'no_telepon'      => 'required|string|max:20',
+            'alamat_lengkap'  => 'required|string|max:255',
+            'kota'            => 'required|string|max:100',
+            'kode_pos'        => 'required|numeric|digits_between:5,6',
+            'logo_toko'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'banner_toko'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'dokumen_nib'     => 'nullable|file|mimes:pdf,jpeg,png,jpg,webp|max:5120',
+            'dokumen_npwp'    => 'nullable|file|mimes:pdf,jpeg,png,jpg,webp|max:5120',
         ]);
 
         // Siapkan data dasar untuk diupdate
         $dataUpdate = [
-            'nama_toko'      => $request->nama_toko,
-            'slogan'         => $request->slogan,
-            'deskripsi'      => $request->deskripsi,
-            'no_telepon'     => $request->no_telepon,
-            'alamat_lengkap' => $request->alamat_lengkap,
-            'kota'           => $request->kota,
-            'kode_pos'       => $request->kode_pos,
-            'updated_at'     => now()
+            'nama_toko'       => $request->nama_toko,
+            'slogan'          => $request->slogan,
+            'deskripsi_toko'  => $request->deskripsi_toko,
+            'catatan_toko'    => $request->catatan_toko,
+            'kebijakan_retur' => $request->kebijakan_retur,
+            'telepon_toko'    => $request->no_telepon,
+            'alamat_toko'     => $request->alamat_lengkap,
+            'kota'            => $request->kota,
+            'kode_pos'        => $request->kode_pos,
+            'updated_at'      => now()
         ];
 
         // Handle Logo Baru + Hapus yang Lama (Secure Delete)
@@ -74,6 +80,7 @@ class ShopController extends Controller
                 if (File::exists($oldPath)) { File::delete($oldPath); }
             }
 
+            if(!File::exists(public_path('assets/uploads/logos'))) { File::makeDirectory(public_path('assets/uploads/logos'), 0777, true); }
             $logo->move(public_path('assets/uploads/logos'), $logoName);
             $dataUpdate['logo_toko'] = $logoName;
         }
@@ -88,14 +95,35 @@ class ShopController extends Controller
                 if (File::exists($oldBannerPath)) { File::delete($oldBannerPath); }
             }
 
+            if(!File::exists(public_path('assets/uploads/banners'))) { File::makeDirectory(public_path('assets/uploads/banners'), 0777, true); }
             $banner->move(public_path('assets/uploads/banners'), $bannerName);
             $dataUpdate['banner_toko'] = $bannerName;
+        }
+
+        // Handle Dokumen Legalitas (NIB & NPWP) B2B
+        $legalPath = public_path('assets/uploads/legalitas');
+        if(!File::exists($legalPath)) { File::makeDirectory($legalPath, 0777, true); }
+
+        if ($request->hasFile('dokumen_nib')) {
+            $nib = $request->file('dokumen_nib');
+            $nibName = 'NIB_' . $toko->id . '_' . Str::random(5) . '.' . $nib->getClientOriginalExtension();
+            if (!empty($toko->dokumen_nib) && File::exists($legalPath . '/' . $toko->dokumen_nib)) { File::delete($legalPath . '/' . $toko->dokumen_nib); }
+            $nib->move($legalPath, $nibName);
+            $dataUpdate['dokumen_nib'] = $nibName;
+        }
+
+        if ($request->hasFile('dokumen_npwp')) {
+            $npwp = $request->file('dokumen_npwp');
+            $npwpName = 'NPWP_' . $toko->id . '_' . Str::random(5) . '.' . $npwp->getClientOriginalExtension();
+            if (!empty($toko->dokumen_npwp) && File::exists($legalPath . '/' . $toko->dokumen_npwp)) { File::delete($legalPath . '/' . $toko->dokumen_npwp); }
+            $npwp->move($legalPath, $npwpName);
+            $dataUpdate['dokumen_npwp'] = $npwpName;
         }
 
         // Update menggunakan Query Builder
         DB::table('tb_toko')->where('id', $toko->id)->update($dataUpdate);
 
-        return redirect()->back()->with('success', 'Profil Toko berhasil diperbarui!');
+        return redirect()->back()->with('success', 'Profil Toko & Legalitas B2B berhasil diperbarui!');
     }
 
     /**
