@@ -378,7 +378,9 @@ class PageController extends Controller
                 $totalProduk += $item->harga * $jumlah;
             }
         } else {
-            $selectedItems = $request->input('selected_items');
+            // AMBIL DARI REQUEST (JIKA DARI KERANJANG) ATAU DARI SESSION (JIKA DARI BELI SEKARANG)
+            $selectedItems = $request->input('selected_items') ?? session('selected_items');
+
             if (is_string($selectedItems)) {
                 $selectedItems = explode(',', $selectedItems);
             }
