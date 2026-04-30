@@ -19,9 +19,9 @@ class ProductController extends Controller
             ->leftJoin('tb_kategori as k', 'p.kategori_id', '=', 'k.id')
             ->select(
                 'p.*', 
-                't.nama_toko', 't.jenis_toko', 't.slug as toko_slug', 
-                'c.name as nama_kota', 
-                'k.nama_kategori'
+                'k.nama_kategori',
+                't.id AS toko_id', 't.nama_toko', 't.slug AS slug_toko', 't.logo_toko', 't.tier_toko', 
+                'c.name as nama_kota_toko'
             )
             ->where('p.is_active', 1)
             ->where('p.status_moderasi', 'approved');
@@ -51,7 +51,8 @@ class ProductController extends Controller
 
         // E. Filter Jenis Toko (Official Store / Power Store)
         if ($request->has('jenis_toko') && is_array($request->jenis_toko)) {
-            $query->whereIn('t.jenis_toko', $request->jenis_toko);
+            // FIX: Menggunakan tier_toko sesuai database
+            $query->whereIn('t.tier_toko', $request->jenis_toko);
         }
 
         // F. Logika Sorting (Dropdown Urutkan)
@@ -97,8 +98,8 @@ class ProductController extends Controller
             ->select(
                 'p.*',
                 'k.nama_kategori',
-                // t.jenis_toko ditambahkan di sini agar logo Official/Power muncul di halaman detail
-                't.id AS toko_id', 't.nama_toko', 't.slug AS slug_toko', 't.logo_toko', 't.jenis_toko',
+                // FIX: Menggunakan tier_toko agar tidak error SQL
+                't.id AS toko_id', 't.nama_toko', 't.slug AS slug_toko', 't.logo_toko', 't.tier_toko',
                 'c.name as nama_kota_toko'
             )
             ->where('p.id', $id)
