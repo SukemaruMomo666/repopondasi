@@ -137,7 +137,7 @@
 
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Deskripsi Singkat Toko</label>
-                            <textarea name="deskripsi_toko" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all min-h-[120px] resize-none" placeholder="Ceritakan tentang toko, spesialisasi material, atau keunggulan Anda...">{{ old('deskripsi_toko', $toko->deskripsi_toko ?? '') }}</textarea>
+                            <textarea name="deskripsi" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all min-h-[120px] resize-none" placeholder="Ceritakan tentang toko, spesialisasi material, atau keunggulan Anda...">{{ old('deskripsi', $toko->deskripsi_toko ?? '') }}</textarea>
                         </div>
 
                     </div>
