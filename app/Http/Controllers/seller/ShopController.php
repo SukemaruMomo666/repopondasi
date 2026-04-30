@@ -56,7 +56,7 @@ class ShopController extends Controller
         $dataUpdate = [
             'nama_toko'      => $request->nama_toko,
             'slogan'         => $request->slogan,
-            'deskripsi_toko' => $request->deskripsi,
+            'deskripsi_toko' => $request->deskripsi_toko,
             'telepon_toko'   => $request->no_telepon,
             'alamat_toko'    => $request->alamat_lengkap,
             // 'kota' dihilangkan karena database menggunakan city_id, bukan string kota
