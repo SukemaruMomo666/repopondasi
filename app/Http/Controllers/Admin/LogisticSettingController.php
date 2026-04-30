@@ -17,13 +17,27 @@ class LogisticSettingController extends Controller
             $settings[$row->setting_nama] = $row->setting_nilai;
         }
 
-        // Daftar Kurir Pihak Ketiga (Reguler & Kargo)
+        // =========================================================================
+        // KAMUS MASTER EKSPEDISI RAJAONGKIR (BUKAN DUMMY)
+        // Ini adalah kamus kode resmi yang dikenali oleh API RajaOngkir.
+        // Karena API tidak bisa mendeteksi tipe akun (Starter/Pro),
+        // Admin bebas mengaktifkan kurir sesuai paket yang sedang dibeli dari UI.
+        // =========================================================================
         $api_couriers = [
-            'jne' => ['name' => 'JNE Express', 'type' => 'Reguler & Kargo', 'icon' => 'mdi-truck-fast'],
-            'jnt' => ['name' => 'J&T Express', 'type' => 'Reguler', 'icon' => 'mdi-truck-delivery'],
-            'sicepat' => ['name' => 'SiCepat', 'type' => 'Reguler & Kargo', 'icon' => 'mdi-flash'],
-            'indah' => ['name' => 'Indah Logistik', 'type' => 'Kargo Berat', 'icon' => 'mdi-truck-trailer'],
-            'deliveree' => ['name' => 'Deliveree', 'type' => 'Kargo Instan', 'icon' => 'mdi-car-pickup'],
+            'jne'      => ['name' => 'JNE Express', 'type' => 'Reguler & Kargo', 'icon' => 'mdi-truck-fast'],
+            'pos'      => ['name' => 'POS Indonesia', 'type' => 'Reguler', 'icon' => 'mdi-postbox'],
+            'tiki'     => ['name' => 'TIKI', 'type' => 'Reguler', 'icon' => 'mdi-truck-outline'],
+            'jnt'      => ['name' => 'J&T Express', 'type' => 'Reguler & Cargo', 'icon' => 'mdi-truck-delivery'],
+            'sicepat'  => ['name' => 'SiCepat', 'type' => 'Reguler & Kargo', 'icon' => 'mdi-lightning-bolt'],
+            'ninja'    => ['name' => 'Ninja Xpress', 'type' => 'Reguler', 'icon' => 'mdi-ninja'],
+            'lion'     => ['name' => 'Lion Parcel', 'type' => 'Reguler', 'icon' => 'mdi-airplane-takeoff'],
+            'anteraja' => ['name' => 'AnterAja', 'type' => 'Reguler', 'icon' => 'mdi-truck-check'],
+            'indah'    => ['name' => 'Indah Logistik', 'type' => 'Kargo Berat', 'icon' => 'mdi-truck-flatbed'],
+            'wahana'   => ['name' => 'Wahana Express', 'type' => 'Kargo & Ekonomi', 'icon' => 'mdi-weight-kilogram'],
+            'sap'      => ['name' => 'SAP Express', 'type' => 'Reguler', 'icon' => 'mdi-map-marker-path'],
+            'ide'      => ['name' => 'ID Express', 'type' => 'Reguler', 'icon' => 'mdi-truck-fast-outline'],
+            'sentral'  => ['name' => 'Sentral Cargo', 'type' => 'Kargo', 'icon' => 'mdi-package-variant-closed'],
+            'rex'      => ['name' => 'REX Express', 'type' => 'Kargo', 'icon' => 'mdi-truck-cargo-container'],
         ];
 
         return view('admin.logistics.index', compact('settings', 'api_couriers'));
@@ -33,19 +47,23 @@ class LogisticSettingController extends Controller
     {
         $data = $request->except(['_token']);
 
-        // Konversi checkbox kurir API menjadi JSON
+        // Data kurir yang dicentang oleh admin akan disimpan ke database
         $data['api_active_couriers'] = isset($request->couriers) ? json_encode($request->couriers) : json_encode([]);
-        unset($data['couriers']); // Hapus array asli agar tidak masuk DB langsung
+        unset($data['couriers']);
 
-        // Handle Toggle Switch (Jika off, POST tidak mengirim data, jadi kita set 0 manual)
-        $toggles = ['enable_custom_fleet', 'enable_emergency_delivery'];
+        $toggles = [
+            'enable_store_pickup',
+            'enable_custom_fleet',
+            'enable_emergency_delivery',
+            'force_insurance'
+        ];
+
         foreach ($toggles as $toggle) {
             if (!isset($data[$toggle])) {
                 $data[$toggle] = '0';
             }
         }
 
-        // Simpan ke database tb_pengaturan
         foreach ($data as $key => $value) {
             DB::table('tb_pengaturan')->updateOrInsert(
                 ['setting_nama' => $key],
