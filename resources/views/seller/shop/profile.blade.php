@@ -10,9 +10,9 @@
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* LEAFLET CONTAINER FIX */
+    /* LEAFLET Z-INDEX FIX (Agar tidak menimpa sticky bar / dropdown) */
     .leaflet-container {
-        z-index: 10 !important;
+        z-index: 1 !important;
         font-family: inherit;
     }
 
@@ -36,6 +36,17 @@
     .input-premium {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
+    /* ANIMASI GPS BUTTON */
+    @keyframes pulse-ring {
+        0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+        100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    }
+    .gps-active .mdi-crosshairs-gps {
+        animation: pulse-ring 2s infinite;
+        color: #3b82f6;
+    }
 </style>
 @endpush
 
@@ -54,7 +65,7 @@
     </script>
 
     {{-- HEADER --}}
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 relative z-20">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 relative z-10">
         <div class="flex items-center gap-5">
             <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center text-white shadow-[0_8px_30px_rgb(59,130,246,0.3)]">
                 <i class="mdi mdi-store-cog-outline text-3xl"></i>
@@ -70,10 +81,10 @@
         @csrf
         @method('PUT')
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
 
             {{-- KOLOM KIRI: VISUAL & DATA LEGAL --}}
-            <div class="lg:col-span-4 space-y-8 relative z-20">
+            <div class="lg:col-span-4 space-y-8">
 
                 {{-- VISUAL BRANDING --}}
                 <div class="bg-white rounded-[2rem] p-7 shadow-[0_2px_20px_rgba(0,0,0,0.02)] border border-slate-100 transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
@@ -172,7 +183,7 @@
             </div>
 
             {{-- KOLOM KANAN: IDENTITAS & MAPS --}}
-            <div class="lg:col-span-8 space-y-8 relative z-10">
+            <div class="lg:col-span-8 space-y-8">
 
                 {{-- INFORMASI DASAR --}}
                 <div class="bg-white rounded-[2rem] p-7 shadow-[0_2px_20px_rgba(0,0,0,0.02)] border border-slate-100">
@@ -271,10 +282,19 @@
                             </div>
 
                             {{-- MAP CONTAINER - THE GOD TIER FIX --}}
-                            <div class="relative w-full h-[380px] rounded-2xl overflow-hidden shadow-inner border border-slate-200 z-10 group">
-                                <div id="map" class="absolute inset-0 w-full h-full bg-slate-100"></div>
-                                <div id="mapLoader" class="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-20 hidden">
-                                    <i class="mdi mdi-loading mdi-spin text-4xl text-emerald-500"></i>
+                            <div class="relative w-full h-[400px] rounded-2xl overflow-hidden shadow-inner border border-slate-300 z-10 bg-slate-100">
+                                <div id="map" class="w-full h-full"></div>
+
+                                {{-- GPS BUTTON OVERLAY --}}
+                                <button type="button" onclick="getLocation()" id="btnGps" class="absolute bottom-6 right-4 z-[400] bg-white text-slate-700 p-3 rounded-full shadow-[0_4px_15px_rgba(0,0,0,0.15)] hover:text-blue-600 hover:bg-blue-50 transition-all border border-slate-100 flex items-center justify-center group" title="Gunakan Lokasi Saat Ini">
+                                    <i class="mdi mdi-crosshairs-gps text-2xl group-hover:scale-110 transition-transform"></i>
+                                </button>
+
+                                <div id="mapLoader" class="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-[500] hidden">
+                                    <div class="flex flex-col items-center">
+                                        <i class="mdi mdi-loading mdi-spin text-5xl text-emerald-500 mb-3"></i>
+                                        <span class="text-sm font-bold text-slate-700 tracking-wide" id="mapLoaderText">Memproses lokasi...</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -346,6 +366,8 @@
         const mapContainer = document.getElementById('map');
         const alamatDetail = document.getElementById('alamatDetail');
         const autoIndicator = document.getElementById('autoAddressIndicator');
+        const loader = document.getElementById('mapLoader');
+        const loaderText = document.getElementById('mapLoaderText');
 
         let currentLat = parseFloat(latInput.value) || -6.558935;
         let currentLng = parseFloat(lngInput.value) || 107.763321;
@@ -354,10 +376,10 @@
         const map = L.map(mapContainer, {
             center: [currentLat, currentLng],
             zoom: 15,
-            zoomControl: false // Kita pindah zoom control agar lebih rapi
+            zoomControl: false
         });
 
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
@@ -377,18 +399,26 @@
         const marker = L.marker([currentLat, currentLng], { draggable: true, icon: customIcon }).addTo(map);
 
         // ==========================================
-        // 🛠️ THE GOD TIER FIX UNTUK LEAFLET GREY TILES
-        // Menggunakan ResizeObserver memastikan kapanpun
-        // div peta dirender/berubah ukuran, map akan update.
+        // 🛠️ ULTIMATE BUG FIX UNTUK GREY TILES MAP
         // ==========================================
-        const resizeObserver = new ResizeObserver(() => {
-            map.invalidateSize();
-        });
-        resizeObserver.observe(mapContainer);
-        // Fallback pemicu awal
-        setTimeout(() => map.invalidateSize(), 100);
+        const forceMapRender = () => {
+            if(map) map.invalidateSize(true);
+        };
+        // Tembak invalidateSize bertahap untuk mengakali delay render Tailwind CSS
+        setTimeout(forceMapRender, 100);
+        setTimeout(forceMapRender, 500);
+        setTimeout(forceMapRender, 1000);
 
-        // 2. FUNGSI REVERSE GEOCODING (Mendapatkan alamat dari Pin)
+        // Gunakan ResizeObserver sebagai penjaga utama
+        if (window.ResizeObserver) {
+            const resizeObserver = new ResizeObserver(() => {
+                forceMapRender();
+            });
+            resizeObserver.observe(mapContainer);
+        }
+        window.addEventListener('resize', forceMapRender);
+
+        // 2. FUNGSI REVERSE GEOCODING (Pin -> Teks Alamat)
         async function getAddressFromCoords(lat, lng) {
             try {
                 const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
@@ -396,8 +426,7 @@
                 if(data && data.display_name) {
                     alamatDetail.value = data.display_name;
                     autoIndicator.classList.remove('hidden');
-                    // Hide indicator after 3 seconds
-                    setTimeout(() => autoIndicator.classList.add('hidden'), 3000);
+                    setTimeout(() => autoIndicator.classList.add('hidden'), 4000);
                 }
             } catch (error) {
                 console.error("Geocoding error:", error);
@@ -430,10 +459,9 @@
             }
 
             const btn = document.getElementById('btnSearchMap');
-            const loader = document.getElementById('mapLoader');
-
             btn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i>';
             btn.disabled = true;
+            loaderText.innerText = "Mencari lokasi...";
             loader.classList.remove('hidden');
 
             try {
@@ -463,6 +491,53 @@
                 loader.classList.add('hidden');
             }
         }
+
+        // 5. FITUR TRACKING GPS (LACAK LOKASI SAYA)
+        window.getLocation = function() {
+            const btnGps = document.getElementById('btnGps');
+
+            if (navigator.geolocation) {
+                btnGps.classList.add('gps-active');
+                loaderText.innerText = "Mengambil koordinat GPS Anda...";
+                loader.classList.remove('hidden');
+
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+
+                        // Update Peta & Marker
+                        map.setView([lat, lng], 17);
+                        marker.setLatLng([lat, lng]);
+
+                        // Update Form
+                        latInput.value = lat.toFixed(8);
+                        lngInput.value = lng.toFixed(8);
+
+                        // Ambil detail nama jalan
+                        getAddressFromCoords(lat, lng);
+
+                        loader.classList.add('hidden');
+                        btnGps.classList.remove('gps-active');
+                        Toast.fire({icon: 'success', title: 'GPS berhasil dilacak!'});
+                    },
+                    function(error) {
+                        loader.classList.add('hidden');
+                        btnGps.classList.remove('gps-active');
+
+                        let msg = "Gagal melacak lokasi.";
+                        if(error.code === 1) msg = "Izin akses GPS ditolak oleh browser.";
+                        else if(error.code === 2) msg = "Sinyal GPS tidak ditemukan.";
+                        else if(error.code === 3) msg = "Waktu permintaan GPS habis.";
+
+                        Toast.fire({icon: 'error', title: msg});
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                Toast.fire({icon: 'error', title: 'Browser Anda tidak mendukung fitur GPS.'});
+            }
+        };
     });
 
     // ==========================================
@@ -471,7 +546,6 @@
     function setupDropzone(dropzoneId, inputId, nameId) {
         const dropzone = document.getElementById(dropzoneId);
         const input = document.getElementById(inputId);
-        const nameDisplay = document.getElementById(nameId);
         const icon = dropzone.querySelector('.drop-icon');
 
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -507,7 +581,7 @@
         });
     }
 
-    // Setup drag and drop for NIB and NPWP
+    // Setup drag and drop
     setupDropzone('dropzoneNIB', 'nibInput', 'nibName');
     setupDropzone('dropzoneNPWP', 'npwpInput', 'npwpName');
 
