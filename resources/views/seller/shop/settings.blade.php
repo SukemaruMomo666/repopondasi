@@ -1,18 +1,12 @@
 @extends('layouts.seller')
 
-@section('title', 'Profil Toko & Legalitas')
+@section('title', 'Pengaturan Toko')
 
 @push('styles')
-{{-- LEAFLET CSS UNTUK PETA --}}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    /* Animasi Upload Hover */
-    .upload-hover:hover .upload-overlay { opacity: 1; }
-
-    /* Fix z-index Leaflet agar tidak nabrak navbar/modal */
-    .leaflet-container { z-index: 10 !important; }
+    /* Transisi untuk Tab Content */
+    .tab-content { display: none; opacity: 0; transform: translateY(10px); transition: all 0.3s ease-out; }
+    .tab-content.active { display: block; opacity: 1; transform: translateY(0); }
 </style>
 @endpush
 
@@ -30,6 +24,9 @@
     @if(session('success'))
         <script>document.addEventListener('DOMContentLoaded', () => Toast.fire({icon: 'success', title: '{{ session('success') }}'}));</script>
     @endif
+    @if(session('error'))
+        <script>document.addEventListener('DOMContentLoaded', () => Swal.fire({title: 'Gagal!', text: '{{ session('error') }}', icon: 'error', customClass: { popup: 'rounded-3xl' }}));</script>
+    @endif
     @if ($errors->any())
         <div class="bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-2xl mb-6 shadow-sm flex items-start gap-3">
             <i class="mdi mdi-alert-circle text-xl mt-0.5"></i>
@@ -44,426 +41,225 @@
 
     {{-- HEADER --}}
     <div class="flex items-center gap-4 mb-8">
-        <div class="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-blue-600 shadow-sm flex-shrink-0">
-            <i class="mdi mdi-store-cog-outline text-2xl"></i>
+        <div class="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-slate-700 shadow-sm flex-shrink-0">
+            <i class="mdi mdi-cog-outline text-2xl"></i>
         </div>
         <div>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Profil & Legalitas Toko</h1>
-            <p class="text-sm font-medium text-slate-500 mt-0.5">Atur identitas, logo, kebijakan, dan dokumen legal (B2B) Anda.</p>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Pengaturan</h1>
+            <p class="text-sm font-medium text-slate-500 mt-0.5">Kelola operasional, notifikasi, dan keamanan akun toko Anda.</p>
         </div>
     </div>
 
-    <form action="{{ route('seller.shop.profile.update') }}" method="POST" enctype="multipart/form-data" id="profileForm">
-        @csrf
-        @method('PUT')
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-            {{-- KOLOM KIRI: TAMPILAN VISUAL (Logo & Banner) --}}
-            <div class="lg:col-span-4 space-y-6">
-
-                {{-- LOGO TOKO --}}
-                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm text-center">
-                    <h3 class="text-sm font-black text-slate-800 mb-4 text-left"><i class="mdi mdi-image-outline text-blue-500 me-1"></i> Logo Toko</h3>
-
-                    <div class="relative w-40 h-40 mx-auto rounded-full border-4 border-slate-50 shadow-md overflow-hidden group upload-hover cursor-pointer" onclick="document.getElementById('logoInput').click()">
-                        @php $logoUrl = !empty($toko->logo_toko) ? asset('assets/uploads/logos/'.$toko->logo_toko) : 'https://placehold.co/200x200?text=Logo'; @endphp
-                        <img id="logoPreview" src="{{ $logoUrl }}" class="w-full h-full object-cover" alt="Logo Toko">
-
-                        {{-- Overlay Edit --}}
-                        <div class="upload-overlay absolute inset-0 bg-slate-900/50 flex flex-col items-center justify-center text-white opacity-0 transition-opacity duration-300">
-                            <i class="mdi mdi-camera-plus text-3xl mb-1"></i>
-                            <span class="text-[10px] font-bold uppercase tracking-widest">Ubah Logo</span>
-                        </div>
-                    </div>
-                    <input type="file" id="logoInput" name="logo_toko" class="hidden" accept="image/png, image/jpeg, image/webp" onchange="previewImage(this, 'logoPreview')">
-
-                    <p class="text-xs font-medium text-slate-500 mt-4 leading-relaxed">
-                        Format: JPG, PNG, WEBP.<br>Ukuran maksimal: 2MB.<br>Rekomendasi: 300x300 pixel.
-                    </p>
-                </div>
-
-                {{-- BANNER TOKO --}}
-                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-                    <h3 class="text-sm font-black text-slate-800 mb-4"><i class="mdi mdi-panorama-variant-outline text-indigo-500 me-1"></i> Banner Toko</h3>
-
-                    <div class="relative w-full h-32 rounded-2xl border-2 border-dashed border-slate-300 overflow-hidden group upload-hover cursor-pointer bg-slate-50 flex flex-col items-center justify-center" onclick="document.getElementById('bannerInput').click()">
-                        @if(!empty($toko->banner_toko))
-                            <img id="bannerPreview" src="{{ asset('assets/uploads/banners/'.$toko->banner_toko) }}" class="absolute inset-0 w-full h-full object-cover z-0" alt="Banner">
-                        @else
-                            <img id="bannerPreview" src="" class="absolute inset-0 w-full h-full object-cover z-0 hidden" alt="Banner">
-                            <div id="bannerPlaceholder" class="relative z-10 text-center text-slate-400 group-hover:text-indigo-500 transition-colors">
-                                <i class="mdi mdi-cloud-upload-outline text-3xl block mb-1"></i>
-                                <span class="text-xs font-bold">Upload Banner</span>
-                            </div>
-                        @endif
-
-                        {{-- Overlay Edit --}}
-                        <div class="upload-overlay absolute inset-0 bg-slate-900/50 flex flex-col items-center justify-center text-white opacity-0 transition-opacity duration-300 z-20">
-                            <i class="mdi mdi-camera-retake text-2xl mb-1"></i>
-                            <span class="text-[10px] font-bold uppercase tracking-widest">Ubah Banner</span>
-                        </div>
-                    </div>
-                    <input type="file" id="bannerInput" name="banner_toko" class="hidden" accept="image/png, image/jpeg, image/webp" onchange="previewImage(this, 'bannerPreview', 'bannerPlaceholder')">
-
-                    <p class="text-xs font-medium text-slate-500 mt-3 leading-relaxed text-center">
-                        Maksimal 5MB. Rasio optimal 16:9 (Cth: 1200x400px).
-                    </p>
-                </div>
-
+        {{-- ========================================== --}}
+        {{-- NAVIGASI TAB VERTIKAL (KIRI)               --}}
+        {{-- ========================================== --}}
+        <div class="lg:col-span-3">
+            <div class="bg-white border border-slate-200 rounded-3xl p-3 shadow-sm sticky top-24">
+                <nav class="flex flex-col gap-1">
+                    <button type="button" onclick="switchTab('general')" id="btn-general" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-blue-700 bg-blue-50 transition-colors text-left">
+                        <i class="mdi mdi-store-cog text-lg"></i> Operasional Toko
+                    </button>
+                    <button type="button" onclick="switchTab('notification')" id="btn-notification" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left">
+                        <i class="mdi mdi-bell-outline text-lg"></i> Notifikasi
+                    </button>
+                    <button type="button" onclick="switchTab('security')" id="btn-security" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left">
+                        <i class="mdi mdi-shield-lock-outline text-lg"></i> Keamanan Akun
+                    </button>
+                </nav>
             </div>
+        </div>
 
-            {{-- KOLOM KANAN: INFORMASI TEKS & LEGALITAS --}}
-            <div class="lg:col-span-8 space-y-6">
+        {{-- ========================================== --}}
+        {{-- AREA KONTEN (KANAN)                        --}}
+        {{-- ========================================== --}}
+        <div class="lg:col-span-9">
 
-                {{-- IDENTITAS TOKO --}}
-                <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-                    <div class="bg-slate-50/80 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-                        <i class="mdi mdi-store-edit text-blue-600 text-lg leading-none"></i>
-                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Identitas Toko</h3>
+            {{-- FORM 1: GENERAL & NOTIFICATION (Disatukan dalam 1 form submit) --}}
+            <form action="{{ route('seller.shop.settings.update') }}" method="POST" id="formGeneral">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="form_type" value="general">
+
+                {{-- KONTEN TAB: OPERASIONAL TOKO --}}
+                <div id="tab-general" class="tab-content active space-y-6">
+
+                    {{-- Mode Libur --}}
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
+                        <div class="flex justify-between items-start gap-4">
+                            <div>
+                                <h3 class="text-base font-black text-slate-900 mb-1 flex items-center gap-2">
+                                    <i class="mdi mdi-beach text-amber-500 text-xl"></i> Mode Libur / Tutup Toko
+                                </h3>
+                                <p class="text-sm font-medium text-slate-500 leading-relaxed max-w-xl">
+                                    Aktifkan mode libur untuk mencegah pembeli membuat pesanan baru. Pesanan yang sedang berjalan tetap harus diselesaikan.
+                                </p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-1">
+                                <input type="checkbox" name="status_libur" class="sr-only peer" {{ ($toko->status_libur ?? 0) ? 'checked' : '' }}>
+                                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                            </label>
+                        </div>
                     </div>
-                    <div class="p-6 space-y-5">
 
-                        <div>
-                            <div class="flex justify-between items-end mb-2">
-                                <label class="text-sm font-bold text-slate-700">Nama Toko <span class="text-red-500">*</span></label>
-                                <span class="text-[10px] font-bold text-slate-400" id="countNama">0/50</span>
-                            </div>
-                            <input type="text" name="nama_toko" id="inputNama" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" value="{{ old('nama_toko', $toko->nama_toko ?? '') }}" maxlength="50" required>
-                        </div>
+                    {{-- Pesan Otomatis (Auto-Reply) --}}
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
+                        <h3 class="text-base font-black text-slate-900 mb-1 flex items-center gap-2">
+                            <i class="mdi mdi-robot-outline text-indigo-500 text-xl"></i> Balasan Chat Otomatis
+                        </h3>
+                        <p class="text-sm font-medium text-slate-500 mb-4">Pesan ini akan dikirim otomatis ketika pelanggan mengirim pesan pertama kali.</p>
 
-                        <div>
-                            <div class="flex justify-between items-end mb-2">
-                                <label class="text-sm font-bold text-slate-700">Slogan / Tagline</label>
-                                <span class="text-[10px] font-bold text-slate-400" id="countSlogan">0/100</span>
-                            </div>
-                            <input type="text" name="slogan" id="inputSlogan" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-semibold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" value="{{ old('slogan', $toko->slogan ?? '') }}" placeholder="Cth: Material Berkualitas, Harga Pantas" maxlength="100">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Deskripsi Singkat Toko</label>
-                            <textarea name="deskripsi_toko" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all min-h-[120px] resize-none" placeholder="Ceritakan tentang toko, spesialisasi material, atau keunggulan Anda...">{{ old('deskripsi_toko', $toko->deskripsi_toko ?? '') }}</textarea>
-                        </div>
-
+                        <textarea name="pesan_otomatis" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all min-h-[100px] resize-none" placeholder="Cth: Halo! Selamat datang di toko kami. Pesanan Anda akan segera kami proses...">{{ $toko->pesan_otomatis ?? '' }}</textarea>
                     </div>
                 </div>
 
-                {{-- KEBIJAKAN & CATATAN B2B --}}
-                <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-                    <div class="bg-amber-50/80 px-6 py-4 border-b border-amber-100 flex items-center gap-2">
-                        <i class="mdi mdi-shield-check text-amber-600 text-lg leading-none"></i>
-                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Kebijakan B2B</h3>
-                    </div>
-                    <div class="p-6 space-y-5">
+                {{-- KONTEN TAB: NOTIFIKASI --}}
+                <div id="tab-notification" class="tab-content space-y-6">
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
+                        <h3 class="text-lg font-black text-slate-900 mb-6 pb-4 border-b border-slate-100">Preferensi Notifikasi</h3>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Catatan Toko (S&K Pemesanan)</label>
-                                <textarea name="catatan_toko" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition-all min-h-[120px] resize-none" placeholder="Cth: Pesanan di atas jam 14.00 akan dikirim besok. Truk hanya bisa masuk jalan aspal...">{{ old('catatan_toko', $toko->catatan_toko ?? '') }}</textarea>
+                        <div class="space-y-6">
+                            {{-- Item Notif 1 --}}
+                            <div class="flex justify-between items-center gap-4">
+                                <div>
+                                    <h6 class="text-sm font-bold text-slate-800">Email Pesanan Baru</h6>
+                                    <p class="text-xs font-medium text-slate-500">Kirim email setiap kali ada pesanan baru masuk.</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="notif_email_pesanan" class="sr-only peer" {{ ($notif['email_pesanan'] ?? true) ? 'checked' : '' }}>
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
                             </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Kebijakan Retur Material</label>
-                                <textarea name="kebijakan_retur" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition-all min-h-[120px] resize-none" placeholder="Cth: Semen yang sudah mengeras tidak dapat ditukar. Besi yang sudah dipotong tidak bisa diretur...">{{ old('kebijakan_retur', $toko->kebijakan_retur ?? '') }}</textarea>
+
+                            {{-- Item Notif 2 --}}
+                            <div class="flex justify-between items-center gap-4">
+                                <div>
+                                    <h6 class="text-sm font-bold text-slate-800">Push Chat Pelanggan</h6>
+                                    <p class="text-xs font-medium text-slate-500">Tampilkan pop-up notifikasi saat ada chat baru di dashboard.</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="notif_push_chat" class="sr-only peer" {{ ($notif['push_chat'] ?? true) ? 'checked' : '' }}>
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
                             </div>
-                        </div>
 
-                    </div>
-                </div>
-
-                {{-- DOKUMEN LEGAL B2B --}}
-                <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-                    <div class="bg-slate-50/80 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                        <div class="flex items-center gap-2">
-                            <i class="mdi mdi-file-document-check text-indigo-600 text-lg leading-none"></i>
-                            <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Dokumen Legalitas (Opsional)</h3>
-                        </div>
-                        @if($toko->tier_toko == 'official_store')
-                            <span class="bg-purple-100 text-purple-700 text-[10px] font-black px-2.5 py-1 rounded-md">VERIFIED OFFICIAL</span>
-                        @endif
-                    </div>
-                    <div class="p-6 space-y-5">
-                        <p class="text-xs font-bold text-slate-500 mb-4">Unggah dokumen ini jika Anda ingin mengajukan diri sebagai <b>Power Merchant</b> atau <b>Official Store</b> untuk memenangkan tender besar.</p>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Upload File NIB (PDF/Gambar)</label>
-                                <input type="file" name="dokumen_nib" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl px-4 py-2 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" accept=".pdf,image/*">
-                                @if(!empty($toko->dokumen_nib))
-                                    <div class="mt-2 text-xs font-bold text-emerald-600 flex items-center gap-1"><i class="mdi mdi-check-circle"></i> File NIB sudah tersimpan.</div>
-                                @endif
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Upload File NPWP Perusahaan</label>
-                                <input type="file" name="dokumen_npwp" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-xl px-4 py-2 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" accept=".pdf,image/*">
-                                @if(!empty($toko->dokumen_npwp))
-                                    <div class="mt-2 text-xs font-bold text-emerald-600 flex items-center gap-1"><i class="mdi mdi-check-circle"></i> File NPWP sudah tersimpan.</div>
-                                @endif
+                            {{-- Item Notif 3 --}}
+                            <div class="flex justify-between items-center gap-4">
+                                <div>
+                                    <h6 class="text-sm font-bold text-slate-800">Email Info & Promo Pondasikita</h6>
+                                    <p class="text-xs font-medium text-slate-500">Terima email mengenai fitur baru dan tips berjualan.</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="notif_email_promo" class="sr-only peer" {{ ($notif['email_promo'] ?? false) ? 'checked' : '' }}>
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- KONTAK & ALAMAT PENGIRIMAN DENGAN PETA --}}
-                <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-                    <div class="bg-slate-50/80 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-                        <i class="mdi mdi-map-marker-radius text-emerald-600 text-lg leading-none"></i>
-                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Alamat & Titik Jemput Pengiriman</h3>
+                {{-- STICKY ACTION BAR BAWAH (Hanya muncul untuk General & Notif) --}}
+                <div id="sticky-action-bar" class="fixed bottom-0 left-0 lg:left-[260px] right-0 bg-white/80 backdrop-blur-md border-t border-slate-200 px-6 py-4 flex items-center justify-between z-40 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
+                    <div class="hidden sm:block">
+                        <p class="text-xs font-bold text-slate-500 m-0"><i class="mdi mdi-information text-blue-500"></i> Pastikan untuk menyimpan perubahan.</p>
                     </div>
-                    <div class="p-6 space-y-6">
+                    <div class="flex gap-3 w-full sm:w-auto">
+                        <button type="submit" class="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-2.5 bg-slate-900 hover:bg-black text-white font-bold rounded-xl shadow-sm shadow-slate-900/20 transition-all btn-save-loader">
+                            <i class="mdi mdi-content-save"></i> Simpan Pengaturan
+                        </button>
+                    </div>
+                </div>
+            </form>
 
-                        {{-- SEKSI PETA LOKASI LEAFLET (DIATAS BIAR GAMPANG MILIH) --}}
-                        <div class="w-full">
-                            <label class="block text-sm font-black text-slate-800 mb-2">Pilih Titik Lokasi Peta <span class="text-red-500">*</span></label>
-                            <p class="text-xs font-medium text-slate-500 mb-3">Geser pin merah atau cari nama daerah. <b>Kota dan Kode Pos akan terisi otomatis</b> dari titik peta yang Anda pilih.</p>
+            {{-- FORM 2: SECURITY (Terpisah karena logicnya berbeda) --}}
+            <div id="tab-security" class="tab-content space-y-6">
+                <form action="{{ route('seller.shop.settings.update') }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="form_type" value="security">
 
-                            {{-- Fitur Search Geocoding --}}
-                            <div class="flex gap-2 mb-3">
-                                <input type="text" id="searchLokasi" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-2.5 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" placeholder="Ketik nama kota, kecamatan, atau jalan...">
-                                <button type="button" onclick="cariLokasiMap()" class="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-colors whitespace-nowrap">
-                                    <i class="mdi mdi-magnify"></i> Cari
+                    <div class="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm">
+                        <h3 class="text-base font-black text-slate-900 mb-1 flex items-center gap-2">
+                            <i class="mdi mdi-lock-outline text-red-500 text-xl"></i> Ubah Password Akun
+                        </h3>
+                        <p class="text-sm font-medium text-slate-500 mb-6 pb-4 border-b border-slate-100">Gunakan kombinasi huruf dan angka agar akun Anda tetap aman.</p>
+
+                        <div class="space-y-4 max-w-md">
+                            <div>
+                                <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Password Saat Ini</label>
+                                <div class="relative">
+                                    <input type="password" name="current_password" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" required>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Password Baru</label>
+                                <input type="password" name="new_password" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" required minlength="8">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Konfirmasi Password Baru</label>
+                                <input type="password" name="new_password_confirmation" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" required minlength="8">
+                            </div>
+
+                            <div class="pt-4 border-t border-slate-100">
+                                <button type="submit" class="w-full flex items-center justify-center gap-2 px-8 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl shadow-sm shadow-red-500/20 transition-all btn-save-loader">
+                                    Perbarui Password
                                 </button>
                             </div>
-
-                            {{-- Container Peta --}}
-                            <div id="map" class="w-full h-[350px] rounded-2xl border-2 border-slate-200 shadow-inner z-10 relative"></div>
-
-                            {{-- Input Hidden/Readonly Koordinat --}}
-                            <div class="grid grid-cols-2 gap-4 mt-4 hidden">
-                                <input type="text" name="latitude" id="latitude" value="{{ old('latitude', $toko->latitude ?? '-6.558935') }}" readonly required>
-                                <input type="text" name="longitude" id="longitude" value="{{ old('longitude', $toko->longitude ?? '107.763321') }}" readonly required>
-                            </div>
                         </div>
-
-                        <hr class="border-slate-100">
-
-                        {{-- FORM ALAMAT (DIBAWAH PETA) --}}
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Nomor WhatsApp/Telepon <span class="text-red-500">*</span></label>
-                                <div class="flex border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 transition-all">
-                                    <span class="bg-slate-100 px-4 py-3 text-slate-500 font-black border-r border-slate-200">+62</span>
-                                    <input type="text" name="no_telepon" class="w-full bg-slate-50 px-4 py-3 text-sm font-bold outline-none" value="{{ old('no_telepon', ltrim($toko->telepon_toko ?? '', '0')) }}" placeholder="8123456789" pattern="[0-9]+" required>
-                                </div>
-                            </div>
-
-                            {{-- KOTA (AUTO FILL DARI REVERSE GEOCODING) --}}
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Kabupaten/Kota (Otomatis) <span class="text-red-500">*</span></label>
-                                <div class="relative">
-                                    <input type="text" name="kota" id="inputKota" class="w-full bg-slate-100 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl px-4 py-3 outline-none cursor-not-allowed opacity-80" value="{{ old('kota', $toko->kota ?? '') }}" placeholder="Klik di peta..." readonly required>
-                                    <i class="mdi mdi-map-marker-check absolute right-4 top-3.5 text-emerald-500 text-lg"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-end">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Alamat Detail Toko/Gudang <span class="text-red-500">*</span></label>
-                                <textarea name="alamat_lengkap" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all min-h-[80px] resize-none" placeholder="Isi manual: Nama Gedung, Jalan, RT/RW, Patokan..." required>{{ old('alamat_lengkap', $toko->alamat_toko ?? '') }}</textarea>
-                            </div>
-
-                            {{-- KODE POS (AUTO FILL DARI REVERSE GEOCODING) --}}
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Kode Pos (Otomatis) <span class="text-red-500">*</span></label>
-                                <div class="relative">
-                                    <input type="text" name="kode_pos" id="inputKodePos" class="w-full bg-slate-100 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl px-4 py-3 outline-none cursor-not-allowed opacity-80" value="{{ old('kode_pos', $toko->kode_pos ?? '') }}" placeholder="Klik di peta..." readonly required>
-                                    <i class="mdi mdi-postage-stamp absolute right-4 top-3.5 text-emerald-500 text-lg"></i>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
-                </div>
+                </form>
+            </div>
 
-            </div>
         </div>
-
-        {{-- STICKY ACTION BAR BAWAH --}}
-        <div class="fixed bottom-0 left-0 lg:left-[260px] right-0 bg-white/80 backdrop-blur-md border-t border-slate-200 px-6 py-4 flex items-center justify-between z-40 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
-            <div class="hidden sm:block">
-                <p class="text-xs font-bold text-slate-500 m-0"><i class="mdi mdi-information text-blue-500"></i> Pastikan perubahan sudah benar sebelum menyimpan.</p>
-            </div>
-            <div class="flex gap-3 w-full sm:w-auto">
-                <a href="{{ route('seller.dashboard') }}" class="flex-1 sm:flex-none text-center px-6 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors">Kembali</a>
-                <button type="submit" id="btnSubmitProfile" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm shadow-blue-600/20 transition-all">
-                    <i class="mdi mdi-content-save"></i> Simpan Profil
-                </button>
-            </div>
-        </div>
-    </form>
+    </div>
 </div>
 @endsection
 
 @push('scripts')
-{{-- SCRIPT LEAFLET UNTUK MAPS & REVERSE GEOCODING --}}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Elemen Input
-    const latInput = document.getElementById('latitude');
-    const lngInput = document.getElementById('longitude');
-    const kotaInput = document.getElementById('inputKota');
-    const kodePosInput = document.getElementById('inputKodePos');
+    // 1. LOGIKA TAB VERTIKAL (Vanilla JS - SPA Feel)
+    function switchTab(tabId) {
+        // Hide all contents
+        document.querySelectorAll('.tab-content').forEach(el => {
+            el.classList.remove('active');
+        });
 
-    // Inisialisasi Titik Peta
-    let startLat = parseFloat(latInput.value) || -6.558935;
-    let startLng = parseFloat(lngInput.value) || 107.763321;
+        // Reset all buttons style
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.className = 'tab-btn flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors text-left';
+        });
 
-    // Inisialisasi Peta Leaflet
-    const map = L.map('map').setView([startLat, startLng], 15);
+        // Show active content
+        document.getElementById('tab-' + tabId).classList.add('active');
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap'
-    }).addTo(map);
+        // Highlight active button
+        const activeBtn = document.getElementById('btn-' + tabId);
+        activeBtn.className = 'tab-btn flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-blue-700 bg-blue-50 transition-colors text-left';
 
-    const marker = L.marker([startLat, startLng], {
-        draggable: true
-    }).addTo(map);
-
-    // Fungsi Super Sakti: REVERSE GEOCODING (Titik Peta -> Alamat Teks)
-    function autoFillAddress(lat, lng) {
-        // Tampilkan efek loading ringan di input
-        kotaInput.value = "Menerjemahkan titik peta...";
-        kodePosInput.value = "...";
-
-        // Tarik data dari API Nominatim OpenStreetMap (Gratis)
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
-            .then(res => res.json())
-            .then(data => {
-                if(data && data.address) {
-                    let addr = data.address;
-
-                    // Ambil Kabupaten/Kota (Karena OpenStreetMap formatnya bervariasi)
-                    let city = addr.city || addr.county || addr.town || addr.municipality || addr.state_district || '';
-                    let postcode = addr.postcode || '';
-
-                    kotaInput.value = city;
-                    kodePosInput.value = postcode;
-                } else {
-                    kotaInput.value = "Data Kota Tidak Ditemukan";
-                    kodePosInput.value = "";
-                }
-            })
-            .catch(err => {
-                kotaInput.value = "Gagal mengambil data kota";
-                kodePosInput.value = "";
-            });
-    }
-
-    // 1. Saat Pin Digeser
-    marker.on('dragend', function (e) {
-        const coords = e.target.getLatLng();
-        latInput.value = coords.lat.toFixed(8);
-        lngInput.value = coords.lng.toFixed(8);
-
-        // Panggil fungsi otomatis
-        autoFillAddress(coords.lat, coords.lng);
-    });
-
-    // 2. Saat Peta Diklik
-    map.on('click', function(e) {
-        marker.setLatLng(e.latlng);
-        latInput.value = e.latlng.lat.toFixed(8);
-        lngInput.value = e.latlng.lng.toFixed(8);
-
-        // Panggil fungsi otomatis
-        autoFillAddress(e.latlng.lat, e.latlng.lng);
-    });
-
-    // 3. Pencarian Berdasarkan Ketikan (Geocoding)
-    function cariLokasiMap() {
-        var query = document.getElementById('searchLokasi').value;
-        if(query.length < 3) {
-            alert('Ketik minimal 3 huruf untuk mencari.');
-            return;
+        // Sembunyikan sticky bar jika di tab security (karena security punya tombol submit sendiri)
+        const stickyBar = document.getElementById('sticky-action-bar');
+        if(tabId === 'security') {
+            stickyBar.classList.add('hidden');
+            stickyBar.classList.remove('flex');
+        } else {
+            stickyBar.classList.remove('hidden');
+            stickyBar.classList.add('flex');
         }
-
-        var btn = event.currentTarget;
-        var originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Mencari...';
-
-        fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query))
-            .then(response => response.json())
-            .then(data => {
-                btn.innerHTML = originalText;
-                if(data && data.length > 0) {
-                    var newLat = data[0].lat;
-                    var newLon = data[0].lon;
-
-                    map.setView([newLat, newLon], 16);
-                    marker.setLatLng([newLat, newLon]);
-
-                    latInput.value = parseFloat(newLat).toFixed(8);
-                    lngInput.value = parseFloat(newLon).toFixed(8);
-
-                    // Setelah dapet koordinat dari pencarian, terjemahkan lagi jadi alamat!
-                    autoFillAddress(newLat, newLon);
-                } else {
-                    Swal.fire({icon: 'error', title: 'Oops...', text: 'Lokasi tidak ditemukan. Coba nama yang lebih spesifik.', customClass: { popup: 'rounded-2xl' }});
-                }
-            }).catch(err => {
-                btn.innerHTML = originalText;
-                alert('Gagal mencari lokasi. Cek koneksi internet Anda.');
-            });
     }
 
-    // Eksekusi pencarian dengan tombol Enter
-    document.getElementById('searchLokasi').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            cariLokasiMap();
-        }
-    });
-
-    // Jalankan Reverse Geocoding sekali saat halaman dimuat (jika kota kosong)
-    if(kotaInput.value === '' || kotaInput.value === 'Silakan Set Ulang Alamat') {
-        autoFillAddress(startLat, startLng);
-    }
-
-    // ----------------------------------------------------
-    // SCRIPT ORIGINAL LAINNYA (Preview Logo & Submit)
-    // ----------------------------------------------------
-    function previewImage(input, previewId, placeholderId = null) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                const previewImg = document.getElementById(previewId);
-                previewImg.src = e.target.result;
-                previewImg.classList.remove('hidden');
-
-                if(placeholderId) {
-                    document.getElementById(placeholderId).classList.add('hidden');
-                }
+    // 2. LOADING STATE UNTUK TOMBOL SUBMIT
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function() {
+            const btn = this.querySelector('.btn-save-loader');
+            if(btn) {
+                btn.innerHTML = '<i class="mdi mdi-loading mdi-spin text-lg leading-none"></i> Menyimpan...';
+                btn.disabled = true;
+                btn.classList.add('opacity-70', 'cursor-not-allowed');
             }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function initCounter(inputId, counterId, maxLen) {
-        const input = document.getElementById(inputId);
-        const counter = document.getElementById(counterId);
-
-        if(!input || !counter) return;
-
-        const updateCount = () => {
-            let len = input.value.length;
-            counter.textContent = `${len}/${maxLen}`;
-            if(len >= maxLen) counter.classList.replace('text-slate-400', 'text-red-500');
-            else counter.classList.replace('text-red-500', 'text-slate-400');
-        };
-
-        input.addEventListener('input', updateCount);
-        updateCount();
-    }
-
-    initCounter('inputNama', 'countNama', 50);
-    initCounter('inputSlogan', 'countSlogan', 100);
-
-    document.getElementById('profileForm').addEventListener('submit', function() {
-        const btn = document.getElementById('btnSubmitProfile');
-        btn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Menyimpan...';
-        btn.disabled = true;
-        btn.classList.add('opacity-70', 'cursor-not-allowed');
+        });
     });
 </script>
 @endpush
