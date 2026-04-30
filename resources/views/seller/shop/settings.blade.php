@@ -10,7 +10,7 @@
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     /* Animasi Upload Hover */
     .upload-hover:hover .upload-overlay { opacity: 1; }
-    
+
     /* Fix z-index Leaflet agar tidak nabrak navbar/modal */
     .leaflet-container { z-index: 10 !important; }
 </style>
@@ -155,7 +155,7 @@
                         <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Kebijakan B2B</h3>
                     </div>
                     <div class="p-6 space-y-5">
-                        
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-2">Catatan Toko (S&K Pemesanan)</label>
@@ -203,48 +203,22 @@
                     </div>
                 </div>
 
-                {{-- KONTAK & ALAMAT & MAPS --}}
+                {{-- KONTAK & ALAMAT PENGIRIMAN DENGAN PETA --}}
                 <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
                     <div class="bg-slate-50/80 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
                         <i class="mdi mdi-map-marker-radius text-emerald-600 text-lg leading-none"></i>
-                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Kontak & Alamat Pengiriman</h3>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Alamat & Titik Jemput Pengiriman</h3>
                     </div>
-                    <div class="p-6 space-y-5">
+                    <div class="p-6 space-y-6">
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Nomor WhatsApp/Telepon <span class="text-red-500">*</span></label>
-                                <div class="flex border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 transition-all">
-                                    <span class="bg-slate-100 px-4 py-3 text-slate-500 font-black border-r border-slate-200">+62</span>
-                                    <input type="text" name="no_telepon" class="w-full bg-slate-50 px-4 py-3 text-sm font-bold outline-none" value="{{ old('no_telepon', ltrim($toko->telepon_toko ?? '', '0')) }}" placeholder="8123456789" pattern="[0-9]+" required>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Kabupaten/Kota (Manual) <span class="text-red-500">*</span></label>
-                                <input type="text" name="kota" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" value="{{ old('kota', 'Silakan Set Ulang Alamat') }}" placeholder="Cth: Kab. Subang" required>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Alamat Lengkap Toko/Gudang <span class="text-red-500">*</span></label>
-                            <textarea name="alamat_lengkap" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all min-h-[80px] resize-none" placeholder="Nama Jalan, RT/RW, Patokan..." required>{{ old('alamat_lengkap', $toko->alamat_toko ?? '') }}</textarea>
-                        </div>
-
-                        <div class="w-full md:w-1/2 mb-5">
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Kode Pos <span class="text-red-500">*</span></label>
-                            <input type="text" name="kode_pos" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" value="{{ old('kode_pos', $toko->kode_pos ?? '') }}" pattern="[0-9]{5,6}" required>
-                        </div>
-
-                        <hr class="border-slate-100">
-
-                        {{-- SEKSI PETA LOKASI LEAFLET --}}
-                        <div class="pt-2">
-                            <label class="block text-sm font-black text-slate-800 mb-2">Titik Koordinat Peta <span class="text-red-500">*</span></label>
-                            <p class="text-xs font-medium text-slate-500 mb-3">Tentukan titik presisi lokasi toko untuk memudahkan kurir/truk pengiriman barang berat. Cari nama daerah, lalu geser pin merah.</p>
+                        {{-- SEKSI PETA LOKASI LEAFLET (DIATAS BIAR GAMPANG MILIH) --}}
+                        <div class="w-full">
+                            <label class="block text-sm font-black text-slate-800 mb-2">Pilih Titik Lokasi Peta <span class="text-red-500">*</span></label>
+                            <p class="text-xs font-medium text-slate-500 mb-3">Geser pin merah atau cari nama daerah. <b>Kota dan Kode Pos akan terisi otomatis</b> dari titik peta yang Anda pilih.</p>
 
                             {{-- Fitur Search Geocoding --}}
                             <div class="flex gap-2 mb-3">
-                                <input type="text" id="searchLokasi" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-2.5 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" placeholder="Ketik nama jalan / daerah...">
+                                <input type="text" id="searchLokasi" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-2.5 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" placeholder="Ketik nama kota, kecamatan, atau jalan...">
                                 <button type="button" onclick="cariLokasiMap()" class="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-colors whitespace-nowrap">
                                     <i class="mdi mdi-magnify"></i> Cari
                                 </button>
@@ -254,14 +228,46 @@
                             <div id="map" class="w-full h-[350px] rounded-2xl border-2 border-slate-200 shadow-inner z-10 relative"></div>
 
                             {{-- Input Hidden/Readonly Koordinat --}}
-                            <div class="grid grid-cols-2 gap-4 mt-4">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-widest">Latitude</label>
-                                    <input type="text" name="latitude" id="latitude" class="w-full bg-slate-100 border border-slate-200 text-slate-600 text-xs font-black rounded-lg px-3 py-2 outline-none cursor-not-allowed" value="{{ old('latitude', $toko->latitude ?? '-6.558935') }}" readonly required>
+                            <div class="grid grid-cols-2 gap-4 mt-4 hidden">
+                                <input type="text" name="latitude" id="latitude" value="{{ old('latitude', $toko->latitude ?? '-6.558935') }}" readonly required>
+                                <input type="text" name="longitude" id="longitude" value="{{ old('longitude', $toko->longitude ?? '107.763321') }}" readonly required>
+                            </div>
+                        </div>
+
+                        <hr class="border-slate-100">
+
+                        {{-- FORM ALAMAT (DIBAWAH PETA) --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Nomor WhatsApp/Telepon <span class="text-red-500">*</span></label>
+                                <div class="flex border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 transition-all">
+                                    <span class="bg-slate-100 px-4 py-3 text-slate-500 font-black border-r border-slate-200">+62</span>
+                                    <input type="text" name="no_telepon" class="w-full bg-slate-50 px-4 py-3 text-sm font-bold outline-none" value="{{ old('no_telepon', ltrim($toko->telepon_toko ?? '', '0')) }}" placeholder="8123456789" pattern="[0-9]+" required>
                                 </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-widest">Longitude</label>
-                                    <input type="text" name="longitude" id="longitude" class="w-full bg-slate-100 border border-slate-200 text-slate-600 text-xs font-black rounded-lg px-3 py-2 outline-none cursor-not-allowed" value="{{ old('longitude', $toko->longitude ?? '107.763321') }}" readonly required>
+                            </div>
+
+                            {{-- KOTA (AUTO FILL DARI REVERSE GEOCODING) --}}
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Kabupaten/Kota (Otomatis) <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <input type="text" name="kota" id="inputKota" class="w-full bg-slate-100 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl px-4 py-3 outline-none cursor-not-allowed opacity-80" value="{{ old('kota', $toko->kota ?? '') }}" placeholder="Klik di peta..." readonly required>
+                                    <i class="mdi mdi-map-marker-check absolute right-4 top-3.5 text-emerald-500 text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-end">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Alamat Detail Toko/Gudang <span class="text-red-500">*</span></label>
+                                <textarea name="alamat_lengkap" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all min-h-[80px] resize-none" placeholder="Isi manual: Nama Gedung, Jalan, RT/RW, Patokan..." required>{{ old('alamat_lengkap', $toko->alamat_toko ?? '') }}</textarea>
+                            </div>
+
+                            {{-- KODE POS (AUTO FILL DARI REVERSE GEOCODING) --}}
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Kode Pos (Otomatis) <span class="text-red-500">*</span></label>
+                                <div class="relative">
+                                    <input type="text" name="kode_pos" id="inputKodePos" class="w-full bg-slate-100 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl px-4 py-3 outline-none cursor-not-allowed opacity-80" value="{{ old('kode_pos', $toko->kode_pos ?? '') }}" placeholder="Klik di peta..." readonly required>
+                                    <i class="mdi mdi-postage-stamp absolute right-4 top-3.5 text-emerald-500 text-lg"></i>
                                 </div>
                             </div>
                         </div>
@@ -289,45 +295,82 @@
 @endsection
 
 @push('scripts')
-{{-- SCRIPT LEAFLET UNTUK MAPS --}}
+{{-- SCRIPT LEAFLET UNTUK MAPS & REVERSE GEOCODING --}}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Inisialisasi Kordinat (Default: Area Subang atau Kordinat Toko Sebelumnya)
-    var latInput = document.getElementById('latitude');
-    var lngInput = document.getElementById('longitude');
-    
-    var startLat = parseFloat(latInput.value) || -6.558935;
-    var startLng = parseFloat(lngInput.value) || 107.763321;
+    // Elemen Input
+    const latInput = document.getElementById('latitude');
+    const lngInput = document.getElementById('longitude');
+    const kotaInput = document.getElementById('inputKota');
+    const kodePosInput = document.getElementById('inputKodePos');
 
-    // Buat Peta
-    var map = L.map('map').setView([startLat, startLng], 14);
+    // Inisialisasi Titik Peta
+    let startLat = parseFloat(latInput.value) || -6.558935;
+    let startLng = parseFloat(lngInput.value) || 107.763321;
 
-    // Tambahkan Tile Layer (Tampilan Jalan OpenStreetMap)
+    // Inisialisasi Peta Leaflet
+    const map = L.map('map').setView([startLat, startLng], 15);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        attribution: '© OpenStreetMap contributors'
+        attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    // Tambahkan Pin/Marker yang bisa digeser (Draggable)
-    var marker = L.marker([startLat, startLng], {
+    const marker = L.marker([startLat, startLng], {
         draggable: true
     }).addTo(map);
 
-    // Event saat pin digeser
+    // Fungsi Super Sakti: REVERSE GEOCODING (Titik Peta -> Alamat Teks)
+    function autoFillAddress(lat, lng) {
+        // Tampilkan efek loading ringan di input
+        kotaInput.value = "Menerjemahkan titik peta...";
+        kodePosInput.value = "...";
+
+        // Tarik data dari API Nominatim OpenStreetMap (Gratis)
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
+            .then(res => res.json())
+            .then(data => {
+                if(data && data.address) {
+                    let addr = data.address;
+
+                    // Ambil Kabupaten/Kota (Karena OpenStreetMap formatnya bervariasi)
+                    let city = addr.city || addr.county || addr.town || addr.municipality || addr.state_district || '';
+                    let postcode = addr.postcode || '';
+
+                    kotaInput.value = city;
+                    kodePosInput.value = postcode;
+                } else {
+                    kotaInput.value = "Data Kota Tidak Ditemukan";
+                    kodePosInput.value = "";
+                }
+            })
+            .catch(err => {
+                kotaInput.value = "Gagal mengambil data kota";
+                kodePosInput.value = "";
+            });
+    }
+
+    // 1. Saat Pin Digeser
     marker.on('dragend', function (e) {
-        var coords = e.target.getLatLng();
+        const coords = e.target.getLatLng();
         latInput.value = coords.lat.toFixed(8);
         lngInput.value = coords.lng.toFixed(8);
+
+        // Panggil fungsi otomatis
+        autoFillAddress(coords.lat, coords.lng);
     });
 
-    // Event saat peta diklik (Pin pindah ke titik klik)
+    // 2. Saat Peta Diklik
     map.on('click', function(e) {
         marker.setLatLng(e.latlng);
         latInput.value = e.latlng.lat.toFixed(8);
         lngInput.value = e.latlng.lng.toFixed(8);
+
+        // Panggil fungsi otomatis
+        autoFillAddress(e.latlng.lat, e.latlng.lng);
     });
 
-    // Fungsi Pencarian Lokasi menggunakan API Nominatim (Gratis)
+    // 3. Pencarian Berdasarkan Ketikan (Geocoding)
     function cariLokasiMap() {
         var query = document.getElementById('searchLokasi').value;
         if(query.length < 3) {
@@ -335,7 +378,6 @@
             return;
         }
 
-        // Tampilkan loading di tombol
         var btn = event.currentTarget;
         var originalText = btn.innerHTML;
         btn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Mencari...';
@@ -343,18 +385,19 @@
         fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query))
             .then(response => response.json())
             .then(data => {
-                btn.innerHTML = originalText; // Kembalikan tombol
+                btn.innerHTML = originalText;
                 if(data && data.length > 0) {
                     var newLat = data[0].lat;
                     var newLon = data[0].lon;
-                    
-                    // Pindah view peta dan letakkan marker
+
                     map.setView([newLat, newLon], 16);
                     marker.setLatLng([newLat, newLon]);
-                    
-                    // Update input hidden
+
                     latInput.value = parseFloat(newLat).toFixed(8);
                     lngInput.value = parseFloat(newLon).toFixed(8);
+
+                    // Setelah dapet koordinat dari pencarian, terjemahkan lagi jadi alamat!
+                    autoFillAddress(newLat, newLon);
                 } else {
                     Swal.fire({icon: 'error', title: 'Oops...', text: 'Lokasi tidak ditemukan. Coba nama yang lebih spesifik.', customClass: { popup: 'rounded-2xl' }});
                 }
@@ -364,7 +407,7 @@
             });
     }
 
-    // Biar search bisa pake tombol Enter
+    // Eksekusi pencarian dengan tombol Enter
     document.getElementById('searchLokasi').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -372,18 +415,21 @@
         }
     });
 
+    // Jalankan Reverse Geocoding sekali saat halaman dimuat (jika kota kosong)
+    if(kotaInput.value === '' || kotaInput.value === 'Silakan Set Ulang Alamat') {
+        autoFillAddress(startLat, startLng);
+    }
+
     // ----------------------------------------------------
-    // SCRIPT ORIGINAL LAINNYA
+    // SCRIPT ORIGINAL LAINNYA (Preview Logo & Submit)
     // ----------------------------------------------------
-    
-    // 1. LIVE PREVIEW IMAGE (Logo & Banner)
     function previewImage(input, previewId, placeholderId = null) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
             reader.onload = function(e) {
                 const previewImg = document.getElementById(previewId);
                 previewImg.src = e.target.result;
-                previewImg.classList.remove('hidden'); 
+                previewImg.classList.remove('hidden');
 
                 if(placeholderId) {
                     document.getElementById(placeholderId).classList.add('hidden');
@@ -393,7 +439,6 @@
         }
     }
 
-    // 2. CHARACTER COUNTER
     function initCounter(inputId, counterId, maxLen) {
         const input = document.getElementById(inputId);
         const counter = document.getElementById(counterId);
@@ -408,13 +453,12 @@
         };
 
         input.addEventListener('input', updateCount);
-        updateCount(); 
+        updateCount();
     }
 
     initCounter('inputNama', 'countNama', 50);
     initCounter('inputSlogan', 'countSlogan', 100);
 
-    // 3. LOADING STATE SUBMIT
     document.getElementById('profileForm').addEventListener('submit', function() {
         const btn = document.getElementById('btnSubmitProfile');
         btn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Menyimpan...';
