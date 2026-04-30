@@ -43,7 +43,7 @@ class ShopController extends Controller
         $request->validate([
             'nama_toko'      => 'required|string|max:50',
             'slogan'         => 'nullable|string|max:100',
-            'deskripsi'      => 'nullable|string|max:1000',
+            'deskripsi_toko' => 'nullable|string|max:1000',
             'no_telepon'     => 'required|string|max:20',
             'alamat_lengkap' => 'required|string|max:255',
             'kota'           => 'required|string|max:100',
@@ -56,7 +56,7 @@ class ShopController extends Controller
         $dataUpdate = [
             'nama_toko'      => $request->nama_toko,
             'slogan'         => $request->slogan,
-            'deskripsi_toko' => $request->deskripsi_toko,
+            'deskripsi_toko' => $request->deskripsi,
             'telepon_toko'   => $request->no_telepon,
             'alamat_toko'    => $request->alamat_lengkap,
             // 'kota' dihilangkan karena database menggunakan city_id, bukan string kota
