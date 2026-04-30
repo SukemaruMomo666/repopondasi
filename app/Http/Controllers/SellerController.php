@@ -241,7 +241,7 @@ class SellerController extends Controller
     }
 
     // =========================================================================
-    // 4. PENGATURAN PENGIRIMAN (LOGISTIK B2B)
+    // 4. PENGATURAN PENGIRIMAN (LOGISTIK B2B) - SINKRONISASI ADMIN & SELLER
     // =========================================================================
     public function pengaturanPengiriman()
     {
@@ -252,6 +252,7 @@ class SellerController extends Controller
             return redirect()->route('seller.dashboard')->with('error', 'Data toko tidak ditemukan.');
         }
 
+        // 1. Daftar Kurir Kustom Toko
         $kurirList = DB::table('tb_kurir_toko')
             ->where('toko_id', $toko->id)
             ->orderBy('tipe_kurir', 'asc')
@@ -268,7 +269,38 @@ class SellerController extends Controller
             $groupedKurir[$kurir->tipe_kurir][] = $kurir;
         }
 
-        return view('seller.pengaturan_pengiriman', compact('groupedKurir', 'tipeOrder', 'toko'));
+        // 2. Ambil Kebijakan Global Admin
+        $settingsData = DB::table('tb_pengaturan')->get();
+        $adminSettings = [];
+        foreach ($settingsData as $row) {
+            $adminSettings[$row->setting_nama] = $row->setting_nilai;
+        }
+
+        // 3. Ambil Daftar Ekspedisi yang DIAKTIFKAN Admin
+        $admin_active_couriers = json_decode($adminSettings['api_active_couriers'] ?? '[]', true);
+        if(!is_array($admin_active_couriers)) $admin_active_couriers = [];
+
+        // 4. Kamus Master Kurir untuk Data View (Nama, Icon, dll)
+        $master_couriers = [
+            'jne'      => ['name' => 'JNE Express', 'type' => 'Reguler & Kargo', 'icon' => 'mdi-truck-fast'],
+            'pos'      => ['name' => 'POS Indonesia', 'type' => 'Reguler', 'icon' => 'mdi-postbox'],
+            'tiki'     => ['name' => 'TIKI', 'type' => 'Reguler', 'icon' => 'mdi-truck-outline'],
+            'jnt'      => ['name' => 'J&T Express', 'type' => 'Reguler & Cargo', 'icon' => 'mdi-truck-delivery'],
+            'sicepat'  => ['name' => 'SiCepat', 'type' => 'Reguler & Kargo', 'icon' => 'mdi-lightning-bolt'],
+            'ninja'    => ['name' => 'Ninja Xpress', 'type' => 'Reguler', 'icon' => 'mdi-ninja'],
+            'lion'     => ['name' => 'Lion Parcel', 'type' => 'Reguler', 'icon' => 'mdi-airplane-takeoff'],
+            'anteraja' => ['name' => 'AnterAja', 'type' => 'Reguler', 'icon' => 'mdi-truck-check'],
+            'indah'    => ['name' => 'Indah Logistik', 'type' => 'Kargo Berat', 'icon' => 'mdi-truck-flatbed'],
+            'wahana'   => ['name' => 'Wahana Express', 'type' => 'Kargo & Ekonomi', 'icon' => 'mdi-weight-kilogram'],
+            'sap'      => ['name' => 'SAP Express', 'type' => 'Reguler', 'icon' => 'mdi-map-marker-path'],
+            'ide'      => ['name' => 'ID Express', 'type' => 'Reguler', 'icon' => 'mdi-truck-fast-outline'],
+            'sentral'  => ['name' => 'Sentral Cargo', 'type' => 'Kargo', 'icon' => 'mdi-package-variant-closed'],
+            'rex'      => ['name' => 'REX Express', 'type' => 'Kargo', 'icon' => 'mdi-truck-cargo-container'],
+        ];
+
+        return view('seller.pengaturan_pengiriman', compact(
+            'groupedKurir', 'tipeOrder', 'toko', 'adminSettings', 'admin_active_couriers', 'master_couriers'
+        ));
     }
 
     /**
@@ -294,7 +326,7 @@ class SellerController extends Controller
             if (!isset($preferences['bopis'])) $preferences['bopis'] = '0';
             if (!isset($preferences['custom_fleet'])) $preferences['custom_fleet'] = '0';
 
-            // Tangkap data ekspedisi API yang dicentang
+            // Tangkap data ekspedisi API yang dicentang seller
             $apiCouriers = $request->input('api_couriers', []);
 
             // Simpan sebagai JSON ke tabel tb_toko
@@ -853,6 +885,8 @@ class SellerController extends Controller
             return redirect()->route('seller.dashboard')->with('error', 'Data toko tidak ditemukan.');
         }
 
+        $saldo_aktif = $toko->saldo_aktif;
+
         $penghasilan_pending = DB::table('tb_detail_transaksi as d')
             ->join('tb_transaksi as t', 'd.transaksi_id', '=', 't.id')
             ->where('d.toko_id', $toko->id)
@@ -864,13 +898,6 @@ class SellerController extends Controller
             ->where('toko_id', $toko->id)
             ->where('status_pesanan_item', 'sampai_tujuan')
             ->sum('subtotal');
-
-        $dana_ditarik = DB::table('tb_payouts')
-            ->where('toko_id', $toko->id)
-            ->whereIn('status', ['pending', 'completed'])
-            ->sum('jumlah_payout');
-
-        $saldo_aktif = $penghasilan_kotor - $dana_ditarik;
 
         $dilepas_minggu_ini = DB::table('tb_detail_transaksi as d')
             ->join('tb_transaksi as t', 'd.transaksi_id', '=', 't.id')
@@ -923,25 +950,39 @@ class SellerController extends Controller
             'jumlah_payout' => 'required|numeric|min:50000'
         ]);
 
-        $user = Auth::user();
-        $toko = DB::table('tb_toko')->where('user_id', $user->id)->first();
+        $toko = DB::table('tb_toko')->where('user_id', Auth::id())->first();
 
-        $penghasilan_kotor = DB::table('tb_detail_transaksi')->where('toko_id', $toko->id)->where('status_pesanan_item', 'sampai_tujuan')->sum('subtotal');
-        $dana_ditarik = DB::table('tb_payouts')->where('toko_id', $toko->id)->whereIn('status', ['pending', 'completed'])->sum('jumlah_payout');
-        $saldo_aktif = $penghasilan_kotor - $dana_ditarik;
-
-        if ($request->jumlah_payout > $saldo_aktif) {
-            return back()->with('error', 'Penarikan ditolak! Nominal melebihi Saldo Aktif Anda.');
+        if ($request->jumlah_payout > $toko->saldo_aktif) {
+            return back()->with('error', 'Penarikan ditolak! Nominal melebihi Saldo Aktif Anda saat ini.');
         }
 
-        DB::table('tb_payouts')->insert([
-            'toko_id' => $toko->id,
-            'jumlah_payout' => $request->jumlah_payout,
-            'status' => 'pending',
-            'tanggal_request' => now()
-        ]);
+        DB::beginTransaction();
+        try {
+            $payoutId = DB::table('tb_payouts')->insertGetId([
+                'toko_id' => $toko->id,
+                'jumlah_payout' => $request->jumlah_payout,
+                'status' => 'pending',
+                'tanggal_request' => now()
+            ]);
 
-        return back()->with('success', 'Berhasil! Permintaan pencairan dana sedang diproses oleh admin.');
+            DB::table('tb_toko')->where('id', $toko->id)->decrement('saldo_aktif', $request->jumlah_payout);
+
+            DB::table('tb_mutasi_saldo')->insert([
+                'toko_id'      => $toko->id,
+                'payout_id'    => $payoutId,
+                'jenis_mutasi' => 'DEBIT',
+                'nominal'      => $request->jumlah_payout,
+                'keterangan'   => 'Penarikan Dana (Payout Pending)',
+                'saldo_akhir'  => $toko->saldo_aktif - $request->jumlah_payout,
+                'created_at'   => now()
+            ]);
+
+            DB::commit();
+            return back()->with('success', 'Berhasil! Permintaan pencairan dana sebesar Rp '.number_format($request->jumlah_payout,0,',','.').' sedang diproses.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal memproses penarikan: ' . $e->getMessage());
+        }
     }
 
     // =========================================================================
