@@ -3,30 +3,44 @@
 @section('title', 'Profil & Legalitas Toko')
 
 @push('styles')
-{{-- LEAFLET CSS - WAJIB UNTUK PETA --}}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+{{-- LEAFLET CSS --}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .upload-hover:hover .upload-overlay { opacity: 1; }
-
+    
+    /* Animasi Upload & Interaksi */
+    .upload-hover { transition: all 0.3s ease; }
+    .upload-hover:hover { border-color: #3b82f6; background-color: #eff6ff; }
+    .upload-hover:hover .upload-overlay { opacity: 1; backdrop-filter: blur(2px); }
+    
     /* FIX BUG PETA PECAH / GREY TILES */
     #map {
         width: 100% !important;
-        height: 400px !important;
-        border-radius: 1.5rem;
-        border: 2px solid #e2e8f0;
-        z-index: 1 !important;
+        height: 350px !important;
+        border-radius: 1rem;
+        border: 1px solid #e2e8f0;
+        z-index: 10 !important;
     }
-    .leaflet-tile-container img { width: 256.5px !important; height: 256.5px !important; }
-
-    /* Style Input Otomatis (Readonly) */
+    
+    /* Style Custom Dropzone Dokumen */
+    .file-dropzone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        background: #f8fafc;
+    }
+    .file-dropzone:hover { border-color: #3b82f6; background: #eff6ff; }
+    
+    /* Input Auto Styling */
     .input-auto {
         background-color: #f1f5f9 !important;
-        color: #475569 !important;
+        color: #64748b !important;
         cursor: not-allowed;
-        border-color: #e2e8f0 !important;
-        font-weight: 700;
+        font-weight: 600;
     }
 </style>
 @endpush
@@ -43,18 +57,21 @@
         });
     </script>
     @if(session('success'))
-        <script>document.addEventListener('DOMContentLoaded', () => Toast.fire({icon: 'success', title: '{{ session('success') }}'}));</script>
+        <script>document.addEventListener('DOMContentLoaded', () => Toast.fire({icon: 'success', title: '{{ session("success") }}'}));</script>
+    @endif
+    @if($errors->any())
+        <script>document.addEventListener('DOMContentLoaded', () => Toast.fire({icon: 'error', title: 'Periksa kembali form Anda!'}));</script>
     @endif
 
     {{-- HEADER --}}
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
-                <i class="mdi mdi-store-check text-2xl"></i>
+            <div class="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                <i class="mdi mdi-store-cog-outline text-3xl"></i>
             </div>
             <div>
-                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Manajemen Profil B2B</h1>
-                <p class="text-sm font-medium text-slate-500 mt-0.5">Lengkapi data legalitas dan titik jemput logistik armada berat.</p>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Profil & Legalitas Toko</h1>
+                <p class="text-sm font-medium text-slate-500 mt-0.5">Kelola identitas B2B, dokumen legal, dan titik jemput logistik armada.</p>
             </div>
         </div>
     </div>
@@ -63,62 +80,88 @@
         @csrf
         @method('PUT')
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
 
             {{-- KOLOM KIRI: VISUAL & DATA LEGAL --}}
             <div class="lg:col-span-4 space-y-6">
 
                 {{-- LOGO & BANNER --}}
-                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-                    <h3 class="text-sm font-black text-slate-800 mb-6 flex items-center gap-2">
-                        <i class="mdi mdi-image-multiple text-blue-500"></i> Visual Branding
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/60">
+                    <h3 class="text-sm font-black text-slate-800 mb-5 flex items-center gap-2">
+                        <i class="mdi mdi-image-multiple text-blue-500 text-lg"></i> Visual Branding
                     </h3>
 
                     {{-- Logo --}}
-                    <div class="relative w-32 h-32 mx-auto rounded-3xl border-4 border-slate-50 shadow-md overflow-hidden group upload-hover cursor-pointer mb-6" onclick="document.getElementById('logoInput').click()">
-                        @php $logoUrl = !empty($toko->logo_toko) ? asset('assets/uploads/logos/'.$toko->logo_toko) : 'https://placehold.co/200x200?text=Logo'; @endphp
+                    <div class="relative w-32 h-32 mx-auto rounded-full border-4 border-slate-50 shadow-md overflow-hidden group upload-hover mb-6" onclick="document.getElementById('logoInput').click()">
+                        @php $logoUrl = !empty($toko->logo_toko) ? asset('assets/uploads/logos/'.$toko->logo_toko) : 'https://ui-avatars.com/api/?name='.urlencode($toko->nama_toko ?? 'Toko').'&background=e2e8f0&color=475569&size=200'; @endphp
                         <img id="logoPreview" src="{{ $logoUrl }}" class="w-full h-full object-cover">
-                        <div class="upload-overlay absolute inset-0 bg-slate-900/50 flex flex-col items-center justify-center text-white opacity-0 transition-opacity">
-                            <i class="mdi mdi-camera text-2xl"></i>
+                        <div class="upload-overlay absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center text-white opacity-0 transition-all duration-300">
+                            <i class="mdi mdi-camera-plus text-2xl mb-1"></i>
+                            <span class="text-[10px] font-bold tracking-wider uppercase">Ubah Logo</span>
                         </div>
                     </div>
-                    <input type="file" id="logoInput" name="logo_toko" class="hidden" accept="image/*" onchange="previewImage(this, 'logoPreview')">
+                    <input type="file" id="logoInput" name="logo_toko" class="hidden" accept="image/jpeg,image/png,image/jpg" onchange="previewImage(this, 'logoPreview')">
 
                     {{-- Banner --}}
-                    <div class="relative w-full h-28 rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden group upload-hover cursor-pointer bg-slate-50 flex items-center justify-center" onclick="document.getElementById('bannerInput').click()">
+                    <label class="block text-xs font-bold text-slate-700 mb-2">Banner Toko (Opsional)</label>
+                    <div class="relative w-full h-32 rounded-2xl border-2 border-dashed border-slate-200 overflow-hidden group upload-hover flex items-center justify-center" onclick="document.getElementById('bannerInput').click()">
                         @if(!empty($toko->banner_toko))
                             <img id="bannerPreview" src="{{ asset('assets/uploads/banners/'.$toko->banner_toko) }}" class="absolute inset-0 w-full h-full object-cover">
                         @else
                             <img id="bannerPreview" src="" class="absolute inset-0 w-full h-full object-cover hidden">
-                            <div id="bannerPlaceholder" class="text-center text-slate-400">
-                                <i class="mdi mdi-upload text-2xl"></i>
-                                <div class="text-[10px] font-bold">Upload Banner</div>
+                            <div id="bannerPlaceholder" class="text-center text-slate-500">
+                                <i class="mdi mdi-panorama-variant-outline text-3xl mb-1 text-slate-400"></i>
+                                <div class="text-xs font-bold">Upload Banner</div>
+                                <div class="text-[10px] text-slate-400 mt-1">Rekomendasi: 1200x300px (Maks 2MB)</div>
                             </div>
                         @endif
-                        <div class="upload-overlay absolute inset-0 bg-slate-900/50 flex flex-col items-center justify-center text-white opacity-0 transition-opacity z-20">
-                            <i class="mdi mdi-image-edit text-xl"></i>
+                        <div class="upload-overlay absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center text-white opacity-0 transition-all duration-300 z-20">
+                            <i class="mdi mdi-image-edit-outline text-2xl"></i>
                         </div>
                     </div>
-                    <input type="file" id="bannerInput" name="banner_toko" class="hidden" accept="image/*" onchange="previewImage(this, 'bannerPreview', 'bannerPlaceholder')">
+                    <input type="file" id="bannerInput" name="banner_toko" class="hidden" accept="image/jpeg,image/png,image/jpg" onchange="previewImage(this, 'bannerPreview', 'bannerPlaceholder')">
                 </div>
 
                 {{-- DOKUMEN LEGALITAS --}}
-                <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-                    <h3 class="text-sm font-black text-slate-800 mb-2 flex items-center gap-2">
-                        <i class="mdi mdi-file-certificate text-amber-500"></i> Dokumen Bisnis
-                    </h3>
-                    <p class="text-[10px] font-bold text-slate-400 mb-4 uppercase tracking-tighter">Syarat untuk tender & official lencana</p>
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/60">
+                    <div class="mb-5">
+                        <h3 class="text-sm font-black text-slate-800 flex items-center gap-2">
+                            <i class="mdi mdi-file-certificate-outline text-amber-500 text-lg"></i> Dokumen Bisnis
+                        </h3>
+                        <p class="text-[11px] font-medium text-slate-500 mt-1">Syarat wajib untuk mengikuti tender & mendapatkan lencana <span class="font-bold text-blue-600">Official Store</span>.</p>
+                    </div>
 
                     <div class="space-y-4">
+                        {{-- NIB --}}
                         <div>
-                            <label class="block text-[11px] font-black text-slate-700 mb-1">Nomor Induk Berusaha (NIB)</label>
-                            <input type="file" name="dokumen_nib" class="w-full text-xs border border-slate-200 rounded-lg p-2 outline-none">
-                            @if(!empty($toko->dokumen_nib)) <span class="text-[9px] text-emerald-600 font-bold"><i class="mdi mdi-check"></i> File Terunggah</span> @endif
+                            <label class="block text-xs font-bold text-slate-700 mb-2">Nomor Induk Berusaha (NIB) *</label>
+                            <div class="file-dropzone" onclick="document.getElementById('nibInput').click()">
+                                <input type="file" id="nibInput" name="dokumen_nib" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'nibName')">
+                                <i class="mdi mdi-cloud-upload-outline text-2xl text-slate-400 mb-1"></i>
+                                <div id="nibName" class="text-xs font-bold text-slate-600">
+                                    @if(!empty($toko->dokumen_nib)) 
+                                        <span class="text-emerald-600"><i class="mdi mdi-check-circle"></i> {{ $toko->dokumen_nib }}</span>
+                                    @else 
+                                        Klik untuk upload PDF/JPG 
+                                    @endif
+                                </div>
+                            </div>
                         </div>
+
+                        {{-- NPWP --}}
                         <div>
-                            <label class="block text-[11px] font-black text-slate-700 mb-1">NPWP Perusahaan/Pribadi</label>
-                            <input type="file" name="dokumen_npwp" class="w-full text-xs border border-slate-200 rounded-lg p-2 outline-none">
-                            @if(!empty($toko->dokumen_npwp)) <span class="text-[9px] text-emerald-600 font-bold"><i class="mdi mdi-check"></i> File Terunggah</span> @endif
+                            <label class="block text-xs font-bold text-slate-700 mb-2">NPWP Perusahaan / Pribadi *</label>
+                            <div class="file-dropzone" onclick="document.getElementById('npwpInput').click()">
+                                <input type="file" id="npwpInput" name="dokumen_npwp" class="hidden" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'npwpName')">
+                                <i class="mdi mdi-cloud-upload-outline text-2xl text-slate-400 mb-1"></i>
+                                <div id="npwpName" class="text-xs font-bold text-slate-600">
+                                    @if(!empty($toko->dokumen_npwp)) 
+                                        <span class="text-emerald-600"><i class="mdi mdi-check-circle"></i> {{ $toko->dokumen_npwp }}</span>
+                                    @else 
+                                        Klik untuk upload PDF/JPG 
+                                    @endif
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -128,91 +171,124 @@
             <div class="lg:col-span-8 space-y-6">
 
                 {{-- INFORMASI DASAR --}}
-                <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                <div class="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200/60">
                     <div class="bg-slate-50/80 px-6 py-4 border-b border-slate-100">
                         <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Informasi Identitas</h3>
                     </div>
                     <div class="p-6 space-y-5">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Nama Toko Resmi *</label>
-                                <input type="text" name="nama_toko" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" value="{{ $toko->nama_toko ?? '' }}" required>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Nama Toko Resmi <span class="text-red-500">*</span></label>
+                                <input type="text" name="nama_toko" class="w-full bg-white border border-slate-300 text-slate-900 text-sm font-semibold rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" value="{{ $toko->nama_toko ?? '' }}" required>
                             </div>
                             <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">WhatsApp Toko *</label>
-                                <div class="flex border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-600 transition-all">
-                                    <span class="bg-slate-100 px-4 py-3 text-slate-500 font-black border-r border-slate-200">+62</span>
-                                    <input type="text" name="no_telepon" class="w-full bg-slate-50 px-4 py-3 text-sm font-bold outline-none" value="{{ ltrim($toko->telepon_toko ?? '', '0') }}" placeholder="8123xxx" required>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">WhatsApp Admin Toko <span class="text-red-500">*</span></label>
+                                <div class="flex border border-slate-300 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-all bg-white">
+                                    <span class="bg-slate-100 px-4 py-3 text-slate-600 font-bold border-r border-slate-200">+62</span>
+                                    <input type="number" name="no_telepon" class="w-full px-4 py-3 text-sm font-semibold outline-none bg-transparent" value="{{ ltrim($toko->telepon_toko ?? '', '0') }}" placeholder="8123456xxxx" required>
                                 </div>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Slogan / Tagline</label>
-                            <input type="text" name="slogan" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-semibold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" value="{{ $toko->slogan ?? '' }}" placeholder="Cth: Supplier Semen Terlengkap Se-Jawa Barat">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Slogan / Tagline Bisnis</label>
+                            <input type="text" name="slogan" class="w-full bg-white border border-slate-300 text-slate-900 text-sm font-semibold rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" value="{{ $toko->slogan ?? '' }}" placeholder="Cth: Supplier Material Konstruksi Terlengkap di Jawa Barat">
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Deskripsi Bisnis</label>
-                            <textarea name="deskripsi_toko" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none min-h-[100px] resize-none">{{ $toko->deskripsi_toko ?? '' }}</textarea>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Deskripsi Lengkap Toko</label>
+                            <textarea name="deskripsi_toko" class="w-full bg-white border border-slate-300 text-slate-900 text-sm leading-relaxed font-medium rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none min-h-[120px] resize-none" placeholder="Ceritakan sejarah toko, keunggulan, dan jenis material yang Anda jual...">{{ $toko->deskripsi_toko ?? '' }}</textarea>
                         </div>
                     </div>
                 </div>
 
-                {{-- LOKASI PRESIPI PETA --}}
-                <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                {{-- LOKASI & PETA (SUDAH DIKOREKSI LOGIKANYA) --}}
+                <div class="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200/60">
                     <div class="bg-slate-50/80 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Titik Koordinat & Alamat</h3>
+                        <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Alamat & Titik Jemput Logistik</h3>
                     </div>
                     <div class="p-6 space-y-6">
-                        {{-- SEARCH --}}
-                        <div class="flex gap-2">
-                            <input type="text" id="searchLokasi" class="flex-1 bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" placeholder="Cari lokasi: Nama Jalan, Kecamatan, atau Kota...">
-                            <button type="button" onclick="cariLokasiMap()" class="bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-md">
-                                <i class="mdi mdi-magnify"></i> Cari
-                            </button>
+                        
+                        {{-- INFO PENTING UNTUK USER --}}
+                        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
+                            <i class="mdi mdi-information text-blue-600 text-xl"></i>
+                            <div class="text-sm text-blue-800">
+                                <p class="font-bold mb-1">Panduan Pengaturan Lokasi:</p>
+                                <ul class="list-disc pl-4 space-y-1 text-xs font-medium">
+                                    <li><strong>Dropdown Alamat</strong> digunakan untuk menghitung ongkos kirim reguler (JNE, Cargo, dll).</li>
+                                    <li><strong>Titik Peta (Pin)</strong> digunakan untuk rute kurir toko / armada berat (Truk Pasir, Pick Up).</li>
+                                </ul>
+                            </div>
                         </div>
 
-                        {{-- MAP --}}
-                        <div id="map"></div>
-
-                        {{-- ALAMAT OTOMATIS --}}
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {{-- DROPDOWN WILAYAH (SANGAT DISARANKAN MENGGUNAKAN SELECT2 & AJAX KE DATABASE PROVINSI) --}}
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                             <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Kabupaten/Kota (Otomatis)</label>
-                                <input type="text" name="kota" id="inputKota" class="w-full input-auto border border-slate-200 text-sm rounded-xl px-4 py-3 outline-none" value="{{ $toko->kota ?? '' }}" readonly required>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Provinsi <span class="text-red-500">*</span></label>
+                                {{-- GANTI DENGAN SELECT YANG MENGAMBIL DARI $provinces --}}
+                                <select name="province_id" class="w-full bg-white border border-slate-300 text-sm font-semibold rounded-xl px-4 py-3 outline-none" required>
+                                    <option value="">Pilih Provinsi</option>
+                                    <option value="2" selected>JAWA BARAT</option> {{-- Dummy Default berdasarkan DB --}}
+                                </select>
                             </div>
                             <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Kode Pos (Otomatis)</label>
-                                <input type="text" name="kode_pos" id="inputKodePos" class="w-full input-auto border border-slate-200 text-sm rounded-xl px-4 py-3 outline-none" value="{{ $toko->kode_pos ?? '' }}" readonly required>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Kabupaten/Kota <span class="text-red-500">*</span></label>
+                                <select name="city_id" class="w-full bg-white border border-slate-300 text-sm font-semibold rounded-xl px-4 py-3 outline-none" required>
+                                    <option value="21" selected>KABUPATEN SUBANG</option> {{-- Dummy --}}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Kecamatan <span class="text-red-500">*</span></label>
+                                <select name="district_id" class="w-full bg-white border border-slate-300 text-sm font-semibold rounded-xl px-4 py-3 outline-none" required>
+                                    <option value="215" selected>Pagaden</option> {{-- Dummy --}}
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="border-slate-200">
+
+                        {{-- SEARCH PETA --}}
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Geser Pin Peta Sesuai Lokasi Gudang/Toko</label>
+                            <div class="flex gap-2 mb-3">
+                                <div class="relative flex-1">
+                                    <i class="mdi mdi-map-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                                    <input type="text" id="searchLokasi" class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm font-semibold rounded-xl pl-11 pr-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Cari nama jalan atau area di peta...">
+                                </div>
+                                <button type="button" onclick="cariLokasiMap()" class="bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-md">
+                                    Cari
+                                </button>
+                            </div>
+                            
+                            {{-- MAP CONTAINER --}}
+                            <div class="relative rounded-2xl overflow-hidden shadow-inner">
+                                <div id="map"></div>
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Alamat Detail & Patokan (Manual) *</label>
-                            <textarea name="alamat_lengkap" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all min-h-[80px] resize-none" placeholder="Isi Detail: No Bangunan, RT/RW, Patokan Gudang..." required>{{ $toko->alamat_toko ?? '' }}</textarea>
-                            <p class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tighter italic">* Alamat ini adalah titik jemput logistik armada besar.</p>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Alamat Detail & Patokan <span class="text-red-500">*</span></label>
+                            <textarea name="alamat_toko" class="w-full bg-white border border-slate-300 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all min-h-[80px] resize-none" placeholder="Cth: Jl. Raya Pantura No. 45. Gudang warna biru, pagar hitam. Samping Pom Bensin." required>{{ $toko->alamat_toko ?? '' }}</textarea>
                         </div>
 
-                        {{-- HIDDEN COORDS --}}
+                        {{-- HIDDEN COORDS UNTUK DATABASE --}}
                         <input type="hidden" name="latitude" id="latitude" value="{{ $toko->latitude ?? '-6.558935' }}">
                         <input type="hidden" name="longitude" id="longitude" value="{{ $toko->longitude ?? '107.763321' }}">
                     </div>
                 </div>
 
                 {{-- KEBIJAKAN B2B --}}
-                <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                <div class="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200/60">
                     <div class="bg-slate-50/80 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-                        <i class="mdi mdi-shield-account text-indigo-600 text-lg"></i>
                         <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Ketentuan & Kebijakan Toko</h3>
                     </div>
                     <div class="p-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2 text-indigo-600">Catatan Khusus Pemesanan</label>
-                                <textarea name="catatan_toko" class="w-full bg-indigo-50/30 border border-indigo-100 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-indigo-600 outline-none min-h-[120px] resize-none" placeholder="Contoh: Pesanan semen minimal 50 sak. Truk hanya masuk jalan aspal...">{{ $toko->catatan_toko ?? '' }}</textarea>
+                                <label class="block text-sm font-bold text-indigo-700 mb-2">Catatan Khusus Pemesanan</label>
+                                <textarea name="catatan_toko" class="w-full bg-indigo-50/30 border border-indigo-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none min-h-[120px] resize-none" placeholder="Contoh: Pesanan semen minimal 50 sak. Armada truk pembeli harus bak terbuka...">{{ $toko->catatan_toko ?? '' }}</textarea>
                             </div>
                             <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2 text-red-600">Kebijakan Retur Material</label>
-                                <textarea name="kebijakan_retur" class="w-full bg-red-50/30 border border-red-100 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-red-600 outline-none min-h-[120px] resize-none" placeholder="Contoh: Semen cair tidak dapat dikembalikan. Besi yang dipotong tidak bisa retur...">{{ $toko->kebijakan_retur ?? '' }}</textarea>
+                                <label class="block text-sm font-bold text-red-700 mb-2">Kebijakan Retur Material</label>
+                                <textarea name="kebijakan_retur" class="w-full bg-red-50/30 border border-red-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:ring-2 focus:ring-red-500 outline-none min-h-[120px] resize-none" placeholder="Contoh: Batas waktu komplain 1x24 jam. Besi yang sudah dipotong custom tidak bisa dikembalikan...">{{ $toko->kebijakan_retur ?? '' }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -222,12 +298,18 @@
         </div>
 
         {{-- STICKY SAVE BAR --}}
-        <div class="fixed bottom-0 left-0 lg:left-[260px] right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 px-6 py-4 flex items-center justify-between z-40 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.05)]">
-            <div class="hidden sm:block">
-                <p class="text-xs font-bold text-slate-500 m-0"><i class="mdi mdi-map-marker-check text-blue-500"></i> Pastikan titik peta sudah sesuai sebelum menyimpan.</p>
+        <div class="fixed bottom-0 left-0 lg:left-[260px] right-0 bg-white/95 backdrop-blur-sm border-t border-slate-200 px-6 py-4 flex items-center justify-between z-40 shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.05)]">
+            <div class="hidden sm:flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                    <i class="mdi mdi-shield-check"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-700 m-0">Pastikan data sudah benar.</p>
+                    <p class="text-[10px] text-slate-500">Perubahan legalitas mungkin membutuhkan review Admin.</p>
+                </div>
             </div>
-            <button type="submit" id="btnSubmitProfile" class="w-full sm:w-auto px-10 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-3">
-                <i class="mdi mdi-content-save-check text-xl"></i> SIMPAN PROFIL TOKO
+            <button type="submit" id="btnSubmitProfile" class="w-full sm:w-auto px-10 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-3">
+                <i class="mdi mdi-content-save-check text-xl"></i> SIMPAN PERUBAHAN
             </button>
         </div>
     </form>
@@ -236,95 +318,91 @@
 
 @push('scripts')
 {{-- SCRIPT LEAFLET --}}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const latInput = document.getElementById('latitude');
-    const lngInput = document.getElementById('longitude');
-    const kotaInput = document.getElementById('inputKota');
-    const kodePosInput = document.getElementById('inputKodePos');
+    document.addEventListener("DOMContentLoaded", function() {
+        const latInput = document.getElementById('latitude');
+        const lngInput = document.getElementById('longitude');
 
-    let currentLat = parseFloat(latInput.value) || -6.558935;
-    let currentLng = parseFloat(lngInput.value) || 107.763321;
+        let currentLat = parseFloat(latInput.value) || -6.558935;
+        let currentLng = parseFloat(lngInput.value) || 107.763321;
 
-    // 1. INISIALISASI PETA DENGAN FIX BUG TILES
-    const map = L.map('map', {
-        center: [currentLat, currentLng],
-        zoom: 15,
-        fadeAnimation: false,
-        zoomAnimation: false
+        // 1. INISIALISASI PETA
+        const map = L.map('map').setView([currentLat, currentLng], 15);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // Custom Marker Icon yang lebih profesional
+        const customIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        const marker = L.marker([currentLat, currentLng], { draggable: true, icon: customIcon }).addTo(map);
+
+        // SOLUSI TERBAIK UNTUK BUG GREY TILES LEAFLET
+        setTimeout(function() {
+            map.invalidateSize();
+        }, 300);
+
+        // 2. EVENT HANDLERS MARKER
+        marker.on('dragend', function (e) {
+            const p = e.target.getLatLng();
+            latInput.value = p.lat.toFixed(8);
+            lngInput.value = p.lng.toFixed(8);
+        });
+
+        map.on('click', function(e) {
+            marker.setLatLng(e.latlng);
+            latInput.value = e.latlng.lat.toFixed(8);
+            lngInput.value = e.latlng.lng.toFixed(8);
+        });
+
+        // 3. FUNGSI PENCARIAN PETA
+        window.cariLokasiMap = function() {
+            const query = document.getElementById('searchLokasi').value;
+            if(query.length < 3) {
+                Toast.fire({icon: 'warning', title: 'Ketik minimal 3 karakter untuk mencari'});
+                return;
+            }
+
+            const btn = event.currentTarget;
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i>';
+            btn.disabled = true;
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                    btn.innerHTML = original;
+                    btn.disabled = false;
+                    
+                    if(data.length > 0) {
+                        const res = data[0];
+                        map.setView([res.lat, res.lon], 16);
+                        marker.setLatLng([res.lat, res.lon]);
+                        latInput.value = parseFloat(res.lat).toFixed(8);
+                        lngInput.value = parseFloat(res.lon).toFixed(8);
+                    } else {
+                        Toast.fire({icon: 'error', title: 'Lokasi tidak ditemukan di peta'});
+                    }
+                })
+                .catch(() => {
+                    btn.innerHTML = original;
+                    btn.disabled = false;
+                    Toast.fire({icon: 'error', title: 'Terjadi kesalahan jaringan'});
+                });
+        }
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap'
-    }).addTo(map);
-
-    const marker = L.marker([currentLat, currentLng], { draggable: true }).addTo(map);
-
-    // Force refresh size
-    setTimeout(() => { map.invalidateSize(); }, 500);
-
-    // 2. FUNGSI REVERSE GEOCODING (COORD -> ALAMAT)
-    function fetchAddress(lat, lng) {
-        kotaInput.value = "Menyesuaikan lokasi...";
-        kodePosInput.value = "...";
-
-        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
-            .then(res => res.json())
-            .then(data => {
-                if(data.address) {
-                    const addr = data.address;
-                    const city = addr.city || addr.town || addr.municipality || addr.county || addr.state_district || "";
-                    kotaInput.value = city;
-                    kodePosInput.value = addr.postcode || "";
-                }
-            })
-            .catch(() => {
-                kotaInput.value = "Gagal mengambil data";
-            });
-    }
-
-    // 3. EVENT HANDLERS
-    marker.on('dragend', function (e) {
-        const p = e.target.getLatLng();
-        latInput.value = p.lat.toFixed(8);
-        lngInput.value = p.lng.toFixed(8);
-        fetchAddress(p.lat, p.lng);
-    });
-
-    map.on('click', function(e) {
-        marker.setLatLng(e.latlng);
-        latInput.value = e.latlng.lat.toFixed(8);
-        lngInput.value = e.latlng.lng.toFixed(8);
-        fetchAddress(e.latlng.lat, e.latlng.lng);
-    });
-
-    function cariLokasiMap() {
-        const query = document.getElementById('searchLokasi').value;
-        if(query.length < 3) return alert('Ketik minimal 3 karakter');
-
-        const btn = event.currentTarget;
-        const original = btn.innerHTML;
-        btn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i>';
-
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
-            .then(res => res.json())
-            .then(data => {
-                btn.innerHTML = original;
-                if(data.length > 0) {
-                    const res = data[0];
-                    map.setView([res.lat, res.lon], 16);
-                    marker.setLatLng([res.lat, res.lon]);
-                    latInput.value = parseFloat(res.lat).toFixed(8);
-                    lngInput.value = parseFloat(res.lon).toFixed(8);
-                    fetchAddress(res.lat, res.lon);
-                } else {
-                    Swal.fire({icon: 'error', title: 'Tidak Ditemukan', text: 'Coba masukkan lokasi yang lebih spesifik.', customClass: { popup: 'rounded-2xl' }});
-                }
-            });
-    }
-
-    // 4. IMAGE PREVIEW
+    // 4. PREVIEW IMAGE (Logo & Banner)
     function previewImage(input, previewId, placeholderId = null) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -338,14 +416,20 @@
         }
     }
 
-    // 5. SUBMIT STATE
+    // 5. UPDATE NAMA FILE (NIB/NPWP)
+    function updateFileName(input, targetId) {
+        if(input.files && input.files.length > 0) {
+            const fileName = input.files[0].name;
+            document.getElementById(targetId).innerHTML = `<span class="text-blue-600"><i class="mdi mdi-check-circle"></i> File terpilih: ${fileName}</span>`;
+        }
+    }
+
+    // 6. LOADING STATE SAAT SUBMIT
     document.getElementById('profileForm').addEventListener('submit', function() {
         const btn = document.getElementById('btnSubmitProfile');
-        btn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> MEMPROSES...';
+        btn.innerHTML = '<i class="mdi mdi-loading mdi-spin text-xl"></i> MENYIMPAN DATA...';
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
         btn.disabled = true;
     });
-
-    // Jalankan awal jika data kosong
-    if(kotaInput.value === '') { fetchAddress(currentLat, currentLng); }
 </script>
 @endpush
