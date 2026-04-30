@@ -124,15 +124,18 @@ class SellerController extends Controller
             'dokumen_npwp'    => 'nullable|file|mimes:pdf,jpeg,png,jpg,webp|max:5120',
         ]);
 
+// Siapkan data dasar untuk diupdate (NAMA KIRI HARUS SAMA DENGAN DATABASE)
         $dataUpdate = [
             'nama_toko'       => $request->nama_toko,
             'slogan'          => $request->slogan,
-            'deskripsi_toko'  => $request->deskripsi_toko,
+            'deskripsi_toko'  => $request->deskripsi_toko,   // <-- Diperbaiki ke nama kolom DB yang benar
             'catatan_toko'    => $request->catatan_toko,
             'kebijakan_retur' => $request->kebijakan_retur,
-            'telepon_toko'    => $request->no_telepon,
-            'alamat_toko'     => $request->alamat_lengkap,
-            'kota'            => $request->kota,
+            'telepon_toko'    => $request->no_telepon,       // <-- Diperbaiki ke nama kolom DB yang benar
+            'alamat_toko'     => $request->alamat_lengkap,   // <-- Diperbaiki ke nama kolom DB yang benar
+            'province_id'     => $request->province_id,      // <-- Pakai relasi ID yang benar
+            'city_id'         => $request->city_id,          // <-- Pakai relasi ID yang benar
+            'district_id'     => $request->district_id,      // <-- Pakai relasi ID yang benar
             'kode_pos'        => $request->kode_pos,
             'latitude'        => $request->latitude,
             'longitude'       => $request->longitude,
