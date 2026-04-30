@@ -62,7 +62,7 @@
                     <h3 class="text-sm font-black text-slate-800 mb-4 text-left"><i class="mdi mdi-image-outline text-blue-500 me-1"></i> Logo Toko</h3>
 
                     <div class="relative w-40 h-40 mx-auto rounded-full border-4 border-slate-50 shadow-md overflow-hidden group upload-hover cursor-pointer" onclick="document.getElementById('logoInput').click()">
-                        @php $logoUrl = $toko->logo_toko ? asset('assets/uploads/shop/'.$toko->logo_toko) : 'https://placehold.co/200x200?text=Logo'; @endphp
+                        @php $logoUrl = !empty($toko->logo_toko) ? asset('assets/uploads/shop/'.$toko->logo_toko) : 'https://placehold.co/200x200?text=Logo'; @endphp
                         <img id="logoPreview" src="{{ $logoUrl }}" class="w-full h-full object-cover" alt="Logo Toko">
 
                         {{-- Overlay Edit --}}
@@ -83,7 +83,7 @@
                     <h3 class="text-sm font-black text-slate-800 mb-4"><i class="mdi mdi-panorama-variant-outline text-indigo-500 me-1"></i> Banner Toko</h3>
 
                     <div class="relative w-full h-32 rounded-2xl border-2 border-dashed border-slate-300 overflow-hidden group upload-hover cursor-pointer bg-slate-50 flex flex-col items-center justify-center" onclick="document.getElementById('bannerInput').click()">
-                        @if($toko->banner_toko)
+                        @if(!empty($toko->banner_toko))
                             <img id="bannerPreview" src="{{ asset('assets/uploads/shop/'.$toko->banner_toko) }}" class="absolute inset-0 w-full h-full object-cover z-0" alt="Banner">
                         @else
                             <img id="bannerPreview" src="" class="absolute inset-0 w-full h-full object-cover z-0 hidden" alt="Banner">
@@ -124,7 +124,7 @@
                                 <label class="text-sm font-bold text-slate-700">Nama Toko <span class="text-red-500">*</span></label>
                                 <span class="text-[10px] font-bold text-slate-400" id="countNama">0/50</span>
                             </div>
-                            <input type="text" name="nama_toko" id="inputNama" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" value="{{ old('nama_toko', $toko->nama_toko) }}" maxlength="50" required>
+                            <input type="text" name="nama_toko" id="inputNama" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" value="{{ old('nama_toko', $toko->nama_toko ?? '') }}" maxlength="50" required>
                         </div>
 
                         <div>
@@ -132,12 +132,13 @@
                                 <label class="text-sm font-bold text-slate-700">Slogan / Tagline</label>
                                 <span class="text-[10px] font-bold text-slate-400" id="countSlogan">0/100</span>
                             </div>
-                            <input type="text" name="slogan" id="inputSlogan" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-semibold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" value="{{ old('slogan', $toko->slogan) }}" placeholder="Cth: Material Berkualitas, Harga Pantas" maxlength="100">
+                            <input type="text" name="slogan" id="inputSlogan" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-semibold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all" value="{{ old('slogan', $toko->slogan ?? '') }}" placeholder="Cth: Material Berkualitas, Harga Pantas" maxlength="100">
                         </div>
 
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Deskripsi Toko</label>
-                            <textarea name="deskripsi" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all min-h-[120px] resize-none" placeholder="Ceritakan tentang toko, spesialisasi material, atau keunggulan Anda...">{{ old('deskripsi', $toko->deskripsi) }}</textarea>
+                            {{-- PERBAIKAN DI SINI: deskripsi diganti menjadi deskripsi_toko --}}
+                            <textarea name="deskripsi_toko" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all min-h-[120px] resize-none" placeholder="Ceritakan tentang toko, spesialisasi material, atau keunggulan Anda...">{{ old('deskripsi_toko', $toko->deskripsi_toko ?? '') }}</textarea>
                         </div>
 
                     </div>
@@ -156,24 +157,24 @@
                                 <label class="block text-sm font-bold text-slate-700 mb-2">Nomor WhatsApp/Telepon <span class="text-red-500">*</span></label>
                                 <div class="flex border border-slate-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 transition-all">
                                     <span class="bg-slate-100 px-4 py-3 text-slate-500 font-black border-r border-slate-200">+62</span>
-                                    <input type="text" name="no_telepon" class="w-full bg-slate-50 px-4 py-3 text-sm font-bold outline-none" value="{{ old('no_telepon', ltrim($toko->no_telepon, '0')) }}" placeholder="8123456789" pattern="[0-9]+" required>
+                                    <input type="text" name="no_telepon" class="w-full bg-slate-50 px-4 py-3 text-sm font-bold outline-none" value="{{ old('no_telepon', ltrim($toko->telepon_toko ?? '', '0')) }}" placeholder="8123456789" pattern="[0-9]+" required>
                                 </div>
                             </div>
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-2">Kota / Kabupaten <span class="text-red-500">*</span></label>
-                                <input type="text" name="kota" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" value="{{ old('kota', $toko->kota) }}" required>
+                                <input type="text" name="kota" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" value="{{ old('kota', $toko->kota ?? '') }}" required>
                             </div>
                         </div>
 
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Alamat Lengkap Toko/Gudang <span class="text-red-500">*</span></label>
-                            <textarea name="alamat_lengkap" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all min-h-[80px] resize-none" placeholder="Nama Jalan, RT/RW, Patokan..." required>{{ old('alamat_lengkap', $toko->alamat_lengkap) }}</textarea>
+                            <textarea name="alamat_toko" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all min-h-[80px] resize-none" placeholder="Nama Jalan, RT/RW, Patokan..." required>{{ old('alamat_toko', $toko->alamat_toko ?? '') }}</textarea>
                             <p class="text-[10px] font-bold text-slate-400 mt-1">Alamat ini akan digunakan sebagai titik penjemputan oleh kurir ekspedisi.</p>
                         </div>
 
                         <div class="w-full md:w-1/2">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Kode Pos <span class="text-red-500">*</span></label>
-                            <input type="text" name="kode_pos" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" value="{{ old('kode_pos', $toko->kode_pos) }}" pattern="[0-9]{5,6}" required>
+                            <input type="text" name="kode_pos" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" value="{{ old('kode_pos', $toko->kode_pos ?? '') }}" pattern="[0-9]{5,6}" required>
                         </div>
 
                     </div>
@@ -207,7 +208,7 @@
             reader.onload = function(e) {
                 const previewImg = document.getElementById(previewId);
                 previewImg.src = e.target.result;
-                previewImg.classList.remove('hidden'); // Jika sebelumnya hidden (kasus banner kosong)
+                previewImg.classList.remove('hidden');
 
                 if(placeholderId) {
                     document.getElementById(placeholderId).classList.add('hidden');
@@ -221,6 +222,7 @@
     function initCounter(inputId, counterId, maxLen) {
         const input = document.getElementById(inputId);
         const counter = document.getElementById(counterId);
+        if(!input || !counter) return;
 
         const updateCount = () => {
             let len = input.value.length;
@@ -230,7 +232,7 @@
         };
 
         input.addEventListener('input', updateCount);
-        updateCount(); // Run on load
+        updateCount();
     }
 
     initCounter('inputNama', 'countNama', 50);
