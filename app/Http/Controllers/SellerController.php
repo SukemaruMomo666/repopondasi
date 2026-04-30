@@ -5,9 +5,24 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class SellerController extends Controller
 {
+    /**
+     * Helper untuk selalu mendapatkan toko yang valid
+     */
+    private function getToko()
+    {
+        $toko = DB::table('tb_toko')->where('user_id', Auth::id())->first();
+        if (!$toko) {
+            abort(403, 'Akses Ditolak: Anda belum memiliki data Toko.');
+        }
+        return $toko;
+    }
+
     // =========================================================================
     // 1. HALAMAN DASHBOARD SELLER
     // =========================================================================
@@ -74,6 +89,110 @@ class SellerController extends Controller
             'toko', 'totalPenjualan', 'totalPesanan', 'totalItemTerjual', 'totalProdukAktif',
             'labelsBulan', 'penjualanTahunan', 'topProdukLabels', 'topProdukData', 'tahunSekarang'
         ));
+    }
+
+    // =========================================================================
+    // UPDATE PROFILE (FIXED VALIDATION)
+    // =========================================================================
+    public function profile()
+    {
+        $toko = $this->getToko();
+        return view('seller.shop.profile', compact('toko'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $toko = $this->getToko();
+
+        // Validasi Disesuaikan dengan Form Baru
+        $request->validate([
+            'nama_toko'       => 'required|string|max:50',
+            'slogan'          => 'nullable|string|max:100',
+            'deskripsi_toko'  => 'nullable|string|max:1000',
+            'catatan_toko'    => 'nullable|string|max:2000',
+            'kebijakan_retur' => 'nullable|string|max:2000',
+            'no_telepon'      => 'required|string|max:20',
+            'alamat_lengkap'  => 'required|string|max:255',
+            // Kota dan Kode Pos dibuat nullable karena diisi via hidden field/Maps
+            'kota'            => 'nullable|string|max:100',
+            'kode_pos'        => 'nullable|numeric|digits_between:5,6',
+            'latitude'        => 'nullable|string|max:50',
+            'longitude'       => 'nullable|string|max:50',
+            'logo_toko'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'banner_toko'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'dokumen_nib'     => 'nullable|file|mimes:pdf,jpeg,png,jpg,webp|max:5120',
+            'dokumen_npwp'    => 'nullable|file|mimes:pdf,jpeg,png,jpg,webp|max:5120',
+        ]);
+
+        $dataUpdate = [
+            'nama_toko'       => $request->nama_toko,
+            'slogan'          => $request->slogan,
+            'deskripsi_toko'  => $request->deskripsi_toko,
+            'catatan_toko'    => $request->catatan_toko,
+            'kebijakan_retur' => $request->kebijakan_retur,
+            'telepon_toko'    => $request->no_telepon,
+            'alamat_toko'     => $request->alamat_lengkap,
+            'kota'            => $request->kota,
+            'kode_pos'        => $request->kode_pos,
+            'latitude'        => $request->latitude,
+            'longitude'       => $request->longitude,
+            'updated_at'      => now()
+        ];
+
+        // Handle Logo Baru
+        if ($request->hasFile('logo_toko')) {
+            $logo = $request->file('logo_toko');
+            $logoName = 'logo_' . Str::random(10) . '.' . $logo->getClientOriginalExtension();
+
+            if (!empty($toko->logo_toko)) {
+                $oldPath = public_path('assets/uploads/logos/' . $toko->logo_toko);
+                if (File::exists($oldPath)) { File::delete($oldPath); }
+            }
+
+            if(!File::exists(public_path('assets/uploads/logos'))) { File::makeDirectory(public_path('assets/uploads/logos'), 0777, true); }
+            $logo->move(public_path('assets/uploads/logos'), $logoName);
+            $dataUpdate['logo_toko'] = $logoName;
+        }
+
+        // Handle Banner Baru
+        if ($request->hasFile('banner_toko')) {
+            $banner = $request->file('banner_toko');
+            $bannerName = 'banner_' . Str::random(10) . '.' . $banner->getClientOriginalExtension();
+
+            if (!empty($toko->banner_toko)) {
+                $oldBannerPath = public_path('assets/uploads/banners/' . $toko->banner_toko);
+                if (File::exists($oldBannerPath)) { File::delete($oldBannerPath); }
+            }
+
+            if(!File::exists(public_path('assets/uploads/banners'))) { File::makeDirectory(public_path('assets/uploads/banners'), 0777, true); }
+            $banner->move(public_path('assets/uploads/banners'), $bannerName);
+            $dataUpdate['banner_toko'] = $bannerName;
+        }
+
+        // Handle Dokumen Legalitas (NIB & NPWP)
+        $legalPath = public_path('assets/uploads/legalitas');
+        if(!File::exists($legalPath)) { File::makeDirectory($legalPath, 0777, true); }
+
+        if ($request->hasFile('dokumen_nib')) {
+            $nib = $request->file('dokumen_nib');
+            $nibName = 'NIB_' . $toko->id . '_' . Str::random(5) . '.' . $nib->getClientOriginalExtension();
+            if (!empty($toko->dokumen_nib) && File::exists($legalPath . '/' . $toko->dokumen_nib)) { File::delete($legalPath . '/' . $toko->dokumen_nib); }
+            $nib->move($legalPath, $nibName);
+            $dataUpdate['dokumen_nib'] = $nibName;
+        }
+
+        if ($request->hasFile('dokumen_npwp')) {
+            $npwp = $request->file('dokumen_npwp');
+            $npwpName = 'NPWP_' . $toko->id . '_' . Str::random(5) . '.' . $npwp->getClientOriginalExtension();
+            if (!empty($toko->dokumen_npwp) && File::exists($legalPath . '/' . $toko->dokumen_npwp)) { File::delete($legalPath . '/' . $toko->dokumen_npwp); }
+            $npwp->move($legalPath, $npwpName);
+            $dataUpdate['dokumen_npwp'] = $npwpName;
+        }
+
+        DB::table('tb_toko')->where('id', $toko->id)->update($dataUpdate);
+
+        // ALWAYS redirect to the main profile GET route
+        return redirect()->route('seller.shop.profile')->with('success', 'Profil Toko & Legalitas B2B berhasil diperbarui!');
     }
 
     // =========================================================================

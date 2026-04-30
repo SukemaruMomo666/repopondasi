@@ -5,7 +5,7 @@
 @push('styles')
 {{-- LEAFLET CSS --}}
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-{{-- FONT AWESOME --}}
+{{-- FONT AWESOME UNTUK MATCH DENGAN REFERENSI --}}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
@@ -53,7 +53,7 @@
 @section('content')
 <div class="min-h-screen bg-[#f4f4f5] p-4 md:p-6 lg:p-8 font-sans text-zinc-800 pb-36">
 
-    {{-- SWEETALERT SETUP DEWA (Sekarang Menampilkan Detail Error Laravel) --}}
+    {{-- SWEETALERT SETUP DEWA --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const Toast = Swal.mixin({
@@ -318,7 +318,13 @@
                                 <label class="block text-[11px] font-black text-zinc-400 uppercase tracking-widest">Detail Alamat Lengkap <span class="text-red-500">*</span></label>
                                 <span id="autoAddressIndicator" class="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md hidden"><i class="fas fa-magic"></i> Auto-fill dari Pin</span>
                             </div>
-                            <textarea id="alamatDetail" name="alamat_toko" class="input-premium w-full bg-zinc-50 border border-zinc-200 text-zinc-900 text-sm font-medium rounded-xl px-4 py-4 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none min-h-[90px] resize-none leading-relaxed" placeholder="Contoh: Jl. Raya Pantura No. 45. Gudang atap seng biru, gerbang besi hitam." required>{{ old('alamat_toko', $toko->alamat_toko ?? '') }}</textarea>
+
+                            {{-- HIDDEN FIELDS UNTUK MENYESUAIKAN VALIDASI CONTROLLER LAMA --}}
+                            <input type="hidden" name="kota" id="inputKota" value="{{ old('kota', $toko->kota ?? '') }}">
+                            <input type="hidden" name="kode_pos" id="inputKodePos" value="{{ old('kode_pos', $toko->kode_pos ?? '') }}">
+
+                            {{-- NAME KEMBALI KE alamat_lengkap AGAR CONTROLLER TIDAK MARAH --}}
+                            <textarea id="alamatDetail" name="alamat_lengkap" class="input-premium w-full bg-zinc-50 border border-zinc-200 text-zinc-900 text-sm font-medium rounded-xl px-4 py-4 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none min-h-[90px] resize-none leading-relaxed" placeholder="Contoh: Jl. Raya Pantura No. 45. Gudang atap seng biru, gerbang besi hitam." required>{{ old('alamat_lengkap', $toko->alamat_toko ?? '') }}</textarea>
                         </div>
 
                         {{-- HIDDEN COORDS UNTUK DATABASE --}}
@@ -430,19 +436,32 @@
             resizeObserver.observe(mapContainer);
         }
 
-        // 2. FUNGSI REVERSE GEOCODING
+        // 2. FUNGSI REVERSE GEOCODING DENGAN KOTA & KODE POS UNTUK CONTROLLER
         async function getAddressFromCoords(lat, lng) {
             try {
                 const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
                 const data = await response.json();
-                if(data && data.display_name) {
-                    alamatDetail.value = data.display_name;
-                    autoIndicator.classList.remove('hidden');
-                    setTimeout(() => autoIndicator.classList.add('hidden'), 4000);
+                if(data && data.address) {
+                    // Extract kota dan kode pos dari hasil reverse geocoding
+                    const addr = data.address;
+                    const city = addr.city || addr.town || addr.municipality || addr.county || addr.state_district || "";
+                    document.getElementById('inputKota').value = city;
+                    document.getElementById('inputKodePos').value = addr.postcode || "";
+
+                    if(data.display_name) {
+                        alamatDetail.value = data.display_name;
+                        autoIndicator.classList.remove('hidden');
+                        setTimeout(() => autoIndicator.classList.add('hidden'), 4000);
+                    }
                 }
             } catch (error) {
                 console.error("Geocoding error:", error);
             }
+        }
+
+        // Jika form kosong saat pertama diload, panggil geocoder
+        if(!document.getElementById('inputKota').value || !alamatDetail.value) {
+            getAddressFromCoords(currentLat, currentLng);
         }
 
         // 3. EVENT HANDLERS MARKER
@@ -487,7 +506,9 @@
                     marker.setLatLng([newLat, newLng]);
                     updateDisplayCoords(newLat, newLng);
 
-                    alamatDetail.value = res.display_name;
+                    // Panggil geocoding agar kota dan kodepos ikut terupdate
+                    getAddressFromCoords(newLat, newLng);
+
                     Toast.fire({icon: 'success', title: 'Lokasi ditemukan!'});
                 } else {
                     Toast.fire({icon: 'error', title: 'Lokasi tidak ditemukan'});
@@ -600,10 +621,9 @@
         }
     }
 
-    // FORM SUBMIT HANDLING (Mencegah Bug Pengiriman Form yang Batal)
+    // FORM SUBMIT HANDLING
     document.getElementById('profileForm').addEventListener('submit', function(e) {
         const btn = document.getElementById('btnSubmitProfile');
-        // Jeda waktu sedikit agar form terkirim dengan mulus baru tombol dimatikan
         setTimeout(() => {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMPROSES...';
             btn.classList.add('opacity-80', 'cursor-not-allowed', 'scale-95');
