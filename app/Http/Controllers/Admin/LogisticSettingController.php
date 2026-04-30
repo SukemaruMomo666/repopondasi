@@ -21,10 +21,30 @@ class LogisticSettingController extends Controller
         // DATA REAL SESUAI API RAJAONGKIR (PAKET STARTER)
         // Paket Starter HANYA mendukung 3 kurir ini. Jangan tambahkan kurir lain.
         // =========================================================================
+// =========================================================================
+        // DATA REAL SESUAI API RAJAONGKIR (PAKET PRO / ENTERPRISE)
+        // Gunakan ini jika sudah langganan paket berbayar RajaOngkir
+        // =========================================================================
         $api_couriers = [
-            'jne'  => ['name' => 'JNE Express', 'type' => 'Reguler, OKE, YES', 'icon' => 'mdi-truck-fast'],
-            'pos'  => ['name' => 'POS Indonesia', 'type' => 'Kilat Khusus, Express', 'icon' => 'mdi-postbox'],
-            'tiki' => ['name' => 'TIKI', 'type' => 'Reguler, ONS, ECO', 'icon' => 'mdi-truck-outline'],
+            // EKSPEDISI KARGO (B2B Material)
+            'indah'    => ['name' => 'Indah Logistik', 'type' => 'Spesialis Kargo Berat', 'icon' => 'mdi-truck-flatbed'],
+            'wahana'   => ['name' => 'Wahana Express', 'type' => 'Kargo & Ekonomi', 'icon' => 'mdi-weight-kilogram'],
+            'sentral'  => ['name' => 'Sentral Cargo', 'type' => 'Kargo Darat/Udara', 'icon' => 'mdi-package-variant-closed'],
+            'rex'      => ['name' => 'REX Express', 'type' => 'Kargo & Reguler', 'icon' => 'mdi-truck-cargo-container'],
+
+            // EKSPEDISI REGULER & JARINGAN LUAS
+            'jne'      => ['name' => 'JNE Express', 'type' => 'Reguler & Kargo (JTR)', 'icon' => 'mdi-truck-fast'],
+            'jnt'      => ['name' => 'J&T Express', 'type' => 'Reguler & J&T Cargo', 'icon' => 'mdi-truck-delivery'],
+            'sicepat'  => ['name' => 'SiCepat', 'type' => 'Reguler & Gokil (Kargo)', 'icon' => 'mdi-lightning-bolt'],
+            'pos'      => ['name' => 'POS Indonesia', 'type' => 'Reguler & Jumbo', 'icon' => 'mdi-postbox'],
+            'tiki'     => ['name' => 'TIKI', 'type' => 'Reguler & TRC', 'icon' => 'mdi-truck-outline'],
+
+            // EKSPEDISI LAINNYA
+            'ninja'    => ['name' => 'Ninja Xpress', 'type' => 'Reguler', 'icon' => 'mdi-ninja'],
+            'anteraja' => ['name' => 'AnterAja', 'type' => 'Reguler & Kargo', 'icon' => 'mdi-truck-check'],
+            'lion'     => ['name' => 'Lion Parcel', 'type' => 'Reguler', 'icon' => 'mdi-airplane-takeoff'],
+            'sap'      => ['name' => 'SAP Express', 'type' => 'Reguler', 'icon' => 'mdi-map-marker-path'],
+            'ide'      => ['name' => 'ID Express', 'type' => 'Reguler', 'icon' => 'mdi-truck-fast-outline'],
         ];
 
         return view('admin.logistics.index', compact('settings', 'api_couriers'));
