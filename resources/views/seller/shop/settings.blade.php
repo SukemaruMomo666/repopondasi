@@ -3,11 +3,16 @@
 @section('title', 'Profil Toko & Legalitas')
 
 @push('styles')
+{{-- LEAFLET CSS UNTUK PETA --}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     /* Animasi Upload Hover */
     .upload-hover:hover .upload-overlay { opacity: 1; }
+    
+    /* Fix z-index Leaflet agar tidak nabrak navbar/modal */
+    .leaflet-container { z-index: 10 !important; }
 </style>
 @endpush
 
@@ -137,7 +142,7 @@
 
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Deskripsi Singkat Toko</label>
-                            <textarea name="deskripsi" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all min-h-[120px] resize-none" placeholder="Ceritakan tentang toko, spesialisasi material, atau keunggulan Anda...">{{ old('deskripsi', $toko->deskripsi_toko ?? '') }}</textarea>
+                            <textarea name="deskripsi_toko" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all min-h-[120px] resize-none" placeholder="Ceritakan tentang toko, spesialisasi material, atau keunggulan Anda...">{{ old('deskripsi_toko', $toko->deskripsi_toko ?? '') }}</textarea>
                         </div>
 
                     </div>
@@ -150,7 +155,7 @@
                         <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">Kebijakan B2B</h3>
                     </div>
                     <div class="p-6 space-y-5">
-
+                        
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-2">Catatan Toko (S&K Pemesanan)</label>
@@ -198,7 +203,7 @@
                     </div>
                 </div>
 
-                {{-- KONTAK & ALAMAT --}}
+                {{-- KONTAK & ALAMAT & MAPS --}}
                 <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
                     <div class="bg-slate-50/80 px-6 py-4 border-b border-slate-100 flex items-center gap-2">
                         <i class="mdi mdi-map-marker-radius text-emerald-600 text-lg leading-none"></i>
@@ -214,7 +219,6 @@
                                     <input type="text" name="no_telepon" class="w-full bg-slate-50 px-4 py-3 text-sm font-bold outline-none" value="{{ old('no_telepon', ltrim($toko->telepon_toko ?? '', '0')) }}" placeholder="8123456789" pattern="[0-9]+" required>
                                 </div>
                             </div>
-                            {{-- Karena di tabel nama kotanya tidak ada 'kota' (tapi province, city, dll dlm form sebelumnya), sesuaikan jika diperlukan. Asumsi 'kota' ada di skema lama atau khusus text --}}
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-2">Kabupaten/Kota (Manual) <span class="text-red-500">*</span></label>
                                 <input type="text" name="kota" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" value="{{ old('kota', 'Silakan Set Ulang Alamat') }}" placeholder="Cth: Kab. Subang" required>
@@ -224,12 +228,42 @@
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Alamat Lengkap Toko/Gudang <span class="text-red-500">*</span></label>
                             <textarea name="alamat_lengkap" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all min-h-[80px] resize-none" placeholder="Nama Jalan, RT/RW, Patokan..." required>{{ old('alamat_lengkap', $toko->alamat_toko ?? '') }}</textarea>
-                            <p class="text-[10px] font-bold text-slate-400 mt-1">Alamat ini akan digunakan sebagai titik penjemputan truk logistik.</p>
                         </div>
 
-                        <div class="w-full md:w-1/2">
+                        <div class="w-full md:w-1/2 mb-5">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Kode Pos <span class="text-red-500">*</span></label>
                             <input type="text" name="kode_pos" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-3 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" value="{{ old('kode_pos', $toko->kode_pos ?? '') }}" pattern="[0-9]{5,6}" required>
+                        </div>
+
+                        <hr class="border-slate-100">
+
+                        {{-- SEKSI PETA LOKASI LEAFLET --}}
+                        <div class="pt-2">
+                            <label class="block text-sm font-black text-slate-800 mb-2">Titik Koordinat Peta <span class="text-red-500">*</span></label>
+                            <p class="text-xs font-medium text-slate-500 mb-3">Tentukan titik presisi lokasi toko untuk memudahkan kurir/truk pengiriman barang berat. Cari nama daerah, lalu geser pin merah.</p>
+
+                            {{-- Fitur Search Geocoding --}}
+                            <div class="flex gap-2 mb-3">
+                                <input type="text" id="searchLokasi" class="w-full bg-slate-50 border border-slate-200 text-slate-900 text-sm font-bold rounded-xl px-4 py-2.5 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all" placeholder="Ketik nama jalan / daerah...">
+                                <button type="button" onclick="cariLokasiMap()" class="bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-colors whitespace-nowrap">
+                                    <i class="mdi mdi-magnify"></i> Cari
+                                </button>
+                            </div>
+
+                            {{-- Container Peta --}}
+                            <div id="map" class="w-full h-[350px] rounded-2xl border-2 border-slate-200 shadow-inner z-10 relative"></div>
+
+                            {{-- Input Hidden/Readonly Koordinat --}}
+                            <div class="grid grid-cols-2 gap-4 mt-4">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-widest">Latitude</label>
+                                    <input type="text" name="latitude" id="latitude" class="w-full bg-slate-100 border border-slate-200 text-slate-600 text-xs font-black rounded-lg px-3 py-2 outline-none cursor-not-allowed" value="{{ old('latitude', $toko->latitude ?? '-6.558935') }}" readonly required>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-widest">Longitude</label>
+                                    <input type="text" name="longitude" id="longitude" class="w-full bg-slate-100 border border-slate-200 text-slate-600 text-xs font-black rounded-lg px-3 py-2 outline-none cursor-not-allowed" value="{{ old('longitude', $toko->longitude ?? '107.763321') }}" readonly required>
+                                </div>
+                            </div>
                         </div>
 
                     </div>
@@ -255,7 +289,93 @@
 @endsection
 
 @push('scripts')
+{{-- SCRIPT LEAFLET UNTUK MAPS --}}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    // Inisialisasi Kordinat (Default: Area Subang atau Kordinat Toko Sebelumnya)
+    var latInput = document.getElementById('latitude');
+    var lngInput = document.getElementById('longitude');
+    
+    var startLat = parseFloat(latInput.value) || -6.558935;
+    var startLng = parseFloat(lngInput.value) || 107.763321;
+
+    // Buat Peta
+    var map = L.map('map').setView([startLat, startLng], 14);
+
+    // Tambahkan Tile Layer (Tampilan Jalan OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Tambahkan Pin/Marker yang bisa digeser (Draggable)
+    var marker = L.marker([startLat, startLng], {
+        draggable: true
+    }).addTo(map);
+
+    // Event saat pin digeser
+    marker.on('dragend', function (e) {
+        var coords = e.target.getLatLng();
+        latInput.value = coords.lat.toFixed(8);
+        lngInput.value = coords.lng.toFixed(8);
+    });
+
+    // Event saat peta diklik (Pin pindah ke titik klik)
+    map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        latInput.value = e.latlng.lat.toFixed(8);
+        lngInput.value = e.latlng.lng.toFixed(8);
+    });
+
+    // Fungsi Pencarian Lokasi menggunakan API Nominatim (Gratis)
+    function cariLokasiMap() {
+        var query = document.getElementById('searchLokasi').value;
+        if(query.length < 3) {
+            alert('Ketik minimal 3 huruf untuk mencari.');
+            return;
+        }
+
+        // Tampilkan loading di tombol
+        var btn = event.currentTarget;
+        var originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Mencari...';
+
+        fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query))
+            .then(response => response.json())
+            .then(data => {
+                btn.innerHTML = originalText; // Kembalikan tombol
+                if(data && data.length > 0) {
+                    var newLat = data[0].lat;
+                    var newLon = data[0].lon;
+                    
+                    // Pindah view peta dan letakkan marker
+                    map.setView([newLat, newLon], 16);
+                    marker.setLatLng([newLat, newLon]);
+                    
+                    // Update input hidden
+                    latInput.value = parseFloat(newLat).toFixed(8);
+                    lngInput.value = parseFloat(newLon).toFixed(8);
+                } else {
+                    Swal.fire({icon: 'error', title: 'Oops...', text: 'Lokasi tidak ditemukan. Coba nama yang lebih spesifik.', customClass: { popup: 'rounded-2xl' }});
+                }
+            }).catch(err => {
+                btn.innerHTML = originalText;
+                alert('Gagal mencari lokasi. Cek koneksi internet Anda.');
+            });
+    }
+
+    // Biar search bisa pake tombol Enter
+    document.getElementById('searchLokasi').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            cariLokasiMap();
+        }
+    });
+
+    // ----------------------------------------------------
+    // SCRIPT ORIGINAL LAINNYA
+    // ----------------------------------------------------
+    
     // 1. LIVE PREVIEW IMAGE (Logo & Banner)
     function previewImage(input, previewId, placeholderId = null) {
         if (input.files && input.files[0]) {
@@ -263,7 +383,7 @@
             reader.onload = function(e) {
                 const previewImg = document.getElementById(previewId);
                 previewImg.src = e.target.result;
-                previewImg.classList.remove('hidden');
+                previewImg.classList.remove('hidden'); 
 
                 if(placeholderId) {
                     document.getElementById(placeholderId).classList.add('hidden');
@@ -288,7 +408,7 @@
         };
 
         input.addEventListener('input', updateCount);
-        updateCount();
+        updateCount(); 
     }
 
     initCounter('inputNama', 'countNama', 50);
