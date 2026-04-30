@@ -100,11 +100,11 @@ class SellerController extends Controller
         return view('seller.shop.profile', compact('toko'));
     }
 
-    public function updateProfile(Request $request)
+public function updateProfile(Request $request)
     {
         $toko = $this->getToko();
 
-        // Validasi Disesuaikan dengan Form Baru
+        // 1. Validasi Disesuaikan dengan Form & Database
         $request->validate([
             'nama_toko'       => 'required|string|max:50',
             'slogan'          => 'nullable|string|max:100',
@@ -113,8 +113,9 @@ class SellerController extends Controller
             'kebijakan_retur' => 'nullable|string|max:2000',
             'no_telepon'      => 'required|string|max:20',
             'alamat_lengkap'  => 'required|string|max:255',
-            // Kota dan Kode Pos dibuat nullable karena diisi via hidden field/Maps
-            'kota'            => 'nullable|string|max:100',
+            'province_id'     => 'required|integer',
+            'city_id'         => 'required|integer',
+            'district_id'     => 'required|integer',
             'kode_pos'        => 'nullable|numeric|digits_between:5,6',
             'latitude'        => 'nullable|string|max:50',
             'longitude'       => 'nullable|string|max:50',
@@ -124,25 +125,25 @@ class SellerController extends Controller
             'dokumen_npwp'    => 'nullable|file|mimes:pdf,jpeg,png,jpg,webp|max:5120',
         ]);
 
-// Siapkan data dasar untuk diupdate (NAMA KIRI HARUS SAMA DENGAN DATABASE)
+        // 2. Mapping Data ke Kolom Database yang BENAR (Berdasarkan tb_toko)
         $dataUpdate = [
             'nama_toko'       => $request->nama_toko,
             'slogan'          => $request->slogan,
-            'deskripsi_toko'  => $request->deskripsi_toko,   // <-- Diperbaiki ke nama kolom DB yang benar
+            'deskripsi_toko'  => $request->deskripsi_toko,  // Kolom di DB: deskripsi_toko
             'catatan_toko'    => $request->catatan_toko,
             'kebijakan_retur' => $request->kebijakan_retur,
-            'telepon_toko'    => $request->no_telepon,       // <-- Diperbaiki ke nama kolom DB yang benar
-            'alamat_toko'     => $request->alamat_lengkap,   // <-- Diperbaiki ke nama kolom DB yang benar
-            'province_id'     => $request->province_id,      // <-- Pakai relasi ID yang benar
-            'city_id'         => $request->city_id,          // <-- Pakai relasi ID yang benar
-            'district_id'     => $request->district_id,      // <-- Pakai relasi ID yang benar
+            'telepon_toko'    => $request->no_telepon,      // Kolom di DB: telepon_toko
+            'alamat_toko'     => $request->alamat_lengkap,  // Kolom di DB: alamat_toko
+            'province_id'     => $request->province_id,
+            'city_id'         => $request->city_id,
+            'district_id'     => $request->district_id,
             'kode_pos'        => $request->kode_pos,
             'latitude'        => $request->latitude,
             'longitude'       => $request->longitude,
             'updated_at'      => now()
         ];
 
-        // Handle Logo Baru
+        // 3. Handle Logo Baru
         if ($request->hasFile('logo_toko')) {
             $logo = $request->file('logo_toko');
             $logoName = 'logo_' . Str::random(10) . '.' . $logo->getClientOriginalExtension();
@@ -157,7 +158,7 @@ class SellerController extends Controller
             $dataUpdate['logo_toko'] = $logoName;
         }
 
-        // Handle Banner Baru
+        // 4. Handle Banner Baru
         if ($request->hasFile('banner_toko')) {
             $banner = $request->file('banner_toko');
             $bannerName = 'banner_' . Str::random(10) . '.' . $banner->getClientOriginalExtension();
@@ -172,7 +173,7 @@ class SellerController extends Controller
             $dataUpdate['banner_toko'] = $bannerName;
         }
 
-        // Handle Dokumen Legalitas (NIB & NPWP)
+        // 5. Handle Dokumen Legalitas (NIB & NPWP)
         $legalPath = public_path('assets/uploads/legalitas');
         if(!File::exists($legalPath)) { File::makeDirectory($legalPath, 0777, true); }
 
@@ -192,9 +193,9 @@ class SellerController extends Controller
             $dataUpdate['dokumen_npwp'] = $npwpName;
         }
 
+        // 6. Eksekusi Update
         DB::table('tb_toko')->where('id', $toko->id)->update($dataUpdate);
 
-        // ALWAYS redirect to the main profile GET route
         return redirect()->route('seller.shop.profile')->with('success', 'Profil Toko & Legalitas B2B berhasil diperbarui!');
     }
 
