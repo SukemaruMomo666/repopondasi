@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str; // Tambahan agar fungsi pemotong teks tidak error
+use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
@@ -15,7 +15,6 @@ class PageController extends Controller
     // =================================================================
     public function produk(Request $request)
     {
-        // A. AMBIL DATA FILTER
         $categories = DB::table('tb_kategori')->orderBy('nama_kategori', 'ASC')->get();
 
         $locations = DB::table('tb_toko as t')
@@ -27,32 +26,40 @@ class PageController extends Controller
             ->orderBy('c.name', 'ASC')
             ->get();
 
-        // B. QUERY UTAMA BARANG
+        // TAMBAHKAN 't.tier_toko' DI SINI AGAR BADGE MUNCUL
         $query = DB::table('tb_barang as b')
             ->join('tb_toko as t', 'b.toko_id', '=', 't.id')
             ->leftJoin('cities as c', 't.city_id', '=', 'c.id')
             ->select(
                 'b.id', 'b.nama_barang', 'b.harga', 'b.gambar_utama', 'b.satuan_unit',
-                't.nama_toko', 't.slug as toko_slug', 'c.name as nama_kota'
+                't.nama_toko', 't.slug as toko_slug', 't.tier_toko', 'c.name as nama_kota'
             )
             ->where('b.is_active', 1)
             ->where('b.status_moderasi', 'approved')
             ->where('t.status', 'active');
 
-        // C. TERAPKAN FILTER
+        // FILTER 1: Kategori Utama
         $raw_kategori = $request->kategori;
-        $filter_kategori = [];
-
-        if (is_array($raw_kategori)) {
-            $filter_kategori = $raw_kategori;
-        } elseif (!empty($raw_kategori)) {
-            $filter_kategori = [$raw_kategori];
-        }
-
+        $filter_kategori = is_array($raw_kategori) ? $raw_kategori : (!empty($raw_kategori) ? [$raw_kategori] : []);
         if (!empty($filter_kategori)) {
             $query->whereIn('b.kategori_id', $filter_kategori);
         }
 
+        // FILTER 2: Kategori Text (Accordion)
+        if ($request->has('kategori_text') && is_array($request->kategori_text)) {
+            $query->where(function($q) use ($request) {
+                foreach ($request->kategori_text as $text) {
+                    $q->orWhere('b.nama_barang', 'LIKE', '%' . $text . '%');
+                }
+            });
+        }
+
+        // FILTER 3: Jenis Mitra (Official / Pro)
+        if ($request->has('tier_toko') && is_array($request->tier_toko)) {
+            $query->whereIn('t.tier_toko', $request->tier_toko);
+        }
+
+        // FILTER 4: Lokasi & Harga
         if ($request->filled('lokasi')) {
             $query->where('t.city_id', $request->lokasi);
         }
@@ -70,8 +77,19 @@ class PageController extends Controller
             });
         }
 
-        // D. EKSEKUSI (Pagination)
-        $query->orderByDesc('b.created_at');
+        // SORTING (Paling Baru, Termurah, Termahal)
+        if ($request->filled('sort')) {
+            if ($request->sort == 'termurah') {
+                $query->orderBy('b.harga', 'ASC');
+            } elseif ($request->sort == 'termahal') {
+                $query->orderBy('b.harga', 'DESC');
+            } else {
+                $query->orderBy('b.created_at', 'DESC');
+            }
+        } else {
+            $query->orderBy('b.created_at', 'DESC');
+        }
+
         $products = $query->paginate(12)->withQueryString();
 
         $filter_lokasi = $request->lokasi ?? '';
@@ -94,10 +112,11 @@ class PageController extends Controller
 
         $categories = DB::table('tb_kategori')->orderBy('nama_kategori', 'ASC')->get();
 
+        // TAMBAHKAN 't.tier_toko' DI SINI AGAR BADGE MUNCUL
         $query = DB::table('tb_barang as b')
             ->join('tb_toko as t', 'b.toko_id', '=', 't.id')
             ->leftJoin('cities as c', 't.city_id', '=', 'c.id')
-            ->select('b.id', 'b.nama_barang', 'b.harga', 'b.gambar_utama', 't.nama_toko', 't.slug as slug_toko', 'c.name as kota_toko')
+            ->select('b.id', 'b.nama_barang', 'b.harga', 'b.gambar_utama', 't.nama_toko', 't.slug as slug_toko', 't.tier_toko', 'c.name as kota_toko')
             ->where('b.is_active', 1)
             ->where('b.status_moderasi', 'approved')
             ->where('t.status', 'active');
@@ -111,6 +130,11 @@ class PageController extends Controller
 
         if (!empty($kategoriId)) {
             $query->where('b.kategori_id', $kategoriId);
+        }
+
+        // FILTER JENIS MITRA UNTUK HALAMAN SEARCH
+        if ($request->has('tier_toko') && is_array($request->tier_toko)) {
+            $query->whereIn('t.tier_toko', $request->tier_toko);
         }
 
         $products = $query->paginate(12)->appends($request->query());
@@ -146,7 +170,6 @@ class PageController extends Controller
 
         return view('pages.detail_produk', compact('produk', 'ulasan'));
     }
-
 
     // =================================================================
     // 4. HALAMAN SEMUA TOKO
@@ -194,7 +217,7 @@ class PageController extends Controller
         return view('pages.semua_toko', compact('locations', 'stores', 'filter_lokasi'));
     }
 
-   // =================================================================
+    // =================================================================
     // 5. HALAMAN PROFIL TOKO (Katalog Toko)
     // =================================================================
     public function detailToko(Request $request)
@@ -259,7 +282,6 @@ class PageController extends Controller
     // =================================================================
     // 7. API KERANJANG (TAMBAH, UPDATE, HAPUS)
     // =================================================================
-
     public function tambahKeranjang(Request $request)
     {
         if (!Auth::check()) {
@@ -315,8 +337,8 @@ class PageController extends Controller
         return response()->json(['status' => 'success']);
     }
 
-// =================================================================
-    // 8. HALAMAN CHECKOUT (FIX ERROR count() parameter array)
+    // =================================================================
+    // 8. HALAMAN CHECKOUT (SUDAH FIX count() ERROR)
     // =================================================================
     public function checkout(Request $request)
     {
@@ -377,21 +399,17 @@ class PageController extends Controller
                 $totalProduk += $item->harga * $jumlah;
             }
         } else {
-            // AMBIL DARI REQUEST (JIKA DARI KERANJANG) ATAU DARI SESSION (JIKA DARI BELI SEKARANG)
             $rawSelectedItems = $request->input('selected_items') ?? session('selected_items');
 
-            // --- PERBAIKAN SAKTI NYA DI SINI BOS! ---
-            // Memastikan data selalu berupa ARRAY agar whereIn tidak Error 500
+            // PAKSA MENJADI ARRAY AGAR TIDAK ERROR "COUNT()"
             $selectedItems = [];
             if (is_array($rawSelectedItems)) {
                 $selectedItems = $rawSelectedItems;
             } elseif (is_string($rawSelectedItems)) {
                 $selectedItems = explode(',', $rawSelectedItems);
             } elseif (!empty($rawSelectedItems)) {
-                // Berjaga-jaga jika isinya Integer atau tipe data lain
                 $selectedItems = [$rawSelectedItems];
             }
-            // ----------------------------------------
 
             if (empty($selectedItems)) {
                 return redirect()->route('keranjang.index')->with('error', 'Tidak ada barang yang dipilih untuk checkout.');
@@ -403,7 +421,7 @@ class PageController extends Controller
                 ->leftJoin('cities as c', 't.city_id', '=', 'c.id')
                 ->select('k.id as keranjang_id', 'b.id as barang_id', 'b.nama_barang', 'b.harga', 'b.gambar_utama', 'k.jumlah', 't.id as toko_id', 't.nama_toko', 'c.name as kota_toko')
                 ->where('k.user_id', $userId)
-                ->whereIn('k.id', $selectedItems) // Sekarang pasti berhasil karena sudah diconvert ke Array!
+                ->whereIn('k.id', $selectedItems)
                 ->get();
 
             foreach ($items as $item) {
@@ -538,38 +556,36 @@ class PageController extends Controller
         return view('pages.pesanan_index', compact('orders'));
     }
 
-// =================================================================
-// 11. DETAIL & LACAK PENGIRIMAN (FIX: Gambar Muncul)
-// =================================================================
-public function lacakPesanan($kode_invoice)
-{
-    if (!Auth::check()) return redirect()->route('login');
+    // =================================================================
+    // 11. DETAIL & LACAK PENGIRIMAN
+    // =================================================================
+    public function lacakPesanan($kode_invoice)
+    {
+        if (!Auth::check()) return redirect()->route('login');
 
-    $order = DB::table('tb_transaksi')
-        ->where('kode_invoice', $kode_invoice)
-        ->where('user_id', Auth::id())
-        ->first();
+        $order = DB::table('tb_transaksi')
+            ->where('kode_invoice', $kode_invoice)
+            ->where('user_id', Auth::id())
+            ->first();
 
-    if (!$order) { abort(404, 'Pesanan tidak ditemukan.'); }
+        if (!$order) { abort(404, 'Pesanan tidak ditemukan.'); }
 
-    // PERBAIKAN DI SINI: Join ke tb_barang untuk ambil gambar_utama
-    $items = DB::table('tb_detail_transaksi as dt')
-        ->leftJoin('tb_barang as b', 'dt.barang_id', '=', 'b.id')
-        ->select('dt.*', 'b.gambar_utama') // Ambil gambar dari master barang
-        ->where('dt.transaksi_id', $order->id)
-        ->get();
+        $items = DB::table('tb_detail_transaksi as dt')
+            ->leftJoin('tb_barang as b', 'dt.barang_id', '=', 'b.id')
+            ->select('dt.*', 'b.gambar_utama')
+            ->where('dt.transaksi_id', $order->id)
+            ->get();
 
-    // Ambil Client Key Midtrans dari database
-    $clientKey = DB::table('tb_pengaturan')
-        ->where('setting_nama', 'midtrans_client_key')
-        ->value('setting_nilai');
+        $clientKey = DB::table('tb_pengaturan')
+            ->where('setting_nama', 'midtrans_client_key')
+            ->value('setting_nilai');
 
-    $trackingLogs = [
-        ['status' => 'Menunggu Pembayaran', 'desc' => 'Pesanan berhasil dibuat, silakan selesaikan pembayaran.', 'time' => $order->tanggal_transaksi],
-    ];
+        $trackingLogs = [
+            ['status' => 'Menunggu Pembayaran', 'desc' => 'Pesanan berhasil dibuat, silakan selesaikan pembayaran.', 'time' => $order->tanggal_transaksi],
+        ];
 
-    return view('pages.pesanan_lacak', compact('order', 'items', 'clientKey', 'trackingLogs'));
-}
+        return view('pages.pesanan_lacak', compact('order', 'items', 'clientKey', 'trackingLogs'));
+    }
 
     // =================================================================
     // 12. PROFIL & PASSWORD
@@ -604,13 +620,12 @@ public function lacakPesanan($kode_invoice)
         return view('pages.edit_profil', compact('user', 'alamatUtama', 'provinces', 'cities', 'districts'));
     }
 
-public function updateProfil(Request $request)
+    public function updateProfil(Request $request)
     {
         if (!Auth::check()) return redirect()->route('login');
 
         $user = Auth::user();
 
-        // 1. Validasi Input Dasar
         $request->validate([
             'nama' => 'required|string|max:255',
             'province_id' => 'required',
@@ -622,14 +637,12 @@ public function updateProfil(Request $request)
             'district_id.required' => 'Kecamatan wajib diisi.',
         ]);
 
-        // 2. Update Data Utama User (Tabel tb_user)
         DB::table('tb_user')->where('id', $user->id)->update([
             'nama' => $request->nama,
             'no_telepon' => $request->no_telepon,
             'updated_at' => now()
         ]);
 
-        // 3. Update atau Buat Alamat Baru (Tabel tb_user_alamat)
         $alamatUtama = DB::table('tb_user_alamat')
             ->where('user_id', $user->id)
             ->where('is_utama', 1)
@@ -652,10 +665,8 @@ public function updateProfil(Request $request)
         ];
 
         if ($alamatUtama) {
-            // Jika sudah punya alamat utama, kita UPDATE
             DB::table('tb_user_alamat')->where('id', $alamatUtama->id)->update($dataAlamat);
         } else {
-            // Jika user baru dan belum punya alamat, kita INSERT
             $dataAlamat['created_at'] = now();
             DB::table('tb_user_alamat')->insert($dataAlamat);
         }
@@ -673,20 +684,17 @@ public function updateProfil(Request $request)
         return back()->with('success', 'Password berhasil diperbarui!');
     }
 
-// =================================================================
+    // =================================================================
     // 14. API: LAZY LOAD / ON-DEMAND DISTRICTS (KECAMATAN)
     // =================================================================
     public function getDistrictsOnDemand($city_id)
     {
-        // 1. Cek apakah kecamatan untuk kota ini sudah ada di database lokal kita?
         $districts = DB::table('districts')->where('city_id', $city_id)->orderBy('name', 'ASC')->get();
 
-        // 2. Jika sudah ada isinya, langsung kembalikan datanya (Tidak perlu hit API Komerce)
         if ($districts->count() > 0) {
             return response()->json($districts);
         }
 
-        // 3. JIKA KOSONG (Belum pernah disinkronisasi), KITA SEDOT DARI KOMERCE SEKARANG!
         $apiKey = DB::table('tb_pengaturan')->where('setting_nama', 'rajaongkir_api_key')->value('setting_nilai');
 
         if ($apiKey) {
@@ -703,7 +711,6 @@ public function updateProfil(Request $request)
                         ]
                     );
                 }
-                // Ambil ulang dari database lokal setelah berhasil di-insert
                 $districts = DB::table('districts')->where('city_id', $city_id)->orderBy('name', 'ASC')->get();
             }
         }
