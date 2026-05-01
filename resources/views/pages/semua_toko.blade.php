@@ -111,104 +111,125 @@
             <span class="text-sm font-semibold text-zinc-500 bg-white border border-zinc-200 px-3 py-1 rounded-full shadow-sm">{{ $stores->total() }} Toko Aktif</span>
         </div>
 
-        {{-- DAFTAR TOKO GRID (DESAIN 100% SAMA SEPERTI REFERENSI) --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 w-full">
+        {{-- DAFTAR TOKO GRID (NEW DESIGN) --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+
             @forelse($stores as $toko)
                 @php
                     // Logika Inisial Avatar
-                    $words = explode(" ", $toko->nama_toko ?? 'Toko');
+                    $words = explode(" ", $toko->nama_toko);
                     $acronym = "";
                     foreach ($words as $w) { $acronym .= mb_substr($w, 0, 1); }
                     $storeInitials = strtoupper(substr($acronym, 0, 2)) ?: "TK";
 
-                    // Logika Tier & Warna
-                    $tier = $toko->tier_toko ?? 'regular';
-
-                    if (in_array($tier, ['official_store', 'official'])) {
-                        $bannerBg = "bg-gradient-to-br from-indigo-600 to-purple-700";
-                        $badgeHTML = '<div class="absolute top-3 right-3 bg-indigo-500 text-white text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md">OFFICIAL</div>';
-                        $pinColor = "text-indigo-400";
-                    } elseif (in_array($tier, ['pro_merchant', 'power_merchant', 'pro', 'power'])) {
-                        $bannerBg = "bg-gradient-to-br from-emerald-400 to-teal-600";
-                        $badgeHTML = '<div class="absolute top-3 right-3 bg-emerald-400 text-white text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md flex items-center gap-1"><i class="fas fa-bolt text-yellow-300"></i> POWER</div>';
-                        $pinColor = "text-emerald-400";
-                    } else {
-                        $bannerBg = "bg-gradient-to-br from-zinc-800 to-zinc-900";
-                        $badgeHTML = '<div class="absolute top-3 right-3 bg-zinc-800/80 backdrop-blur-md text-white border border-white/10 text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span> VERIFIED</div>';
-                        $pinColor = "text-blue-400";
-                    }
-
                     // Logika Banner & Logo
                     $bannerPath = 'assets/uploads/banners/' . ($toko->banner_toko ?? '');
                     $hasBanner = !empty($toko->banner_toko) && file_exists(public_path($bannerPath));
-                    $bannerStyle = $hasBanner ? "background-image: url('".asset($bannerPath)."'); background-size: cover; background-position: center;" : "";
-                    if($hasBanner) $bannerBg = "";
 
                     $logoPath = 'assets/uploads/logos/' . ($toko->logo_toko ?? '');
                     $hasLogo = !empty($toko->logo_toko) && file_exists(public_path($logoPath));
+
+                    // TEMA WARNA BERDASARKAN TIER TOKO
+                    $tier = $toko->tier_toko ?? 'regular';
+
+                    if ($tier == 'official_store') {
+                        // Tema Ungu (Official)
+                        $badgeClass  = 'bg-[#6366f1] text-white shadow-md shadow-indigo-500/30';
+                        $badgeText   = 'OFFICIAL';
+                        $pinColor    = 'text-[#c084fc]'; // Pin ungu muda
+                        $bagBgColor  = 'bg-[#6366f1]';
+                        $bannerStyle = $hasBanner ? "background-image: url('".asset($bannerPath)."');" : "background: linear-gradient(135deg, #4f46e5, #7c3aed);";
+                    } elseif ($tier == 'pro_merchant') {
+                        // Tema Hijau (Power)
+                        $badgeClass  = 'bg-[#10b981] text-white shadow-md shadow-emerald-500/30';
+                        $badgeText   = '<i class="fas fa-bolt text-[8px] mr-1"></i> POWER';
+                        $pinColor    = 'text-[#34d399]'; // Pin hijau muda
+                        $bagBgColor  = 'bg-[#10b981]';
+                        $bannerStyle = $hasBanner ? "background-image: url('".asset($bannerPath)."');" : "background: linear-gradient(135deg, #059669, #10b981);";
+                    } else {
+                        // Tema Hitam/Abu (Verified / Regular)
+                        $badgeClass  = 'bg-zinc-800/80 backdrop-blur-md text-white border border-white/10 shadow-sm';
+                        $badgeText   = '<span class="w-1 h-1 rounded-full bg-zinc-400 mr-1.5 inline-block"></span> VERIFIED';
+                        $pinColor    = 'text-blue-400'; // Pin biru
+                        $bagBgColor  = 'bg-blue-500';
+                        $bannerStyle = $hasBanner ? "background-image: url('".asset($bannerPath)."');" : "background-color: #18181b;";
+                    }
                 @endphp
 
-                <a href="{{ route('toko.detail', ['slug' => $toko->slug ?? '#']) }}" class="group relative bg-white rounded-[2rem] shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-zinc-100/80 flex flex-col h-full hover:-translate-y-1 w-full">
+                <a href="{{ route('toko.detail', ['slug' => $toko->slug]) }}" class="group bg-white rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 border border-zinc-100 overflow-hidden flex flex-col relative">
 
-                    {{-- Banner Area --}}
-                    <div class="h-32 w-full {{ $bannerBg }} relative" style="{{ $bannerStyle }}">
-                        @if($hasBanner)
-                            <div class="absolute inset-0 bg-black/20"></div>
-                        @endif
-                        {!! $badgeHTML !!}
+                    {{-- Banner Card --}}
+                    <div class="h-28 bg-cover bg-center relative" style="{{ $bannerStyle }}">
+                        {{-- Top Right Badge (Dinamis) --}}
+                        <div class="absolute top-3 right-3 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center justify-center {{ $badgeClass }}">
+                            {!! $badgeText !!}
+                        </div>
                     </div>
 
                     {{-- Body Content --}}
-                    <div class="bg-white relative rounded-t-[1.5rem] -mt-5 px-5 pb-5 pt-0 flex flex-col flex-1 z-10 w-full">
+                    <div class="px-5 pb-5 relative flex-1 flex flex-col bg-white rounded-t-[1.5rem] -mt-4">
 
                         {{-- Avatar Wrapper --}}
-                        <div class="relative -mt-8 mb-3 w-max">
+                        <div class="-mt-8 mb-3 relative inline-block w-max">
+
+                            {{-- Foto / Inisial --}}
                             @if($hasLogo)
-                                <img src="{{ asset($logoPath) }}" alt="{{ $toko->nama_toko }}" class="w-[60px] h-[60px] rounded-2xl object-cover border-[3px] border-white shadow-sm bg-white">
+                                <img src="{{ asset($logoPath) }}" alt="{{ $toko->nama_toko }}" class="w-[68px] h-[68px] rounded-[1.1rem] object-cover border-[3px] border-white shadow-sm bg-white">
                             @else
-                                <div class="w-[60px] h-[60px] rounded-2xl border-[3px] border-white shadow-sm flex items-center justify-center font-black text-xl text-white bg-zinc-800">
+                                <div class="w-[68px] h-[68px] rounded-[1.1rem] border-[3px] border-white shadow-sm flex items-center justify-center font-black text-xl text-white bg-zinc-800">
                                     {{ $storeInitials }}
                                 </div>
                             @endif
 
-                            {{-- Floating Icon Kecil --}}
+                            {{-- Floating Icon Kecil Kanan Bawah --}}
                             <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-lg flex items-center justify-center">
-                                <div class="w-[18px] h-[18px] rounded-[5px] flex items-center justify-center text-[8px] text-white bg-blue-500">
+                                <div class="w-[18px] h-[18px] rounded-[5px] flex items-center justify-center text-[8px] text-white {{ $bagBgColor }}">
                                     <i class="fas fa-store"></i>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- Text Info --}}
+                        {{-- Nama & Lokasi Toko --}}
                         <h4 class="font-black text-lg text-zinc-900 group-hover:text-blue-600 transition-colors line-clamp-1 leading-tight">
                             {{ $toko->nama_toko }}
                         </h4>
-
                         <p class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mt-1.5 flex items-center gap-1.5 line-clamp-1">
-                            <i class="fas fa-map-marker-alt {{ $pinColor }}"></i> {{ $toko->city_name ?? $toko->kota ?? 'Indonesia' }}
+                            <i class="fas fa-map-marker-alt {{ $pinColor }}"></i> {{ $toko->city_name }}
                         </p>
 
                         {{-- Bagian Bawah (Koleksi Produk & Tombol Panah) --}}
-                        <div class="mt-8 flex items-end justify-between mt-auto pt-4">
+                        <div class="mt-8 flex items-end justify-between">
                             <div>
-                                <span class="text-[8px] font-black text-zinc-300 uppercase tracking-widest block mb-0.5">Koleksi</span>
-                                <span class="text-xs font-black text-zinc-800 block">{{ number_format($toko->jumlah_produk ?? 0) }} Produk</span>
+                                <span class="text-[9px] font-black text-zinc-300 uppercase tracking-widest block mb-0.5">Koleksi</span>
+                                <span class="text-sm font-black text-zinc-800 block">{{ number_format($toko->jumlah_produk) }} Produk</span>
                             </div>
 
                             {{-- Soft Grey Button --}}
-                            <div class="w-8 h-8 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-zinc-900 group-hover:text-white transition-all duration-300 border border-zinc-100 group-hover:border-zinc-900">
-                                <i class="fas fa-arrow-right -rotate-45 text-[10px]"></i>
+                            <div class="w-9 h-9 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-zinc-900 group-hover:text-white transition-all duration-300">
+                                <i class="fas fa-arrow-right -rotate-45 text-xs"></i>
                             </div>
                         </div>
 
                     </div>
                 </a>
+
             @empty
-                <div class="col-span-full py-16 md:py-20 text-center bg-zinc-50 rounded-3xl md:rounded-[3rem] border border-dashed border-zinc-200 w-full">
-                    <i class="fas fa-store-slash text-3xl md:text-4xl text-zinc-200 mb-3 md:mb-4"></i>
-                    <p class="text-zinc-400 font-bold uppercase tracking-widest text-[10px] md:text-xs">Belum ada mitra di wilayah ini</p>
+                {{-- EMPTY STATE --}}
+                <div class="col-span-full flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-dashed border-zinc-300 shadow-sm">
+                    <div class="w-24 h-24 bg-zinc-100 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-store-slash text-4xl text-zinc-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-zinc-900 mb-2">Toko Tidak Ditemukan</h3>
+                    <p class="text-zinc-500 font-medium text-center max-w-md mb-8">Belum ada mitra toko yang terdaftar di lokasi pencarian ini. Silakan perluas area pencarian Anda.</p>
+
+                    @if(($filter_lokasi ?? 'semua') !== 'semua')
+                        <a href="{{ route('toko.index') }}" class="bg-black hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg flex items-center gap-2">
+                            <i class="fas fa-globe-asia"></i> Tampilkan Semua Kota
+                        </a>
+                    @endif
                 </div>
             @endforelse
+
         </div>
 
         {{-- PAGINASI --}}
