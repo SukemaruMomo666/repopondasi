@@ -110,10 +110,10 @@ Route::middleware(['auth', 'role:seller'])->prefix('seller')->name('seller.')->g
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Product Management (SUDAH DITAMBAHKAN ROUTE EXCEL)
+// Product Management (SUDAH DITAMBAHKAN ROUTE EXCEL)
     Route::get('/products/template', [SellerProductController::class, 'downloadTemplate'])->name('products.template');
     Route::post('/products/import', [SellerProductController::class, 'importExcel'])->name('products.import');
-    Route::resource('products', SellerProductController::class);
+    Route::resource('products', SellerProductController::class)->except(['show']); // <-- DITAMBAHKAN EXCEPT SHOW
     Route::post('/products/toggle-status', [SellerProductController::class, 'toggleStatus'])->name('products.toggle');
 
     // Order & Logistics

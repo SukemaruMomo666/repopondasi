@@ -16,11 +16,9 @@ class ProductImport implements ToCollection, WithHeadingRow
      */
     public function collection(Collection $rows)
     {
-        // Ambil ID Toko user yang sedang login
         $toko = DB::table('tb_toko')->where('user_id', Auth::id())->first();
 
         foreach ($rows as $row) {
-            // Lewati baris kalau nama_barang di excel benar-benar kosong
             if (!isset($row['nama_barang']) || empty(trim($row['nama_barang']))) {
                 continue;
             }
@@ -31,20 +29,17 @@ class ProductImport implements ToCollection, WithHeadingRow
                 'nama_barang'     => $row['nama_barang'],
                 'kode_barang'     => $row['kode_barang'] ?? Str::random(8),
                 'harga'           => $row['harga'] ?? 0,
-
-                // ==========================================
-                // DIBUAT OPSIONAL (NOL / NULL) SESUAI REQUEST
-                // ==========================================
                 'stok'            => $row['stok'] ?? 0,
                 'berat_kg'        => $row['berat_kg'] ?? 0,
-                'satuan_unit'     => $row['satuan_unit'] ?? null,
-                'deskripsi'       => $row['deskripsi'] ?? null,
-                // ==========================================
+
+                // --- INI PERBAIKANNYA BOS! (Tidak pakai null lagi) ---
+                'satuan_unit'     => !empty($row['satuan_unit']) ? $row['satuan_unit'] : 'pcs',
+                'deskripsi'       => !empty($row['deskripsi']) ? $row['deskripsi'] : 'Deskripsi belum tersedia.',
+                // -----------------------------------------------------
 
                 'gambar_utama'    => 'default.jpg',
-                'is_active'       => 0,         // Otomatis OFF Etalase
-                'status_moderasi' => 'pending', // Nunggu approval
-
+                'is_active'       => 0,
+                'status_moderasi' => 'pending',
                 'created_at'      => now(),
                 'updated_at'      => now(),
             ]);
