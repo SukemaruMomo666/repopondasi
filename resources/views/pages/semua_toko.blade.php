@@ -45,6 +45,11 @@
         .pagination-wrap .page-item .page-link { display: flex; align-items: center; justify-content: center; min-width: 2.5rem; height: 2.5rem; border-radius: 0.5rem; font-weight: 700; color: #52525b; padding: 0 0.75rem; transition: all 0.3s; }
         .pagination-wrap .page-item:not(.active) .page-link:hover { background: #f4f4f5; color: #000; }
         .pagination-wrap .page-item.active .page-link { background: #2563eb; color: white; box-shadow: 0 4px 15px rgba(37,99,235,0.4); }
+
+        /* BADGE TOKO (Gaya Eksklusif untuk Card Toko) */
+        .badge-store { display: inline-flex; align-items: center; justify-content: center; padding: 3px 8px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;}
+        .badge-official { background-color: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+        .badge-pro { background-color: #d1fae5; color: #047857; border: 1px solid #a7f3d0; }
     </style>
 </head>
 <body class="text-zinc-800 antialiased pt-[80px]">
@@ -153,7 +158,7 @@
                     <div class="pt-12 pb-6 px-6 flex-1 flex flex-col relative bg-white z-10 rounded-t-[2rem] -mt-6">
 
                         {{-- Logo Avatar (Overlap) --}}
-                        <div class="absolute -top-12 left-6 transition-transform duration-500 group-hover:-translate-y-1">
+                        <div class="absolute -top-12 left-6 transition-transform duration-500 group-hover:-translate-y-1 flex items-end">
                             @if($hasLogo)
                                 <img src="{{ asset($logoPath) }}" alt="{{ $toko->nama_toko }}" class="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-lg bg-white filter grayscale group-hover:grayscale-0 transition-all duration-500">
                             @else
@@ -163,9 +168,21 @@
                             @endif
                         </div>
 
-                        {{-- Text Info --}}
-                        <h4 class="font-black text-xl text-zinc-900 group-hover:text-blue-600 transition-colors line-clamp-1 mb-1">{{ $toko->nama_toko }}</h4>
-                        <p class="text-zinc-500 text-xs font-semibold flex items-center gap-1.5 mb-6">
+                        {{-- Text Info dengan Badge Toko --}}
+                        <div class="flex items-start justify-between gap-2 mb-1 mt-2">
+                            <h4 class="font-black text-xl text-zinc-900 group-hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
+                                {{ $toko->nama_toko }}
+                            </h4>
+
+                            {{-- LOGIKA BADGE TOKO --}}
+                            @if(isset($toko->tier_toko) && $toko->tier_toko == 'official_store')
+                                <span class="badge-store badge-official mt-1" title="Official Store"><i class="fas fa-crown mr-1"></i> Official</span>
+                            @elseif(isset($toko->tier_toko) && $toko->tier_toko == 'pro_merchant')
+                                <span class="badge-store badge-pro mt-1" title="Pro Merchant"><i class="fas fa-check-circle mr-1"></i> Pro</span>
+                            @endif
+                        </div>
+
+                        <p class="text-zinc-500 text-xs font-semibold flex items-center gap-1.5 mb-6 mt-1">
                             <i class="fas fa-map-pin text-zinc-300"></i> {{ $toko->city_name }}
                         </p>
 
