@@ -409,7 +409,7 @@
     <script src="{{ asset('assets/js/navbar.js') }}"></script>
 
     {{-- LOGIKA INTERAKSI (Termasuk Accordion & Mobile Sidebar) --}}
-{{-- LOGIKA INTERAKSI (Termasuk Accordion, Mobile Sidebar & Auto Detect) --}}
+{{-- LOGIKA INTERAKSI (Termasuk Accordion, Mobile Sidebar & Auto Detect DEBUG) --}}
     <script>
         // 1. Munculkan Tombol "Terapkan" saat ada interaksi filter
         function showApplyButton() {
@@ -422,7 +422,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
 
-            // 2. Mobile Sidebar Logic
+            // ... (Kode Sidebar dan Accordion tetap sama seperti sebelumnya) ...
             const mobileFilterBtn = document.getElementById('mobile-filter-btn');
             const sidebarFilters = document.getElementById('sidebar-filters');
             const closeFilterBtn = document.getElementById('close-filter-btn');
@@ -446,9 +446,7 @@
             if (closeFilterBtn) closeFilterBtn.addEventListener('click', closeFilter);
             if (filterOverlay) filterOverlay.addEventListener('click', closeFilter);
 
-            // 3. LOGIKA ACCORDION KATEGORI
             const accordionHeaders = document.querySelectorAll('.accordion-header');
-
             document.querySelectorAll('.accordion-item').forEach(item => {
                 if (item.querySelector('input[type="checkbox"]:checked')) {
                     item.querySelector('.accordion-content').classList.add('open');
@@ -473,20 +471,20 @@
             });
 
             // ==========================================
-            // 4. AUTO DETECT LOCATION (Geolokasi IP - V2 SAKTI)
+            // 4. AUTO DETECT LOCATION (VERSI DEBUG ALERT)
             // ==========================================
             const urlParams = new URLSearchParams(window.location.search);
 
-            // Menggunakan key session 'auto_lokasi_v2' agar sesi lama yang nyangkut diabaikan
-            if (!urlParams.has('lokasi') && !sessionStorage.getItem('auto_lokasi_v2')) {
+            if (!urlParams.has('lokasi') && !sessionStorage.getItem('auto_lokasi_debug')) {
 
-                // Mencoba fetch dari API pertama, jika diblokir/gagal otomatis lari ke API kedua
                 fetch('https://ipapi.co/json/')
                     .then(res => res.ok ? res.json() : fetch('http://ip-api.com/json').then(r => r.json()))
                     .then(data => {
                         let detectedCity = (data.city || "").toLowerCase();
 
-                        // Bersihkan embel-embel wilayah administratif agar cocok 100%
+                        // POPUP UNTUK MEMBUKTIKAN KOTA APA YANG TERBACA
+                        alert("Sistem melacak internet Anda berada di Kota: " + data.city + "\n\nSistem akan mencoba mencari kota ini di dalam dropdown filter.");
+
                         detectedCity = detectedCity.replace(/kabupaten|kota|kab\./g, '').trim();
 
                         if (detectedCity) {
@@ -495,7 +493,6 @@
                             let matchFound = false;
 
                             for (let i = 0; i < options.length; i++) {
-                                // Bersihkan juga opsi di dropdown saat proses pencocokan
                                 let optionText = options[i].text.toLowerCase().replace(/kabupaten|kota|kab\./g, '').trim();
 
                                 if (optionText.includes(detectedCity) || detectedCity.includes(optionText)) {
@@ -506,17 +503,16 @@
                             }
 
                             if (matchFound) {
-                                // Kunci sesi agar tidak terjadi infinite reload loop
-                                sessionStorage.setItem('auto_lokasi_v2', 'true');
-                                console.log('✅ Lokasi otomatis diset ke: ' + data.city);
+                                sessionStorage.setItem('auto_lokasi_debug', 'true');
+                                alert("Kecocokan ditemukan! Filter akan diarahkan ke: " + selectLokasi.options[selectLokasi.selectedIndex].text);
                                 document.getElementById('filterForm').submit();
                             } else {
-                                console.log('⚠️ Lokasi terlacak (' + data.city + ') tapi tidak ditemukan di opsi dropdown.');
+                                alert("Karena '" + data.city + "' TIDAK ADA di pilihan dropdown, maka sistem akan tetap menampilkan 'Seluruh Indonesia'.");
                             }
                         }
                     })
                     .catch(error => {
-                        console.log('❌ Sistem pelacak lokasi dicegat oleh Adblocker/Browser.', error);
+                        console.log('Pelacak diblokir', error);
                     });
             }
 
