@@ -315,8 +315,8 @@ class PageController extends Controller
         return response()->json(['status' => 'success']);
     }
 
-    // =================================================================
-    // 8. HALAMAN CHECKOUT (FIX ERROR: image_d584db & image_e008a2)
+// =================================================================
+    // 8. HALAMAN CHECKOUT (FIX ERROR count() parameter array)
     // =================================================================
     public function checkout(Request $request)
     {
@@ -338,7 +338,6 @@ class PageController extends Controller
 
         $isAlamatIncomplete = !$alamatUser || empty($alamatUser->nama_penerima) || empty($alamatUser->alamat_lengkap);
 
-        // FIX ERROR image_d584db: Mendefinisikan addressData
         $addressData = null;
         if ($alamatUser) {
             $addressData = [
@@ -354,7 +353,7 @@ class PageController extends Controller
         }
 
         $itemsPerToko = [];
-        $itemArray = []; // FIX ERROR image_e008a2: Mendefinisikan itemArray
+        $itemArray = [];
         $totalProduk = 0;
         $isDirectPurchase = $request->has('product_id');
 
@@ -379,11 +378,20 @@ class PageController extends Controller
             }
         } else {
             // AMBIL DARI REQUEST (JIKA DARI KERANJANG) ATAU DARI SESSION (JIKA DARI BELI SEKARANG)
-            $selectedItems = $request->input('selected_items') ?? session('selected_items');
+            $rawSelectedItems = $request->input('selected_items') ?? session('selected_items');
 
-            if (is_string($selectedItems)) {
-                $selectedItems = explode(',', $selectedItems);
+            // --- PERBAIKAN SAKTI NYA DI SINI BOS! ---
+            // Memastikan data selalu berupa ARRAY agar whereIn tidak Error 500
+            $selectedItems = [];
+            if (is_array($rawSelectedItems)) {
+                $selectedItems = $rawSelectedItems;
+            } elseif (is_string($rawSelectedItems)) {
+                $selectedItems = explode(',', $rawSelectedItems);
+            } elseif (!empty($rawSelectedItems)) {
+                // Berjaga-jaga jika isinya Integer atau tipe data lain
+                $selectedItems = [$rawSelectedItems];
             }
+            // ----------------------------------------
 
             if (empty($selectedItems)) {
                 return redirect()->route('keranjang.index')->with('error', 'Tidak ada barang yang dipilih untuk checkout.');
@@ -395,7 +403,7 @@ class PageController extends Controller
                 ->leftJoin('cities as c', 't.city_id', '=', 'c.id')
                 ->select('k.id as keranjang_id', 'b.id as barang_id', 'b.nama_barang', 'b.harga', 'b.gambar_utama', 'k.jumlah', 't.id as toko_id', 't.nama_toko', 'c.name as kota_toko')
                 ->where('k.user_id', $userId)
-                ->whereIn('k.id', $selectedItems)
+                ->whereIn('k.id', $selectedItems) // Sekarang pasti berhasil karena sudah diconvert ke Array!
                 ->get();
 
             foreach ($items as $item) {
@@ -411,7 +419,7 @@ class PageController extends Controller
         }
 
         if (empty($itemsPerToko)) {
-            return redirect()->route('keranjang.index')->with('error', 'Data produk tidak valid.');
+            return redirect()->route('keranjang.index')->with('error', 'Data produk tidak valid atau keranjang kosong.');
         }
 
         return view('pages.checkout', compact('userEmail', 'alamatUser', 'addressData', 'isAlamatIncomplete', 'itemsPerToko', 'itemArray', 'totalProduk', 'isDirectPurchase', 'request'));
