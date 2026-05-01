@@ -187,11 +187,11 @@ class PageController extends Controller
             ->orderBy('c.name', 'ASC')
             ->get();
 
-        $query = DB::table('tb_toko as t')
+$query = DB::table('tb_toko as t')
             ->join('cities as c', 't.city_id', '=', 'c.id')
             ->select(
                 't.id', 't.nama_toko', 't.slug', 't.deskripsi_toko',
-                't.logo_toko', 't.banner_toko', 't.city_id', 'c.name as city_name'
+                't.logo_toko', 't.banner_toko', 't.tier_toko', 't.city_id', 'c.name as city_name' // <--- Tambahkan t.tier_toko di sini
             )
             ->selectSub(function ($q) {
                 $q->from('tb_barang')
