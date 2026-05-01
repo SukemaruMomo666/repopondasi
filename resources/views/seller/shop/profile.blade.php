@@ -3,8 +3,10 @@
 @section('title', 'Profil & Legalitas Toko')
 
 @push('styles')
-{{-- LEAFLET CSS --}}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{{-- FONT AWESOME STABIL --}}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+{{-- LEAFLET CSS - WAJIB UNTUK PETA --}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 {{-- FONT AWESOME UNTUK MATCH DENGAN REFERENSI --}}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -13,11 +15,32 @@
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* LEAFLET Z-INDEX FIX */
+    /* ========================================================
+       JURUS MUTLAK ANTI GREY TILES & PETA PECAH LEAFLET
+       ======================================================== */
     .leaflet-container {
         z-index: 10 !important;
         font-family: 'Inter', sans-serif;
     }
+
+    /* Mencegah Tailwind me-reset lebar gambar di dalam peta */
+    .leaflet-container img.leaflet-tile {
+        max-width: none !important;
+        max-height: none !important;
+        width: 256px !important;
+        height: 256px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+    }
+
+    /* Pastikan icon marker tidak terpengaruh CSS global */
+    .leaflet-marker-icon,
+    .leaflet-marker-shadow {
+        max-width: none !important;
+        max-height: none !important;
+    }
+    /* ======================================================== */
 
     /* CUSTOM TAILWIND UTILITIES */
     .shadow-soft { box-shadow: 0 4px 40px -4px rgba(0,0,0,0.03); }
@@ -33,8 +56,14 @@
         transform: scale(1.02);
     }
 
-    .input-premium {
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    .input-premium { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+
+    /* READONLY INPUT STYLE */
+    .input-readonly {
+        background-color: #f4f4f5 !important;
+        color: #71717a !important;
+        cursor: not-allowed;
+        border-color: #e4e4e7 !important;
     }
 
     /* ANIMASI GPS BUTTON */
@@ -46,6 +75,13 @@
     .gps-active {
         animation: pulse-ring 2s infinite;
         background-color: #1d4ed8 !important;
+    }
+
+    /* Memaksa map mengambil seluruh tinggi dan lebar yang tersedia */
+    #modalMap {
+        width: 100% !important;
+        height: 50vh !important;
+        display: block;
     }
 </style>
 @endpush
@@ -86,9 +122,17 @@
     </script>
 
     {{-- HEADER --}}
-    <div class="mb-8">
-        <h1 class="text-3xl font-black text-black tracking-tight">Profil & Legalitas Toko</h1>
-        <p class="text-sm font-medium text-zinc-500 mt-1">Kelola informasi bisnis, dokumen legal, dan titik koordinat logistik armada Anda.</p>
+    <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-black text-black tracking-tight">Profil & Legalitas Toko</h1>
+            <p class="text-sm font-medium text-zinc-500 mt-1">Kelola informasi bisnis, dokumen legal, dan titik koordinat logistik armada Anda.</p>
+        </div>
+        @if(($toko->tier_toko ?? '') == 'official_store')
+            <div class="bg-blue-50 text-blue-700 px-4 py-2 rounded-xl border border-blue-200 flex items-center gap-2">
+                <i class="fas fa-check-circle text-lg"></i>
+                <span class="text-xs font-black uppercase tracking-wider">Official Store Verified</span>
+            </div>
+        @endif
     </div>
 
     <form action="{{ route('seller.shop.profile.update') }}" method="POST" enctype="multipart/form-data" id="profileForm">
@@ -158,7 +202,7 @@
                         <div>
                             <label class="block text-[11px] font-black text-zinc-400 uppercase tracking-widest mb-2">Dokumen NIB *</label>
                             <div id="dropzoneNIB" class="border-2 border-dashed border-zinc-200 rounded-2xl p-5 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 relative overflow-hidden" onclick="document.getElementById('nibInput').click()">
-                                <input type="file" id="nibInput" name="dokumen_nib" class="hidden absolute inset-0" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'nibName', 'dropzoneNIB')">
+                                <input type="file" id="nibInput" name="dokumen_nib" class="hidden absolute inset-0" accept="application/pdf,image/jpeg,image/png,image/jpg" onchange="updateFileName(this, 'nibName', 'dropzoneNIB')">
                                 <div class="relative z-10 flex flex-col items-center justify-center pointer-events-none">
                                     <i class="fas fa-cloud-upload-alt text-2xl text-zinc-300 mb-2 drop-icon"></i>
                                     <div id="nibName" class="text-xs font-bold text-zinc-600">
@@ -177,7 +221,7 @@
                         <div>
                             <label class="block text-[11px] font-black text-zinc-400 uppercase tracking-widest mb-2">Dokumen NPWP *</label>
                             <div id="dropzoneNPWP" class="border-2 border-dashed border-zinc-200 rounded-2xl p-5 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 relative overflow-hidden" onclick="document.getElementById('npwpInput').click()">
-                                <input type="file" id="npwpInput" name="dokumen_npwp" class="hidden absolute inset-0" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this, 'npwpName', 'dropzoneNPWP')">
+                                <input type="file" id="npwpInput" name="dokumen_npwp" class="hidden absolute inset-0" accept="application/pdf,image/jpeg,image/png,image/jpg" onchange="updateFileName(this, 'npwpName', 'dropzoneNPWP')">
                                 <div class="relative z-10 flex flex-col items-center justify-center pointer-events-none">
                                     <i class="fas fa-cloud-upload-alt text-2xl text-zinc-300 mb-2 drop-icon"></i>
                                     <div id="npwpName" class="text-xs font-bold text-zinc-600">
@@ -238,98 +282,60 @@
                             <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                                 <i class="fas fa-map-marker-alt text-lg"></i>
                             </div>
-                            <h3 class="text-lg font-black text-black">Titik Koordinat Lokasi</h3>
+                            <h3 class="text-lg font-black text-black">Alamat & Titik Koordinat</h3>
                         </div>
-                        <button type="button" onclick="getLocation()" id="btnGps" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-glow flex items-center justify-center gap-2">
-                            <i class="fas fa-crosshairs"></i> Gunakan GPS Saya
-                        </button>
                     </div>
 
-                    <p class="text-sm font-medium text-zinc-500 mb-6">Geser pin merah di bawah ini ke lokasi gudang/proyek Anda untuk akurasi pengiriman material (Armada Truk).</p>
+                    <p class="text-sm font-medium text-zinc-500 mb-6">Tentukan lokasi gudang/proyek Anda untuk akurasi pengiriman material (Armada Truk).</p>
 
                     <div class="space-y-6">
-                        {{-- DROPDOWN WILAYAH --}}
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-[11px] font-black text-zinc-400 uppercase tracking-widest mb-2">Provinsi <span class="text-red-500">*</span></label>
-                                <select name="province_id" class="input-premium w-full bg-white border border-zinc-200 text-sm font-bold rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none" required>
-                                    <option value="">Pilih Provinsi</option>
-                                    <option value="2" {{ old('province_id', $toko->province_id ?? '') == '2' ? 'selected' : '' }}>JAWA BARAT</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-black text-zinc-400 uppercase tracking-widest mb-2">Kota/Kab. <span class="text-red-500">*</span></label>
-                                <select name="city_id" class="input-premium w-full bg-white border border-zinc-200 text-sm font-bold rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none" required>
-                                    <option value="">Pilih Kota</option>
-                                    <option value="21" {{ old('city_id', $toko->city_id ?? '') == '21' ? 'selected' : '' }}>KABUPATEN SUBANG</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-black text-zinc-400 uppercase tracking-widest mb-2">Kecamatan <span class="text-red-500">*</span></label>
-                                <select name="district_id" class="input-premium w-full bg-white border border-zinc-200 text-sm font-bold rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none" required>
-                                    <option value="">Pilih Kecamatan</option>
-                                    <option value="215" {{ old('district_id', $toko->district_id ?? '') == '215' ? 'selected' : '' }}>Pagaden</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        {{-- SEARCH PETA --}}
-                        <div class="flex gap-2">
-                            <div class="relative flex-1">
-                                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"></i>
-                                <input type="text" id="searchLokasi" class="input-premium w-full bg-zinc-50 border border-zinc-200 text-zinc-900 text-sm font-bold rounded-xl pl-11 pr-4 py-3 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none" placeholder="Cari nama jalan atau patokan..." onkeydown="if(event.key === 'Enter'){ event.preventDefault(); cariLokasiMap(); }">
+                        {{-- TOMBOL BUKA PETA MODAL & INPUT KOORDINAT READONLY --}}
+                        <div class="bg-blue-50/50 border border-blue-100 p-5 rounded-2xl flex flex-col md:flex-row items-center gap-4">
+                            <div class="w-full md:w-auto shrink-0">
+                                <button type="button" onclick="openMapModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-xl text-sm font-bold transition-all shadow-glow flex items-center justify-center gap-2">
+                                    <i class="fas fa-map-pin"></i> Atur Peta Lokasi
+                                </button>
                             </div>
-                            <button type="button" onclick="cariLokasiMap()" id="btnSearchMap" class="bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-xl text-sm font-bold transition-all shadow-md">
-                                Cari
-                            </button>
-                        </div>
-
-                        {{-- MAP CONTAINER --}}
-                        <div class="relative w-full h-[400px] rounded-2xl overflow-hidden border border-zinc-200 z-10 bg-zinc-100">
-                            <div id="map" class="absolute inset-0 w-full h-full"></div>
-
-                            {{-- OVERLAY PIN TERKUNCI --}}
-                            <div class="absolute bottom-4 left-4 z-[400] bg-white/95 backdrop-blur-sm p-3.5 rounded-2xl shadow-float border border-zinc-100 min-w-[200px]">
-                                <div class="flex items-center gap-2 mb-2.5">
-                                    <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.6)]"></div>
-                                    <span class="text-[10px] font-black text-zinc-900 tracking-widest uppercase">PIN TERKUNCI</span>
+                            <div class="w-full flex-1 flex gap-3">
+                                <div class="flex-1 relative">
+                                    <label class="absolute -top-2 left-3 bg-blue-50 px-1 text-[9px] font-black text-blue-600 uppercase tracking-widest">Latitude</label>
+                                    <input type="text" name="latitude" id="mainLat" class="input-readonly w-full text-xs font-bold rounded-xl px-4 py-3 outline-none" value="{{ old('latitude', $toko->latitude ?? '-6.558935') }}" readonly required>
                                 </div>
-                                <div class="flex justify-between items-center text-xs mb-1">
-                                    <span class="text-zinc-500 font-bold">Lat:</span>
-                                    <span class="text-blue-600 font-black" id="displayLat">-6.200000</span>
-                                </div>
-                                <div class="flex justify-between items-center text-xs">
-                                    <span class="text-zinc-500 font-bold">Lng:</span>
-                                    <span class="text-blue-600 font-black" id="displayLng">106.816666</span>
-                                </div>
-                            </div>
-
-                            {{-- OVERLAY LOADING --}}
-                            <div id="mapLoader" class="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-[500] hidden">
-                                <div class="flex flex-col items-center">
-                                    <i class="fas fa-circle-notch fa-spin text-4xl text-blue-600 mb-3"></i>
-                                    <span class="text-xs font-bold text-zinc-700 tracking-wide uppercase" id="mapLoaderText">Memproses lokasi...</span>
+                                <div class="flex-1 relative">
+                                    <label class="absolute -top-2 left-3 bg-blue-50 px-1 text-[9px] font-black text-blue-600 uppercase tracking-widest">Longitude</label>
+                                    <input type="text" name="longitude" id="mainLng" class="input-readonly w-full text-xs font-bold rounded-xl px-4 py-3 outline-none" value="{{ old('longitude', $toko->longitude ?? '107.763321') }}" readonly required>
                                 </div>
                             </div>
                         </div>
 
+                        {{-- HASIL PENGISIAN OTOMATIS (REVERSE GEOCODING) --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-[11px] font-black text-zinc-400 uppercase tracking-widest mb-2">Kabupaten / Kota <span class="text-blue-600">(Auto)</span></label>
+                                <div class="relative">
+                                    <input type="text" name="kota" id="inputKota" class="w-full input-readonly text-sm font-bold rounded-xl px-4 py-3 outline-none" value="{{ old('kota', $toko->kota ?? '') }}" readonly required>
+                                    <i class="fas fa-check-circle absolute right-4 top-3.5 text-emerald-500 text-lg"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-black text-zinc-400 uppercase tracking-widest mb-2">Kode Pos <span class="text-blue-600">(Auto)</span></label>
+                                <div class="relative">
+                                    <input type="text" name="kode_pos" id="inputKodePos" class="w-full input-readonly text-sm font-bold rounded-xl px-4 py-3 outline-none" value="{{ old('kode_pos', $toko->kode_pos ?? '') }}" readonly required>
+                                    <i class="fas fa-check-circle absolute right-4 top-3.5 text-emerald-500 text-lg"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ALAMAT MANUAL --}}
                         <div>
                             <div class="flex items-center justify-between mb-2">
-                                <label class="block text-[11px] font-black text-zinc-400 uppercase tracking-widest">Detail Alamat Lengkap <span class="text-red-500">*</span></label>
+                                <label class="block text-[11px] font-black text-zinc-400 uppercase tracking-widest">Alamat Detail (Manual) <span class="text-red-500">*</span></label>
                                 <span id="autoAddressIndicator" class="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md hidden"><i class="fas fa-magic"></i> Auto-fill dari Pin</span>
                             </div>
 
-                            {{-- HIDDEN FIELDS UNTUK MENYESUAIKAN VALIDASI CONTROLLER LAMA --}}
-                            <input type="hidden" name="kota" id="inputKota" value="{{ old('kota', $toko->kota ?? '') }}">
-                            <input type="hidden" name="kode_pos" id="inputKodePos" value="{{ old('kode_pos', $toko->kode_pos ?? '') }}">
-
-                            {{-- NAME KEMBALI KE alamat_lengkap AGAR CONTROLLER TIDAK MARAH --}}
                             <textarea id="alamatDetail" name="alamat_lengkap" class="input-premium w-full bg-zinc-50 border border-zinc-200 text-zinc-900 text-sm font-medium rounded-xl px-4 py-4 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none min-h-[90px] resize-none leading-relaxed" placeholder="Contoh: Jl. Raya Pantura No. 45. Gudang atap seng biru, gerbang besi hitam." required>{{ old('alamat_lengkap', $toko->alamat_toko ?? '') }}</textarea>
                         </div>
-
-                        {{-- HIDDEN COORDS UNTUK DATABASE --}}
-                        <input type="hidden" name="latitude" id="latitude" value="{{ old('latitude', $toko->latitude ?? '-6.558935') }}">
-                        <input type="hidden" name="longitude" id="longitude" value="{{ old('longitude', $toko->longitude ?? '107.763321') }}">
                     </div>
                 </div>
 
@@ -372,263 +378,326 @@
         </div>
     </form>
 </div>
+
+{{-- ========================================================================= --}}
+{{-- MODAL POPUP LEAFLET MAP (ANTI GREY TILES MUTLAK)                          --}}
+{{-- ========================================================================= --}}
+<div id="mapModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+    <div class="bg-white rounded-3xl shadow-float w-full max-w-4xl overflow-hidden flex flex-col transform transition-all scale-95 opacity-0" id="mapModalContent">
+
+        {{-- Header Modal --}}
+        <div class="p-5 border-b border-zinc-100 flex justify-between items-center bg-zinc-50">
+            <div>
+                <h3 class="font-black text-lg text-zinc-900 flex items-center gap-2">
+                    <i class="fas fa-map-marked-alt text-blue-600"></i> Pilih Titik Lokasi
+                </h3>
+                <p class="text-xs text-zinc-500 font-medium mt-1">Geser pin merah ke lokasi paling akurat.</p>
+            </div>
+            <button type="button" onclick="closeMapModal()" class="w-8 h-8 rounded-full bg-zinc-200 hover:bg-red-100 hover:text-red-600 text-zinc-500 flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+
+        {{-- Body Modal --}}
+        <div class="p-5 space-y-4 relative">
+            {{-- Search & Tools --}}
+            <div class="flex flex-col sm:flex-row gap-3">
+                <div class="relative flex-1">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"></i>
+                    <input type="text" id="searchLokasi" class="w-full bg-white border border-zinc-300 text-zinc-900 text-sm font-bold rounded-xl pl-11 pr-4 py-3 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none" placeholder="Cari kecamatan, kota, jalan...">
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" onclick="cariLokasiMap()" id="btnSearchMap" class="bg-zinc-900 hover:bg-black text-white px-6 py-3 rounded-xl text-sm font-bold shadow-md transition-all whitespace-nowrap">
+                        Cari
+                    </button>
+                    <button type="button" onclick="getLocation()" id="btnGps" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl text-sm font-bold shadow-glow transition-all shrink-0" title="Gunakan Lokasi Saya Saat Ini">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Map Container in Modal --}}
+            <div id="modalMap" class="w-full h-[50vh] min-h-[300px] max-h-[500px] rounded-2xl border border-zinc-200 z-10 relative overflow-hidden bg-zinc-100"></div>
+
+            {{-- Result Display --}}
+            <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-4 flex gap-4 items-center">
+                <i class="fas fa-info-circle text-2xl text-blue-500 shrink-0"></i>
+                <div class="flex-1">
+                    <div class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">Hasil Geocoding</div>
+                    <div class="text-sm font-semibold text-zinc-800" id="tempAddressText">Menunggu lokasi dipilih...</div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Footer Modal --}}
+        <div class="p-5 border-t border-zinc-100 bg-zinc-50 flex justify-end gap-3">
+            <button type="button" onclick="closeMapModal()" class="px-6 py-2.5 bg-white border border-zinc-300 text-zinc-700 font-bold rounded-xl hover:bg-zinc-100 transition-all">Batal</button>
+            <button type="button" onclick="saveMapLocation()" class="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-glow transition-all">Simpan Lokasi Ini</button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 {{-- SCRIPT LEAFLET --}}
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const latInput = document.getElementById('latitude');
-        const lngInput = document.getElementById('longitude');
-        const displayLat = document.getElementById('displayLat');
-        const displayLng = document.getElementById('displayLng');
-        const mapContainer = document.getElementById('map');
+
+        const mainLat = document.getElementById('mainLat');
+        const mainLng = document.getElementById('mainLng');
+        const inputKota = document.getElementById('inputKota');
+        const inputKodePos = document.getElementById('inputKodePos');
         const alamatDetail = document.getElementById('alamatDetail');
-        const autoIndicator = document.getElementById('autoAddressIndicator');
-        const loader = document.getElementById('mapLoader');
-        const loaderText = document.getElementById('mapLoaderText');
 
-        let currentLat = parseFloat(latInput.value) || -6.558935;
-        let currentLng = parseFloat(lngInput.value) || 107.763321;
+        const mapModal = document.getElementById('mapModal');
+        const mapModalContent = document.getElementById('mapModalContent');
+        const tempAddressText = document.getElementById('tempAddressText');
+        const searchInput = document.getElementById('searchLokasi');
 
-        function updateDisplayCoords(lat, lng) {
-            displayLat.innerText = parseFloat(lat).toFixed(6);
-            displayLng.innerText = parseFloat(lng).toFixed(6);
-            latInput.value = parseFloat(lat).toFixed(8);
-            lngInput.value = parseFloat(lng).toFixed(8);
+        let map = null;
+        let marker = null;
+
+        let tempLat = parseFloat(mainLat.value) || -6.558935;
+        let tempLng = parseFloat(mainLng.value) || 107.763321;
+        let tempCity = inputKota.value || '';
+        let tempPos = inputKodePos.value || '';
+        let tempFullAddress = '';
+
+        // ==========================================
+        // 1. MANAJEMEN MODAL & INIT MAP
+        // ==========================================
+// ==========================================
+        // 1. MANAJEMEN MODAL & INIT MAP (FIXED)
+        // ==========================================
+window.openMapModal = function() {
+            // 1. Tampilkan modal ke DOM
+            mapModal.classList.remove('hidden');
+
+            setTimeout(() => {
+                // 2. Mulai animasi modal
+                mapModalContent.classList.remove('scale-95', 'opacity-0');
+                mapModalContent.classList.add('scale-100', 'opacity-100');
+
+                // 3. JURUS PAMUNGKAS: Tunggu 500ms (pastikan animasi CSS selesai total)
+                setTimeout(() => {
+                    if(!map) {
+                        map = L.map('modalMap', {
+                            center: [tempLat, tempLng],
+                            zoom: 15,
+                            zoomControl: false
+                        });
+
+                        L.control.zoom({ position: 'topright' }).addTo(map);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19,
+                            attribution: '© OpenStreetMap'
+                        }).addTo(map);
+
+                        const redIcon = L.icon({
+                            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34]
+                        });
+
+                        marker = L.marker([tempLat, tempLng], { draggable: true, icon: redIcon }).addTo(map);
+
+                        marker.on('dragend', function (e) {
+                            const p = e.target.getLatLng();
+                            updateMapPosition(p.lat, p.lng);
+                        });
+
+                        map.on('click', function(e) {
+                            updateMapPosition(e.latlng.lat, e.latlng.lng);
+                        });
+                    } else {
+                        map.setView([tempLat, tempLng], 15);
+                        marker.setLatLng([tempLat, tempLng]);
+                    }
+
+                    // PAKSA BROWSER MENGHITUNG ULANG UKURAN
+                    map.invalidateSize();
+                    window.dispatchEvent(new Event('resize'));
+
+                    getAddressFromCoords(tempLat, tempLng);
+
+                }, 500);
+
+            }, 50);
+        };
+
+        window.closeMapModal = function() {
+            mapModalContent.classList.remove('scale-100', 'opacity-100');
+            mapModalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { mapModal.classList.add('hidden'); }, 300);
+        };
+
+        window.saveMapLocation = function() {
+            mainLat.value = tempLat.toFixed(8);
+            mainLng.value = tempLng.toFixed(8);
+            inputKota.value = tempCity;
+            inputKodePos.value = tempPos;
+
+            if(alamatDetail.value.trim() === '' && tempFullAddress !== '') {
+                alamatDetail.value = tempFullAddress;
+            }
+
+            closeMapModal();
+            Toast.fire({icon: 'success', title: 'Titik Peta Disimpan!'});
+        };
+
+        // ==========================================
+        // 2. FUNGSI GEOCODING API
+        // ==========================================
+        function updateMapPosition(lat, lng) {
+            tempLat = lat;
+            tempLng = lng;
+            marker.setLatLng([lat, lng]);
+            map.panTo([lat, lng]);
+            getAddressFromCoords(lat, lng);
         }
 
-        // 1. INISIALISASI PETA
-        const map = L.map(mapContainer, {
-            center: [currentLat, currentLng],
-            zoom: 15,
-            zoomControl: false
-        });
-
-        L.control.zoom({ position: 'topright' }).addTo(map);
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap &copy; CARTO'
-        }).addTo(map);
-
-        // Custom Marker
-        const customIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-            iconSize: [25, 41],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
-
-        const marker = L.marker([currentLat, currentLng], { draggable: true, icon: customIcon }).addTo(map);
-        updateDisplayCoords(currentLat, currentLng);
-
-        // BUG FIX GREY TILES (ResizeObserver)
-        const forceMapRender = () => { if(map) map.invalidateSize(); };
-        setTimeout(forceMapRender, 200);
-        setTimeout(forceMapRender, 600);
-
-        if (window.ResizeObserver) {
-            const resizeObserver = new ResizeObserver(() => { forceMapRender(); });
-            resizeObserver.observe(mapContainer);
-        }
-
-        // 2. FUNGSI REVERSE GEOCODING DENGAN KOTA & KODE POS UNTUK CONTROLLER
         async function getAddressFromCoords(lat, lng) {
+            tempAddressText.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Mendeteksi wilayah...';
             try {
                 const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
                 const data = await response.json();
                 if(data && data.address) {
-                    // Extract kota dan kode pos dari hasil reverse geocoding
                     const addr = data.address;
-                    const city = addr.city || addr.town || addr.municipality || addr.county || addr.state_district || "";
-                    document.getElementById('inputKota').value = city;
-                    document.getElementById('inputKodePos').value = addr.postcode || "";
+                    tempCity = addr.city || addr.town || addr.municipality || addr.county || addr.state_district || "Tidak Ditemukan";
+                    tempPos = addr.postcode || "";
+                    tempFullAddress = data.display_name || "";
 
-                    if(data.display_name) {
-                        alamatDetail.value = data.display_name;
-                        autoIndicator.classList.remove('hidden');
-                        setTimeout(() => autoIndicator.classList.add('hidden'), 4000);
-                    }
+                    tempAddressText.innerHTML = `<b>${tempCity}</b>, ${tempPos}<br><span class="text-[10px] text-zinc-500 font-medium">${tempFullAddress}</span>`;
                 }
             } catch (error) {
-                console.error("Geocoding error:", error);
+                tempAddressText.innerHTML = "Gagal menghubungi satelit pencarian.";
             }
         }
 
-        // Jika form kosong saat pertama diload, panggil geocoder
-        if(!document.getElementById('inputKota').value || !alamatDetail.value) {
-            getAddressFromCoords(currentLat, currentLng);
-        }
-
-        // 3. EVENT HANDLERS MARKER
-        marker.on('dragend', function (e) {
-            const p = e.target.getLatLng();
-            updateDisplayCoords(p.lat, p.lng);
-            map.panTo(p);
-            getAddressFromCoords(p.lat, p.lng);
-        });
-
-        map.on('click', function(e) {
-            marker.setLatLng(e.latlng);
-            updateDisplayCoords(e.latlng.lat, e.latlng.lng);
-            map.panTo(e.latlng);
-            getAddressFromCoords(e.latlng.lat, e.latlng.lng);
-        });
-
-        // 4. FUNGSI PENCARIAN PETA
         window.cariLokasiMap = async function() {
-            const query = document.getElementById('searchLokasi').value;
-            if(query.length < 3) {
-                Toast.fire({icon: 'warning', title: 'Ketik minimal 3 karakter'});
-                return;
-            }
+            const query = searchInput.value;
+            if(query.length < 3) return Swal.fire({icon: 'warning', text: 'Ketik minimal 3 karakter pencarian.', customClass: { popup: 'rounded-2xl' }});
 
             const btn = document.getElementById('btnSearchMap');
+            const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             btn.disabled = true;
-            loaderText.innerText = "MENCARI LOKASI...";
-            loader.classList.remove('hidden');
 
             try {
                 const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
                 const data = await response.json();
 
                 if(data.length > 0) {
-                    const res = data[0];
-                    const newLat = parseFloat(res.lat);
-                    const newLng = parseFloat(res.lon);
-
-                    map.setView([newLat, newLng], 17);
-                    marker.setLatLng([newLat, newLng]);
-                    updateDisplayCoords(newLat, newLng);
-
-                    // Panggil geocoding agar kota dan kodepos ikut terupdate
-                    getAddressFromCoords(newLat, newLng);
-
-                    Toast.fire({icon: 'success', title: 'Lokasi ditemukan!'});
+                    updateMapPosition(parseFloat(data[0].lat), parseFloat(data[0].lon));
                 } else {
-                    Toast.fire({icon: 'error', title: 'Lokasi tidak ditemukan'});
+                    Swal.fire({icon: 'error', title: 'Tidak Ditemukan', text: 'Lokasi tidak ditemukan di satelit.', customClass: { popup: 'rounded-2xl' }});
                 }
             } catch(e) {
-                Toast.fire({icon: 'error', title: 'Terjadi kesalahan jaringan'});
+                Swal.fire({icon: 'error', text: 'Koneksi internet bermasalah.'});
             } finally {
-                btn.innerHTML = 'Cari';
+                btn.innerHTML = originalText;
                 btn.disabled = false;
-                loader.classList.add('hidden');
             }
-        }
+        };
 
-        // 5. FITUR TRACKING GPS
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); cariLokasiMap(); }
+        });
+
+        // ==========================================
+        // 3. FITUR GPS TRACKING
+        // ==========================================
         window.getLocation = function() {
             const btnGps = document.getElementById('btnGps');
 
             if (navigator.geolocation) {
                 btnGps.classList.add('gps-active');
-                btnGps.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Melacak...';
-                loaderText.innerText = "MENGAMBIL KOORDINAT GPS ANDA...";
-                loader.classList.remove('hidden');
+                tempAddressText.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Melacak kordinat satelit...';
 
                 navigator.geolocation.getCurrentPosition(
                     function(position) {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-
-                        map.setView([lat, lng], 17);
-                        marker.setLatLng([lat, lng]);
-                        updateDisplayCoords(lat, lng);
-                        getAddressFromCoords(lat, lng);
-
-                        loader.classList.add('hidden');
+                        updateMapPosition(position.coords.latitude, position.coords.longitude);
+                        map.setZoom(17);
                         btnGps.classList.remove('gps-active');
-                        btnGps.innerHTML = '<i class="fas fa-crosshairs"></i> Gunakan GPS Saya';
-                        Toast.fire({icon: 'success', title: 'GPS berhasil dilacak!'});
                     },
                     function(error) {
-                        loader.classList.add('hidden');
                         btnGps.classList.remove('gps-active');
-                        btnGps.innerHTML = '<i class="fas fa-crosshairs"></i> Gunakan GPS Saya';
-
-                        let msg = "Gagal melacak lokasi.";
-                        if(error.code === 1) msg = "Izin akses GPS ditolak.";
-                        else if(error.code === 2) msg = "Sinyal GPS tidak ditemukan.";
-                        else if(error.code === 3) msg = "Waktu permintaan GPS habis.";
-
-                        Toast.fire({icon: 'error', title: msg});
+                        tempAddressText.innerHTML = "Gagal melacak lokasi Anda.";
+                        Swal.fire({icon: 'error', text: 'Pastikan izin akses lokasi diizinkan di browser.'});
                     },
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
             } else {
-                Toast.fire({icon: 'error', title: 'Browser tidak mendukung GPS.'});
+                Swal.fire({icon: 'error', title: 'Browser Tidak Mendukung GPS'});
             }
         };
-    });
 
-    // DRAG AND DROP SETUP
-    function setupDropzone(dropzoneId, inputId, nameId) {
-        const dropzone = document.getElementById(dropzoneId);
-        const input = document.getElementById(inputId);
-        const icon = dropzone.querySelector('.drop-icon');
+        // ==========================================
+        // 4. PREVIEW GAMBAR & DRAG DROP
+        // ==========================================
+        function setupDropzone(dropzoneId, inputId, nameId) {
+            const dropzone = document.getElementById(dropzoneId);
+            const input = document.getElementById(inputId);
+            const icon = dropzone.querySelector('.drop-icon');
 
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropzone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
-        });
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+            });
 
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropzone.addEventListener(eventName, () => {
-                dropzone.classList.add('dropzone-active');
-                icon.classList.remove('text-zinc-300');
-                icon.classList.add('text-blue-500');
-            }, false);
-        });
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, () => {
+                    dropzone.classList.add('dropzone-active');
+                    icon.classList.remove('text-zinc-300');
+                    icon.classList.add('text-blue-500');
+                }, false);
+            });
 
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropzone.addEventListener(eventName, () => {
-                dropzone.classList.remove('dropzone-active');
-                icon.classList.remove('text-blue-500');
-                icon.classList.add('text-zinc-300');
-            }, false);
-        });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, () => {
+                    dropzone.classList.remove('dropzone-active');
+                    icon.classList.remove('text-blue-500');
+                    icon.classList.add('text-zinc-300');
+                }, false);
+            });
 
-        dropzone.addEventListener('drop', (e) => {
-            input.files = e.dataTransfer.files;
-            updateFileName(input, nameId, dropzoneId);
-        });
-    }
-
-    setupDropzone('dropzoneNIB', 'nibInput', 'nibName');
-    setupDropzone('dropzoneNPWP', 'npwpInput', 'npwpName');
-
-    window.updateFileName = function(input, targetId, dropzoneId) {
-        if(input.files && input.files.length > 0) {
-            document.getElementById(targetId).innerHTML = `<span class="text-blue-600 flex items-center gap-1 justify-center"><i class="fas fa-check-circle"></i> ${input.files[0].name}</span>`;
-            document.getElementById(dropzoneId).classList.add('border-blue-400', 'bg-blue-50');
+            dropzone.addEventListener('drop', (e) => {
+                input.files = e.dataTransfer.files;
+                updateFileName(input, nameId, dropzoneId);
+            });
         }
-    }
 
-    window.previewImage = function(input, previewId, placeholderId = null) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                document.getElementById(previewId).src = e.target.result;
-                document.getElementById(previewId).classList.remove('hidden');
-                if(placeholderId) document.getElementById(placeholderId).classList.add('hidden');
+        setupDropzone('dropzoneNIB', 'nibInput', 'nibName');
+        setupDropzone('dropzoneNPWP', 'npwpInput', 'npwpName');
+
+        window.updateFileName = function(input, targetId, dropzoneId) {
+            if(input.files && input.files.length > 0) {
+                document.getElementById(targetId).innerHTML = `<span class="text-blue-600 flex items-center gap-1 justify-center"><i class="fas fa-check-circle"></i> ${input.files[0].name}</span>`;
+                document.getElementById(dropzoneId).classList.add('border-blue-400', 'bg-blue-50');
             }
-            reader.readAsDataURL(input.files[0]);
         }
-    }
 
-    // FORM SUBMIT HANDLING
-    document.getElementById('profileForm').addEventListener('submit', function(e) {
-        const btn = document.getElementById('btnSubmitProfile');
-        setTimeout(() => {
+        window.previewImage = function(input, previewId, placeholderId = null) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById(previewId).src = e.target.result;
+                    document.getElementById(previewId).classList.remove('hidden');
+                    if(placeholderId) document.getElementById(placeholderId).classList.add('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // ==========================================
+        // 5. SUBMIT LOADER
+        // ==========================================
+        document.getElementById('profileForm').addEventListener('submit', function() {
+            const btn = document.getElementById('btnSubmitProfile');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMPROSES...';
             btn.classList.add('opacity-80', 'cursor-not-allowed', 'scale-95');
             btn.disabled = true;
-        }, 10);
+        });
     });
 </script>
 @endpush

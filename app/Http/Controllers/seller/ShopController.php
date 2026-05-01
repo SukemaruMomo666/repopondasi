@@ -35,67 +35,79 @@ class ShopController extends Controller
         return view('seller.shop.profile', compact('toko'));
     }
 
-    public function updateProfile(Request $request)
+public function updateProfile(Request $request)
     {
         $toko = $this->getToko();
 
-        // Validasi Super Ketat
+        // 1. Validasi Komprehensif (Sesuai dengan semua input di Blade)
         $request->validate([
             'nama_toko'      => 'required|string|max:50',
             'slogan'         => 'nullable|string|max:100',
-            'deskripsi_toko' => 'nullable|string|max:1000',
+            'deskripsi_toko' => 'nullable|string|max:1000', // Sesuai name di Blade
             'no_telepon'     => 'required|string|max:20',
             'alamat_lengkap' => 'required|string|max:255',
-            'kota'           => 'required|string|max:100',
             'kode_pos'       => 'required|numeric|digits_between:5,6',
+            'latitude'       => 'required|numeric',
+            'longitude'      => 'required|numeric',
+            'catatan_toko'   => 'nullable|string',
+            'kebijakan_retur'=> 'nullable|string',
             'logo_toko'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'banner_toko'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'dokumen_nib'    => 'nullable|mimes:pdf,jpg,jpeg,png|max:5120',
+            'dokumen_npwp'   => 'nullable|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
-        // Siapkan data dasar untuk diupdate (Disesuaikan dengan nama kolom di database)
+        // 2. Persiapan Data Teks & Koordinat
         $dataUpdate = [
             'nama_toko'      => $request->nama_toko,
             'slogan'         => $request->slogan,
-            'deskripsi_toko' => $request->deskripsi,
+            'deskripsi_toko' => $request->deskripsi_toko,
             'telepon_toko'   => $request->no_telepon,
             'alamat_toko'    => $request->alamat_lengkap,
-            // 'kota' dihilangkan karena database menggunakan city_id, bukan string kota
             'kode_pos'       => $request->kode_pos,
+            'latitude'       => $request->latitude,
+            'longitude'      => $request->longitude,
+            'catatan_toko'   => $request->catatan_toko,
+            'kebijakan_retur'=> $request->kebijakan_retur,
             'updated_at'     => now()
         ];
 
-        // Handle Logo Baru + Hapus yang Lama (Secure Delete)
-        if ($request->hasFile('logo_toko')) {
-            $logo = $request->file('logo_toko');
-            $logoName = 'logo_' . Str::random(10) . '.' . $logo->getClientOriginalExtension();
+        // 3. Sistem Upload File Dinamis (Skala Enterprise)
+        $fileFields = [
+            'logo_toko'    => 'logos',
+            'banner_toko'  => 'banners',
+            'dokumen_nib'  => 'documents',
+            'dokumen_npwp' => 'documents'
+        ];
 
-            if (!empty($toko->logo_toko)) {
-                $oldPath = public_path('assets/uploads/logos/' . $toko->logo_toko);
-                if (File::exists($oldPath)) { File::delete($oldPath); }
+        foreach ($fileFields as $field => $folder) {
+            if ($request->hasFile($field)) {
+                $file = $request->file($field);
+                $fileName = $field . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
+                $targetPath = public_path("assets/uploads/{$folder}");
+
+                // Buat direktori jika belum ada
+                if (!File::exists($targetPath)) {
+                    File::makeDirectory($targetPath, 0755, true);
+                }
+
+                // Hapus file lama jika ada
+                if (!empty($toko->$field)) {
+                    $oldPath = $targetPath . '/' . $toko->$field;
+                    if (File::exists($oldPath)) {
+                        File::delete($oldPath);
+                    }
+                }
+
+                $file->move($targetPath, $fileName);
+                $dataUpdate[$field] = $fileName;
             }
-
-            $logo->move(public_path('assets/uploads/logos'), $logoName);
-            $dataUpdate['logo_toko'] = $logoName;
         }
 
-        // Handle Banner Baru + Hapus yang Lama (Secure Delete)
-        if ($request->hasFile('banner_toko')) {
-            $banner = $request->file('banner_toko');
-            $bannerName = 'banner_' . Str::random(10) . '.' . $banner->getClientOriginalExtension();
-
-            if (!empty($toko->banner_toko)) {
-                $oldBannerPath = public_path('assets/uploads/banners/' . $toko->banner_toko);
-                if (File::exists($oldBannerPath)) { File::delete($oldBannerPath); }
-            }
-
-            $banner->move(public_path('assets/uploads/banners'), $bannerName);
-            $dataUpdate['banner_toko'] = $bannerName;
-        }
-
-        // Update menggunakan Query Builder
+        // 4. Eksekusi Update
         DB::table('tb_toko')->where('id', $toko->id)->update($dataUpdate);
 
-        return redirect()->back()->with('success', 'Profil Toko berhasil diperbarui!');
+        return redirect()->back()->with('success', 'Profil & Legalitas Toko berhasil diperbarui!');
     }
 
     /**
