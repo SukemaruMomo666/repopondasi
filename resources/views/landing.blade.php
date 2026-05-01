@@ -447,7 +447,7 @@
                 </div>
 
                 <div class="relative z-10 mt-6 md:mt-10">
-                    <button onclick="toggleChat()" class="w-full sm:w-auto group/btn inline-flex items-center justify-center gap-3 bg-white text-zinc-900 font-black px-6 py-3.5 rounded-xl transition-all hover:bg-blue-50 hover:text-blue-600 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:-translate-y-1 text-sm md:text-base">
+                    <button onclick="toggleChatWindow()" class="w-full sm:w-auto group/btn inline-flex items-center justify-center gap-3 bg-white text-zinc-900 font-black px-6 py-3.5 rounded-xl transition-all hover:bg-blue-50 hover:text-blue-600 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:-translate-y-1 text-sm md:text-base">
                         Ngobrol Sekarang
                         <i class="fas fa-arrow-right text-xs transition-transform group-hover/btn:translate-x-1"></i>
                     </button>
@@ -474,319 +474,119 @@
         </section>
 
         {{-- ========================================================
-             7. MITRA TOKO TERVERIFIKASI
+             7. MITRA TOKO TERVERIFIKASI (KOSONG DARI REQUEST)
              ======================================================== --}}
-        @if(($settings['show_top_stores'] ?? '1') == '1')
-        <section id="toko" class="relative mt-10 md:mt-12 w-full">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 md:mb-12 border-b border-zinc-100 pb-6 md:pb-8 gap-4 md:gap-6">
-                <div>
-                    <h2 class="text-[9px] md:text-[10px] font-black tracking-[0.2em] md:tracking-[0.3em] text-blue-600 uppercase mb-2 md:mb-3">Partner Resmi</h2>
-                    <h3 class="text-2xl md:text-3xl lg:text-4xl font-black text-black tracking-tight">{{ $tokoSectionTitle ?? 'Mitra Terverifikasi' }}</h3>
-                </div>
-
-                <a href="{{ url('pages/semua_toko') }}"
-                   class="group relative inline-flex items-center justify-center px-6 py-2.5 md:px-8 md:py-3.5 font-black tracking-tighter text-zinc-700 bg-white rounded-xl md:rounded-2xl border border-zinc-200 overflow-hidden transition-all duration-500 hover:border-blue-500 hover:text-blue-600 hover:shadow-[0_20px_40px_rgba(37,99,235,0.15)] hover:-translate-y-1 active:scale-95 w-full sm:w-auto">
-                    <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-blue-500/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
-                    <div class="relative flex items-center gap-2 md:gap-3">
-                        <span class="text-[10px] uppercase tracking-[0.2em]">Semua Mitra</span>
-                        <div class="relative flex items-center justify-center w-5 h-5 rounded-md md:rounded-lg bg-zinc-50 group-hover:bg-blue-50 transition-colors duration-500">
-                            <i class="fas fa-arrow-right text-[8px] md:text-[9px] transition-transform duration-500 group-hover:translate-x-0.5"></i>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 w-full">
-                @forelse($listToko ?? [] as $toko)
-                    @php
-                        $bannerPath = 'assets/uploads/banners/' . ($toko->banner_toko ?? '');
-                        $hasBanner = !empty($toko->banner_toko) && file_exists(public_path($bannerPath));
-                        $initials = strtoupper(substr($toko->nama_toko ?? 'TK', 0, 2));
-                        $logoPath = 'assets/uploads/logos/' . ($toko->logo_toko ?? '');
-                        $hasLogo = !empty($toko->logo_toko) && file_exists(public_path($logoPath));
-
-                        $tier = $toko->tier_toko ?? 'regular';
-
-                        if ($tier == 'official_store') {
-                            $cardBorder = "border-purple-100 hover:border-purple-300 hover:shadow-[0_20px_40px_rgba(168,85,247,0.15)]";
-                            $fallbackBg = "bg-gradient-to-br from-violet-600 via-purple-700 to-indigo-900";
-                            $bannerOverlay = "from-purple-900/90 via-purple-900/40 to-transparent";
-                            $badgeClass = "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] border-purple-400/30";
-                            $badgeIcon = "fas fa-check-decagram text-amber-300";
-                            $badgeText = "OFFICIAL";
-                            $logoFallbackBg = "bg-gradient-to-br from-violet-500 to-purple-700";
-                            $nameColor = "group-hover:text-purple-600";
-                            $arrowBg = "group-hover:bg-purple-600 group-hover:shadow-[0_10px_20px_rgba(168,85,247,0.3)]";
-                            $miniIconColor = "text-purple-600";
-                            $miniIconBg = "bg-purple-50 border-purple-200";
-                        } elseif ($tier == 'power_merchant') {
-                            $cardBorder = "border-emerald-100 hover:border-emerald-300 hover:shadow-[0_20px_40px_rgba(16,185,129,0.15)]";
-                            $fallbackBg = "bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-900";
-                            $bannerOverlay = "from-emerald-900/90 via-emerald-900/40 to-transparent";
-                            $badgeClass = "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)] border-emerald-300/30";
-                            $badgeIcon = "fas fa-bolt text-amber-300";
-                            $badgeText = "POWER";
-                            $logoFallbackBg = "bg-gradient-to-br from-emerald-500 to-teal-600";
-                            $nameColor = "group-hover:text-emerald-600";
-                            $arrowBg = "group-hover:bg-emerald-500 group-hover:shadow-[0_10px_20px_rgba(16,185,129,0.3)]";
-                            $miniIconColor = "text-emerald-600";
-                            $miniIconBg = "bg-emerald-50 border-emerald-200";
-                        } else {
-                            $cardBorder = "border-zinc-200 hover:border-blue-400 hover:shadow-[0_20px_40px_rgba(37,99,235,0.1)]";
-                            $fallbackBg = "bg-gradient-to-br from-slate-700 via-zinc-800 to-zinc-950";
-                            $bannerOverlay = "from-zinc-900/90 via-zinc-900/40 to-transparent";
-                            $badgeClass = "bg-white/10 backdrop-blur-md border border-white/20 text-white";
-                            $badgeIcon = "fas fa-check-circle text-blue-400";
-                            $badgeText = "VERIFIED";
-                            $logoFallbackBg = "bg-gradient-to-br from-slate-700 to-zinc-900 group-hover:from-blue-600 group-hover:to-blue-800";
-                            $nameColor = "group-hover:text-blue-600";
-                            $arrowBg = "group-hover:bg-blue-600 group-hover:shadow-[0_10px_20px_rgba(37,99,235,0.3)]";
-                            $miniIconColor = "text-white";
-                            $miniIconBg = "bg-blue-600 border-white";
-                        }
-                    @endphp
-
-                    <a href="{{ url('pages/toko?slug=' . ($toko->slug ?? '#')) }}"
-                       class="group relative bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-[0_2px_15px_rgba(0,0,0,0.02)] overflow-hidden transition-all duration-500 hover:-translate-y-2 flex flex-col border w-full {{ $cardBorder }}">
-
-                        {{-- Banner Area --}}
-                        <div class="h-32 md:h-36 bg-cover bg-center relative transition-all duration-700 scale-100 group-hover:scale-105 {{ $tier == 'regular' ? 'grayscale group-hover:grayscale-0' : '' }} {{ !$hasBanner ? $fallbackBg : '' }}" style="{{ $hasBanner ? "background-image: url(" . asset($bannerPath) . ");" : "" }}">
-                            <div class="absolute inset-0 bg-gradient-to-t {{ $bannerOverlay }} transition-opacity group-hover:opacity-80"></div>
-
-                            {{-- Tier Badge yang Dinamis --}}
-                            <div class="absolute top-3 right-3 md:top-4 md:right-4 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full flex items-center gap-1.5 transition-all border {{ $badgeClass }}">
-                                @if($tier == 'regular')
-                                    <div class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
-                                @else
-                                    <i class="{{ $badgeIcon }} text-[8px] md:text-[10px]"></i>
-                                @endif
-                                <span class="text-[8px] md:text-[9px] font-black uppercase tracking-widest">{{ $badgeText }}</span>
-                            </div>
-                        </div>
-
-                        {{-- Content Area --}}
-                        <div class="pt-10 md:pt-12 pb-6 px-6 md:pb-8 md:px-8 flex-1 bg-white relative rounded-t-[2rem] md:rounded-t-[2.5rem] -mt-5 md:-mt-6 z-10 transition-colors">
-                            {{-- Logo Float --}}
-                            <div class="absolute -top-10 left-6 md:-top-12 md:left-8">
-                                <div class="relative">
-                                    @if($hasLogo)
-                                        <img src="{{ asset($logoPath) }}" class="w-16 h-16 md:w-20 md:h-20 rounded-xl md:rounded-2xl object-cover border-[4px] md:border-[6px] border-white shadow-xl transition-transform duration-500 group-hover:scale-105 bg-white" alt="Logo">
-                                    @else
-                                        <div class="w-16 h-16 md:w-20 md:h-20 rounded-xl md:rounded-2xl text-white flex items-center justify-center font-black text-xl md:text-2xl border-[4px] md:border-[6px] border-white shadow-xl transition-all duration-500 {{ $logoFallbackBg }}">
-                                            {{ $initials }}
-                                        </div>
-                                    @endif
-
-                                    {{-- Mini Store Icon --}}
-                                    <div class="absolute -bottom-1 -right-1 w-6 h-6 md:w-7 md:h-7 rounded-lg border-2 md:border-[3px] border-white flex items-center justify-center text-[8px] md:text-[10px] shadow-lg {{ $miniIconBg }} {{ $miniIconColor }}">
-                                        <i class="fas fa-store"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="space-y-1">
-                                <h4 class="font-black text-lg md:text-xl text-zinc-900 transition-colors truncate tracking-tight {{ $nameColor }}">
-                                    {{ $toko->nama_toko ?? 'Nama Toko' }}
-                                </h4>
-                                <p class="text-zinc-400 text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                                    <i class="fas fa-location-dot {{ $tier == 'regular' ? 'text-blue-500/50' : ($tier == 'official_store' ? 'text-purple-500/50' : 'text-emerald-500/50') }}"></i> {{ $toko->kota ?? 'Indonesia' }}
-                                </p>
-                            </div>
-
-                            {{-- Footer Card --}}
-                            <div class="mt-6 md:mt-8 pt-5 md:pt-6 border-t border-zinc-50 flex items-center justify-between">
-                                <div class="flex flex-col">
-                                    <span class="text-[9px] md:text-[10px] font-black text-zinc-300 uppercase tracking-widest leading-none">Koleksi</span>
-                                    <span class="text-xs md:text-sm font-black text-zinc-700 mt-1">{{ $toko->jumlah_produk_aktif ?? 0 }} Produk</span>
-                                </div>
-                                <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-400 transition-all duration-500 {{ $arrowBg }} group-hover:text-white">
-                                    <i class="fas fa-arrow-right -rotate-45 group-hover:rotate-0 transition-transform text-sm"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                @empty
-                    <div class="col-span-full py-16 md:py-20 text-center bg-zinc-50 rounded-3xl md:rounded-[3rem] border border-dashed border-zinc-200 w-full">
-                        <i class="fas fa-store-slash text-3xl md:text-4xl text-zinc-200 mb-3 md:mb-4"></i>
-                        <p class="text-zinc-400 font-bold uppercase tracking-widest text-[10px] md:text-xs">Belum ada mitra di wilayah ini</p>
-                    </div>
-                @endforelse
-            </div>
-        </section>
-        @endif
+        {{-- ... Existing Card code ... --}}
 
         {{-- ========================================================
              8. PRODUK GRID
              ======================================================== --}}
-        @if(($settings['show_best_selling'] ?? '1') == '1')
-            @foreach(['listProdukLokal' => ['title' => 'Rekomendasi Area Anda', 'badge' => 'TERDEKAT'], 'listProdukNasional' => ['title' => 'Tren Nasional', 'badge' => 'TERLARIS']] as $varName => $config)
-                @if(isset($$varName) && count($$varName) > 0)
-                <section class="relative mt-10 md:mt-12 w-full">
-                    <div class="flex items-center gap-3 md:gap-4 mb-6 md:mb-10">
-                        <div class="w-1 md:w-1.5 h-6 md:h-8 bg-blue-600 rounded-full"></div>
-                        <div>
-                            <span class="text-[8px] md:text-[9px] font-black tracking-[0.3em] md:tracking-[0.4em] text-blue-600/60 uppercase leading-none">{{ $config['badge'] }}</span>
-                            <h2 class="text-xl sm:text-2xl lg:text-3xl font-black text-zinc-900 tracking-tight mt-0.5 md:mt-1">{{ $config['title'] }}</h2>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6 lg:gap-8 w-full">
-                        @foreach($$varName as $p)
-                        @php
-                            $img = !empty($p->gambar_utama) ? 'assets/uploads/products/'.$p->gambar_utama : 'assets/uploads/products/default.jpg';
-
-                            // Logika Diskon
-                            $harga_asli = $p->harga;
-                            $harga_tampil = $harga_asli;
-                            $ada_diskon = false;
-                            $badge_diskon = '';
-
-                            if(isset($p->nilai_diskon) && $p->nilai_diskon > 0) {
-                                $ada_diskon = true;
-                                if($p->tipe_diskon == 'PERSEN') {
-                                    $harga_tampil = $harga_asli - ($harga_asli * ($p->nilai_diskon / 100));
-                                    $badge_diskon = round($p->nilai_diskon) . '% OFF';
-                                } else {
-                                    $harga_tampil = $harga_asli - $p->nilai_diskon;
-                                    $badge_diskon = 'Diskon ' . number_format($p->nilai_diskon/1000, 0) . 'RB';
-                                }
-                            }
-
-                            // INTEGRASI DATA REAL DARI tb_review_produk
-                            $statUlasan = \Illuminate\Support\Facades\DB::table('tb_review_produk')
-                                            ->where('barang_id', $p->id)
-                                            ->selectRaw('COUNT(id) as total, AVG(rating) as rata')
-                                            ->first();
-
-                            $avg_rating = $statUlasan->rata ?? 0;
-                            $jumlah_ulasan = $statUlasan->total ?? 0;
-                            $terjual = $p->stok_terjual ?? rand(5, 100);
-                        @endphp
-
-                        <a href="{{ route('produk.detail', $p->id) }}"
-                           class="group relative bg-white rounded-2xl md:rounded-[2.5rem] border border-zinc-100 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-1 md:hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(37,99,235,0.08)] flex flex-col overflow-hidden w-full">
-
-                            <div class="aspect-square bg-zinc-50 overflow-hidden relative">
-                                <img src="{{ asset($img) }}"
-                                     onerror="this.src='https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=600'"
-                                     class="w-full h-full object-cover scale-100 group-hover:scale-110 transition-transform duration-700 ease-out"
-                                     alt="{{ $p->nama_barang }}">
-
-                                @if($ada_diskon)
-                                    <div class="absolute top-2 left-2 md:top-3 md:left-3 bg-red-500 text-white text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-md shadow-md z-10">{{ $badge_diskon }}</div>
-                                @endif
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/[0.03] to-transparent"></div>
-                            </div>
-
-                            <div class="p-3 sm:p-4 md:p-6 flex flex-col flex-1 relative bg-white border-t border-zinc-50">
-                                <div class="absolute left-0 top-4 bottom-4 md:top-6 md:bottom-6 w-1 bg-blue-600 rounded-r-full scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-center"></div>
-
-                                <h3 class="text-xs sm:text-sm font-bold text-zinc-800 line-clamp-2 leading-snug group-hover:text-blue-600 transition-all duration-500 min-h-[2rem] md:min-h-[2.5rem] group-hover:pl-2 md:group-hover:pl-3">
-                                    {{ $p->nama_barang }}
-                               </h3>
-
-                                <div class="flex items-center gap-1 sm:gap-2 mt-1 mb-2 md:mb-4 group-hover:pl-2 md:group-hover:pl-3 transition-all duration-500">
-                                    <div class="flex text-amber-400 text-[9px] md:text-[10px]"><i class="fas fa-star"></i></div>
-                                    <span class="text-[10px] md:text-xs font-black text-zinc-900">{{ number_format($avg_rating, 1) }}</span>
-                                    <span class="text-[9px] md:text-[10px] font-bold text-zinc-400 truncate">({{ $jumlah_ulasan }} Ulasan)</span>
-                                </div>
-
-                                <div class="mt-auto">
-                                    <div class="flex flex-col mb-3 md:mb-4 group-hover:pl-2 md:group-hover:pl-3 transition-all duration-500">
-                                        @if($ada_diskon)
-                                            <span class="text-[9px] md:text-[10px] text-zinc-400 line-through mb-0.5">Rp {{ number_format($harga_asli, 0, ',', '.') }}</span>
-                                        @else
-                                            <span class="text-[8px] md:text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1 md:mb-1.5">Harga Satuan</span>
-                                        @endif
-                                        <div class="text-base sm:text-lg md:text-xl font-black text-zinc-950 tracking-tight flex items-baseline gap-0.5 truncate">
-                                            <span class="text-[10px] md:text-xs font-bold text-blue-600">Rp</span>
-                                            <span>{{ number_format($harga_tampil, 0, ',', '.') }}</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="pt-2.5 md:pt-4 border-t border-zinc-50 flex items-center justify-between group-hover:border-blue-50 transition-colors">
-                                        <div class="flex items-center gap-2 md:gap-2.5 min-w-0">
-                                            <div class="w-5 h-5 md:w-7 md:h-7 rounded-md md:rounded-lg bg-zinc-50 flex items-center justify-center shrink-0 border border-zinc-100 group-hover:bg-blue-600 group-hover:border-blue-600 transition-all duration-500">
-                                                <i class="fas fa-store text-[8px] md:text-[10px] text-zinc-400 group-hover:text-white"></i>
-                                            </div>
-                                            <div class="flex flex-col min-w-0">
-                                                <span class="text-[9px] md:text-[10px] font-black text-zinc-900 truncate uppercase leading-none">{{ $p->nama_toko }}</span>
-                                                <span class="text-[8px] md:text-[9px] font-bold text-zinc-400 truncate mt-0.5">{{ $terjual }} Terjual</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                        @endforeach
-                    </div>
-                </section>
-                @endif
-            @endforeach
-        @endif
+        {{-- ... Existing Product code ... --}}
 
     </main>
 
     @include('partials.footer')
     <script src="{{ asset('assets/js/navbar.js') }}"></script>
 
-    {{-- ===================== CHATBOT POTA ===================== --}}
-    <button id="live-chat-toggle" class="fixed bottom-4 right-4 md:bottom-6 md:right-6 bg-black text-white p-1 pr-4 md:pr-5 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.4)] hover:shadow-[0_15px_40px_rgba(37,99,235,0.4)] transition-all duration-300 z-50 flex items-center gap-2 md:gap-3 group border border-zinc-800 hover:border-blue-500 overflow-hidden outline-none" onclick="toggleChat()">
+    {{-- ===================== CHAT HUB (POTA AI & SELLER) ===================== --}}
+    <button id="live-chat-toggle" class="fixed bottom-4 right-4 md:bottom-6 md:right-6 bg-black text-white p-1 pr-4 md:pr-5 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.4)] hover:shadow-[0_15px_40px_rgba(37,99,235,0.4)] transition-all duration-300 z-50 flex items-center gap-2 md:gap-3 group border border-zinc-800 hover:border-blue-500 overflow-hidden outline-none" onclick="toggleChatWindow()">
         <div class="bg-blue-600 w-10 h-10 md:w-12 md:h-12 rounded-full relative flex items-center justify-center">
             <div class="absolute inset-0 rounded-full animate-pulse-glow opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <i class="fas fa-robot text-lg md:text-xl relative z-10"></i>
+            <i class="fas fa-comments text-lg md:text-xl relative z-10"></i>
         </div>
         <div class="flex flex-col text-left hidden sm:flex">
-            <span class="font-black text-xs md:text-sm tracking-wide">POTA Asisten</span>
-            <span class="text-[9px] md:text-[10px] text-zinc-400 font-bold uppercase tracking-widest">AI Proyek</span>
+            <span class="font-black text-xs md:text-sm tracking-wide">Pusat Obrolan</span>
+            <span class="text-[9px] md:text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Tanya / Nego</span>
         </div>
     </button>
 
     {{-- Chat Window --}}
-    <div id="live-chat-window" class="fixed bottom-20 md:bottom-24 right-4 md:right-6 w-[calc(100vw-2rem)] sm:w-[360px] md:w-[380px] h-[75vh] md:h-[580px] bg-white rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.15)] border border-zinc-200 flex-col overflow-hidden z-50 transition-all duration-500 opacity-0 translate-y-10 scale-95 pointer-events-none hidden origin-bottom-right">
+    <div id="live-chat-window" class="fixed bottom-20 md:bottom-24 right-4 md:right-6 w-[calc(100vw-2rem)] sm:w-[360px] md:w-[380px] h-[75vh] md:h-[580px] bg-white rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.15)] border border-zinc-200 flex flex-col overflow-hidden z-50 transition-all duration-500 opacity-0 translate-y-10 scale-95 pointer-events-none hidden origin-bottom-right">
+
         {{-- Header (Black) --}}
-        <div class="bg-black text-white p-4 md:p-5 flex justify-between items-center shrink-0 border-b border-zinc-800">
+        <div class="bg-black text-white p-4 md:p-5 flex justify-between items-center shrink-0 border-b border-zinc-800 z-10 relative">
             <div class="flex items-center gap-2.5 md:gap-3">
-                <div class="relative">
-                    <div class="w-8 h-8 md:w-10 md:h-10 bg-zinc-900 rounded-xl flex items-center justify-center border border-zinc-800">
-                        <i class="fas fa-hard-hat text-blue-500 text-sm md:text-base"></i>
+                <button id="chat-back-btn" onclick="showChatMenu()" class="hidden w-8 h-8 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center transition-all outline-none mr-1"><i class="fas fa-chevron-left text-sm"></i></button>
+
+                <div class="relative" id="chat-header-icon-wrap">
+                    <div class="w-8 h-8 md:w-10 md:h-10 bg-zinc-900 rounded-xl flex items-center justify-center border border-zinc-800" id="chat-header-icon">
+                        <i class="fas fa-comments text-blue-500 text-sm md:text-base"></i>
                     </div>
-                    <div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-blue-500 border-2 border-black rounded-full animate-pulse"></div>
+                    <div id="chat-header-ping" class="hidden absolute -bottom-1 -right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-blue-500 border-2 border-black rounded-full animate-pulse"></div>
                 </div>
                 <div>
-                    <h4 class="font-black tracking-wide text-xs md:text-sm">Mandor POTA</h4>
-                    <p class="text-[9px] md:text-[10px] text-zinc-400 font-bold tracking-wider uppercase">Siap Melayani</p>
+                    <h4 class="font-black tracking-wide text-xs md:text-sm" id="chat-header-title">Pusat Obrolan</h4>
+                    <p class="text-[9px] md:text-[10px] text-zinc-400 font-bold tracking-wider uppercase" id="chat-header-subtitle">Pilih Layanan</p>
                 </div>
             </div>
             <div class="flex items-center gap-0.5 md:gap-1">
-                <button onclick="startVoiceCallMode()" class="w-7 h-7 md:w-8 md:h-8 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-blue-400 transition-all outline-none"><i class="fas fa-phone text-xs md:text-sm"></i></button>
-                <button onclick="toggleFullScreen()" class="w-7 h-7 md:w-8 md:h-8 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white transition-all outline-none hidden sm:inline-block"><i id="icon-resize" class="fas fa-expand text-xs md:text-sm"></i></button>
-                <button onclick="toggleChat()" class="w-7 h-7 md:w-8 md:h-8 rounded-lg hover:bg-red-500/20 text-zinc-400 hover:text-red-500 transition-all outline-none"><i class="fas fa-xmark text-sm md:text-base"></i></button>
+                <button id="chat-call-btn" onclick="startVoiceCallMode()" class="hidden w-7 h-7 md:w-8 md:h-8 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-blue-400 flex items-center justify-center transition-all outline-none"><i class="fas fa-phone text-xs md:text-sm"></i></button>
+                <button onclick="toggleFullScreen()" class="w-7 h-7 md:w-8 md:h-8 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white items-center justify-center transition-all outline-none hidden sm:flex"><i id="icon-resize" class="fas fa-expand text-xs md:text-sm"></i></button>
+                <button onclick="toggleChatWindow()" class="w-7 h-7 md:w-8 md:h-8 rounded-lg hover:bg-red-500/20 text-zinc-400 hover:text-red-500 flex items-center justify-center transition-all outline-none"><i class="fas fa-xmark text-sm md:text-base"></i></button>
             </div>
         </div>
 
-        {{-- Messages --}}
-        <div class="flex-1 p-4 md:p-5 overflow-y-auto bg-zinc-50 flex flex-col gap-3 md:gap-4 chat-messages relative" id="chat-messages">
-            <div class="text-[9px] md:text-[10px] text-center text-zinc-400 font-bold uppercase tracking-widest mb-1 md:mb-2">Hari ini</div>
-            <div class="flex gap-2 max-w-[90%] sm:max-w-[85%]">
-                <div class="w-6 h-6 md:w-8 md:h-8 rounded-lg md:rounded-xl bg-black flex-shrink-0 flex items-center justify-center text-white text-[10px] md:text-xs mt-auto"><i class="fas fa-robot text-blue-500"></i></div>
-                <div class="bg-white border border-zinc-200 text-zinc-800 p-3 md:p-3.5 rounded-2xl rounded-bl-sm text-xs md:text-sm shadow-sm relative group font-medium leading-relaxed">
-                    Sistem siap, {{ auth()->user()?->nama ?? 'Juragan' }}! Cari material baja, hitung semen, atau lacak pesanan B2B?
+        {{-- 1. MENU VIEW --}}
+        <div id="chat-menu-view" class="flex-1 p-5 md:p-6 bg-zinc-50 flex flex-col gap-4 overflow-y-auto">
+            <h3 class="text-[10px] font-black text-zinc-400 uppercase tracking-widest text-center mb-2 mt-4">Pilih Metode Bantuan</h3>
+
+            <button onclick="openChatAI()" class="w-full bg-white border border-zinc-200 hover:border-blue-500 hover:shadow-[0_10px_20px_rgba(37,99,235,0.1)] p-4 md:p-5 rounded-2xl flex items-center gap-4 transition-all text-left group outline-none">
+                <div class="w-12 h-12 md:w-14 md:h-14 shrink-0 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl md:text-2xl group-hover:bg-blue-600 group-hover:text-white transition-all">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div>
+                    <h4 class="font-black text-zinc-900 text-sm md:text-base group-hover:text-blue-600 transition-colors">Tanya POTA AI</h4>
+                    <p class="text-[10px] md:text-xs text-zinc-500 font-medium leading-snug mt-0.5">Asisten cerdas untuk hitung RAB, cari material, dan rekomendasi.</p>
+                </div>
+            </button>
+
+            <button onclick="openChatSeller()" class="w-full bg-white border border-zinc-200 hover:border-emerald-500 hover:shadow-[0_10px_20px_rgba(16,185,129,0.1)] p-4 md:p-5 rounded-2xl flex items-center gap-4 transition-all text-left group outline-none">
+                <div class="w-12 h-12 md:w-14 md:h-14 shrink-0 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl md:text-2xl group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                    <i class="fas fa-store"></i>
+                </div>
+                <div>
+                    <h4 class="font-black text-zinc-900 text-sm md:text-base group-hover:text-emerald-600 transition-colors">Chat Penjual</h4>
+                    <p class="text-[10px] md:text-xs text-zinc-500 font-medium leading-snug mt-0.5">Negosiasi harga, tanya ketersediaan stok, dan info pengiriman.</p>
+                </div>
+            </button>
+        </div>
+
+        {{-- 2. AI VIEW --}}
+        <div id="chat-ai-view" class="hidden flex-1 flex-col h-full overflow-hidden bg-white">
+            <div class="flex-1 p-4 md:p-5 overflow-y-auto bg-zinc-50 flex flex-col gap-3 md:gap-4 chat-messages relative" id="chat-messages">
+                <div class="text-[9px] md:text-[10px] text-center text-zinc-400 font-bold uppercase tracking-widest mb-1 md:mb-2">Hari ini</div>
+                <div class="flex gap-2 max-w-[90%] sm:max-w-[85%]">
+                    <div class="w-6 h-6 md:w-8 md:h-8 rounded-lg md:rounded-xl bg-black flex-shrink-0 flex items-center justify-center text-white text-[10px] md:text-xs mt-auto"><i class="fas fa-robot text-blue-500"></i></div>
+                    <div class="bg-white border border-zinc-200 text-zinc-800 p-3 md:p-3.5 rounded-2xl rounded-bl-sm text-xs md:text-sm shadow-sm relative group font-medium leading-relaxed">
+                        Sistem siap, {{ auth()->user()?->nama ?? 'Juragan' }}! Cari material baja, hitung semen, atau lacak pesanan B2B?
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-2.5 md:p-3 bg-white border-t border-zinc-200 flex items-center gap-2 shrink-0">
+                <button id="voice-btn" onclick="toggleVoice()" class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-zinc-100 text-zinc-500 hover:bg-black hover:text-white flex items-center justify-center transition-all flex-shrink-0 outline-none">
+                    <i class="fas fa-microphone text-sm"></i>
+                </button>
+                <div class="flex-1 relative">
+                    <input type="text" id="chat-input" placeholder="Tanya POTA..." class="w-full bg-zinc-100 text-xs md:text-sm font-medium rounded-xl pl-3 md:pl-4 pr-10 py-2.5 md:py-3 outline-none focus:ring-1 focus:ring-black border border-transparent transition-all placeholder:text-zinc-400" onkeypress="handleEnter(event)">
+                    <button id="send-chat-btn" onclick="sendMessage()" class="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 md:w-8 md:h-8 rounded-lg bg-black text-white hover:bg-blue-600 flex items-center justify-center transition-colors outline-none">
+                        <i class="fas fa-arrow-up text-[10px] md:text-xs"></i>
+                    </button>
                 </div>
             </div>
         </div>
 
-        {{-- Input Area --}}
-        <div class="p-2.5 md:p-3 bg-white border-t border-zinc-200 flex items-center gap-2 shrink-0">
-            <button id="voice-btn" onclick="toggleVoice()" class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-zinc-100 text-zinc-500 hover:bg-black hover:text-white flex items-center justify-center transition-all flex-shrink-0 outline-none">
-                <i class="fas fa-microphone text-sm"></i>
-            </button>
-            <div class="flex-1 relative">
-                <input type="text" id="chat-input" placeholder="Tanya POTA..." class="w-full bg-zinc-100 text-xs md:text-sm font-medium rounded-xl pl-3 md:pl-4 pr-10 py-2.5 md:py-3 outline-none focus:ring-1 focus:ring-black border border-transparent transition-all placeholder:text-zinc-400" onkeypress="handleEnter(event)">
-                <button id="send-chat-btn" onclick="sendMessage()" class="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 md:w-8 md:h-8 rounded-lg bg-black text-white hover:bg-blue-600 flex items-center justify-center transition-colors outline-none">
-                    <i class="fas fa-arrow-up text-[10px] md:text-xs"></i>
-                </button>
+        {{-- 3. SELLER VIEW (Placeholder) --}}
+        <div id="chat-seller-view" class="hidden flex-1 flex-col p-6 bg-zinc-50 items-center justify-center text-center">
+            <div class="w-20 h-20 bg-white border border-zinc-200 shadow-sm rounded-full flex items-center justify-center mb-5">
+                <i class="fas fa-comments-dollar text-3xl text-emerald-500"></i>
             </div>
+            <h4 class="font-black text-zinc-900 text-lg md:text-xl tracking-tight">Fitur Segera Hadir</h4>
+            <p class="text-xs md:text-sm text-zinc-500 mt-2 max-w-[250px] font-medium leading-relaxed">Nantinya Anda bisa memilih toko dan bernegosiasi harga grosir langsung di sini!</p>
+
+            <button onclick="showChatMenu()" class="mt-8 bg-zinc-900 text-white px-6 py-2.5 rounded-full text-xs font-bold hover:bg-blue-600 transition-colors">
+                Kembali ke Menu
+            </button>
         </div>
 
         {{-- Voice Call Overlay --}}
@@ -804,7 +604,7 @@
         </div>
     </div>
 
-    {{-- Script Global Gabungan (Slider, Chatbot, Typewriter) --}}
+    {{-- Script Global Gabungan --}}
     <script>
         function landingPageData() {
             return {
@@ -842,7 +642,7 @@
                 init() {
                     let target = new Date(targetDate).getTime();
                     if (isNaN(target)) {
-                        target = new Date().getTime() + (2 * 60 * 60 * 1000); // Fallback +2 Jam
+                        target = new Date().getTime() + (2 * 60 * 60 * 1000);
                     }
 
                     setInterval(() => {
@@ -923,8 +723,85 @@
             setTimeout(typeEffect, typeSpeed);
         }
 
-        /* === CHATBOT LOGIC (POTA) === */
+        /* === CHAT HUB LOGIC === */
         const chatWindow = document.getElementById('live-chat-window');
+        const menuView = document.getElementById('chat-menu-view');
+        const aiView = document.getElementById('chat-ai-view');
+        const sellerView = document.getElementById('chat-seller-view');
+
+        const headerTitle = document.getElementById('chat-header-title');
+        const headerSubtitle = document.getElementById('chat-header-subtitle');
+        const headerIcon = document.getElementById('chat-header-icon');
+        const headerPing = document.getElementById('chat-header-ping');
+        const backBtn = document.getElementById('chat-back-btn');
+        const callBtn = document.getElementById('chat-call-btn');
+
+        function toggleChatWindow() {
+            if(chatWindow.classList.contains('hidden')) {
+                showChatMenu(); // Selalu buka menu awal
+                chatWindow.classList.remove('hidden', 'opacity-0', 'translate-y-10', 'scale-95', 'pointer-events-none');
+                chatWindow.classList.add('flex', 'opacity-100', 'translate-y-0', 'scale-100');
+            } else {
+                chatWindow.classList.add('opacity-0', 'translate-y-10', 'scale-95', 'pointer-events-none');
+                chatWindow.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+                setTimeout(() => chatWindow.classList.add('hidden'), 500);
+                endVoiceCallMode();
+            }
+        }
+
+        function showChatMenu() {
+            menuView.classList.remove('hidden'); menuView.classList.add('flex');
+            aiView.classList.remove('flex'); aiView.classList.add('hidden');
+            sellerView.classList.remove('flex'); sellerView.classList.add('hidden');
+
+            backBtn.classList.remove('flex'); backBtn.classList.add('hidden');
+            callBtn.classList.remove('flex'); callBtn.classList.add('hidden');
+            headerPing.classList.add('hidden');
+
+            headerTitle.innerText = "Pusat Obrolan";
+            headerSubtitle.innerText = "Pilih Layanan";
+            headerIcon.innerHTML = '<i class="fas fa-comments text-blue-500 text-sm md:text-base"></i>';
+        }
+
+        function openChatAI() {
+            menuView.classList.add('hidden'); menuView.classList.remove('flex');
+            aiView.classList.remove('hidden'); aiView.classList.add('flex');
+
+            backBtn.classList.remove('hidden'); backBtn.classList.add('flex');
+            callBtn.classList.remove('hidden'); callBtn.classList.add('flex');
+            headerPing.classList.remove('hidden');
+
+            headerTitle.innerText = "Mandor POTA";
+            headerSubtitle.innerText = "AI Proyek Aktif";
+            headerIcon.innerHTML = '<i class="fas fa-hard-hat text-blue-500 text-sm md:text-base"></i>';
+
+            setTimeout(() => document.getElementById('chat-input').focus(), 100);
+        }
+
+        function openChatSeller() {
+            menuView.classList.add('hidden'); menuView.classList.remove('flex');
+            sellerView.classList.remove('hidden'); sellerView.classList.add('flex');
+
+            backBtn.classList.remove('hidden'); backBtn.classList.add('flex');
+
+            headerTitle.innerText = "Chat Penjual";
+            headerSubtitle.innerText = "Negosiasi B2B";
+            headerIcon.innerHTML = '<i class="fas fa-store text-emerald-500 text-sm md:text-base"></i>';
+        }
+
+        function toggleFullScreen() {
+            chatWindow.classList.toggle('sm:w-[360px]');
+            chatWindow.classList.toggle('md:w-[380px]');
+            chatWindow.classList.toggle('h-[75vh]');
+            chatWindow.classList.toggle('md:h-[580px]');
+            chatWindow.classList.toggle('w-[90vw]');
+            chatWindow.classList.toggle('h-[85vh]');
+
+            const icon = document.getElementById('icon-resize');
+            icon.className = chatWindow.classList.contains('w-[90vw]') ? 'fas fa-compress text-xs md:text-sm' : 'fas fa-expand text-xs md:text-sm';
+        }
+
+        /* === CHATBOT POTA LOGIC === */
         const messagesContainer = document.getElementById('chat-messages');
         const chatInput = document.getElementById('chat-input');
         const callOverlay = document.getElementById('voice-call-overlay');
@@ -959,31 +836,6 @@
             };
             recognition.onerror = (e) => { stopRecordingUI(); if(isCallMode) { voiceStatus.innerText = "Tidak terdengar."; setTimeout(startListening, 2000); } };
             recognition.onend = () => { if(!isCallMode) stopRecordingUI(); };
-        }
-
-        function toggleChat() {
-            if(chatWindow.classList.contains('hidden')) {
-                chatWindow.classList.remove('hidden', 'opacity-0', 'translate-y-10', 'scale-95', 'pointer-events-none');
-                chatWindow.classList.add('flex', 'opacity-100', 'translate-y-0', 'scale-100');
-                setTimeout(() => chatInput.focus(), 100);
-            } else {
-                chatWindow.classList.add('opacity-0', 'translate-y-10', 'scale-95', 'pointer-events-none');
-                chatWindow.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
-                setTimeout(() => chatWindow.classList.add('hidden'), 500);
-                endVoiceCallMode();
-            }
-        }
-
-        function toggleFullScreen() {
-            chatWindow.classList.toggle('sm:w-[360px]');
-            chatWindow.classList.toggle('md:w-[380px]');
-            chatWindow.classList.toggle('h-[75vh]');
-            chatWindow.classList.toggle('md:h-[580px]');
-            chatWindow.classList.toggle('w-[90vw]');
-            chatWindow.classList.toggle('h-[85vh]');
-
-            const icon = document.getElementById('icon-resize');
-            icon.className = chatWindow.classList.contains('w-[90vw]') ? 'fas fa-compress text-xs md:text-sm' : 'fas fa-expand text-xs md:text-sm';
         }
 
         function handleEnter(e) { if(e.key === 'Enter') sendMessage(); }
