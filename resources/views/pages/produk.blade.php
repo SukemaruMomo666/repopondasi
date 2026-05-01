@@ -50,6 +50,11 @@
         /* Animasi Accordion Kategori */
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .accordion-content.open { max-height: 400px; /* Angka besar agar muat */ }
+
+        /* BADGE TOKO (Ditambahkan) */
+        .badge-store { display: inline-flex; align-items: center; justify-content: center; padding: 2px 5px; border-radius: 4px; font-size: 0.65rem; margin-left: 4px;}
+        .badge-official { background-color: #f3e8ff; color: #7e22ce; }
+        .badge-pro { background-color: #d1fae5; color: #047857; }
     </style>
 </head>
 <body class="text-zinc-900 antialiased pt-[80px]">
@@ -219,19 +224,19 @@
                                 </div>
                             </div>
 
-                        </div>
+                    </div>
                     {{-- FILTER: JENIS TOKO --}}
                     <div>
                         <h4 class="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">Jenis Mitra</h4>
                         <div class="space-y-3">
                             <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" class="custom-checkbox" onchange="showApplyButton()">
+                                <input type="checkbox" name="tier_toko[]" value="official_store" class="custom-checkbox" {{ in_array('official_store', request('tier_toko', [])) ? 'checked' : '' }} onchange="showApplyButton()">
                                 <span class="text-sm font-semibold text-zinc-600 group-hover:text-zinc-900 select-none flex items-center gap-2">
                                     <i class="fas fa-crown text-purple-500 w-4"></i> Official Store
                                 </span>
                             </label>
                             <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" class="custom-checkbox" onchange="showApplyButton()">
+                                <input type="checkbox" name="tier_toko[]" value="pro_merchant" class="custom-checkbox" {{ in_array('pro_merchant', request('tier_toko', [])) ? 'checked' : '' }} onchange="showApplyButton()">
                                 <span class="text-sm font-semibold text-zinc-600 group-hover:text-zinc-900 select-none flex items-center gap-2">
                                     <i class="fas fa-check-circle text-emerald-500 w-4"></i> Pro Merchant
                                 </span>
@@ -356,12 +361,21 @@
                                 <div class="text-base sm:text-lg font-black text-zinc-900 tracking-tight mb-2.5">Rp{{ number_format($b->harga, 0, ',', '.') }}</div>
 
                                 <div class="pt-3 border-t border-zinc-100/80 space-y-1.5">
-                                    <div class="flex items-center text-[10px] sm:text-xs font-semibold text-zinc-500">
-                                        <i class="fas fa-store text-blue-500 w-4"></i>
-                                        <span class="truncate">{{ $b->nama_toko }}</span>
+                                    {{-- INFO TOKO DAN BADGE (Ditambahkan) --}}
+                                    <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold text-zinc-500">
+                                        <i class="fas fa-store text-blue-500 w-3.5"></i>
+                                        <span class="truncate max-w-[120px]">{{ $b->nama_toko }}</span>
+
+                                        {{-- LOGIKA BADGE TOKO --}}
+                                        @if(isset($b->tier_toko) && $b->tier_toko == 'official_store')
+                                            <span class="badge-store badge-official" title="Official Store"><i class="fas fa-crown"></i></span>
+                                        @elseif(isset($b->tier_toko) && $b->tier_toko == 'pro_merchant')
+                                            <span class="badge-store badge-pro" title="Pro Merchant"><i class="fas fa-check-circle"></i></span>
+                                        @endif
                                     </div>
-                                    <div class="flex items-center text-[10px] sm:text-xs font-semibold text-zinc-400">
-                                        <i class="fas fa-map-marker-alt text-red-400 w-4"></i>
+
+                                    <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold text-zinc-400">
+                                        <i class="fas fa-map-marker-alt text-red-400 w-3.5"></i>
                                         <span class="truncate">{{ $b->nama_kota ?? 'Nasional' }}</span>
                                     </div>
                                 </div>
