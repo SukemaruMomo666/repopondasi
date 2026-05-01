@@ -51,7 +51,7 @@
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .accordion-content.open { max-height: 400px; /* Angka besar agar muat */ }
 
-        /* BADGE TOKO (Ditambahkan) */
+        /* BADGE TOKO */
         .badge-store { display: inline-flex; align-items: center; justify-content: center; padding: 2px 5px; border-radius: 4px; font-size: 0.65rem; margin-left: 4px;}
         .badge-official { background-color: #f3e8ff; color: #7e22ce; }
         .badge-pro { background-color: #d1fae5; color: #047857; }
@@ -248,7 +248,7 @@
                     <div>
                         <h4 class="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">Lokasi Pengiriman</h4>
                         <div class="relative">
-                            <select name="lokasi" onchange="showApplyButton()" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-700 text-sm font-bold rounded-xl px-4 py-3 appearance-none outline-none focus:border-blue-600 transition-colors cursor-pointer">
+                            <select name="lokasi" id="lokasi-select" onchange="showApplyButton()" class="w-full bg-zinc-50 border border-zinc-200 text-zinc-700 text-sm font-bold rounded-xl px-4 py-3 appearance-none outline-none focus:border-blue-600 transition-colors cursor-pointer">
                                 <option value="">Seluruh Indonesia</option>
                                 @foreach($locations as $l)
                                     <option value="{{ $l->city_id }}" {{ request('lokasi') == $l->city_id ? 'selected' : '' }}>
@@ -474,6 +474,47 @@
                     }
                 });
             });
+
+            // ==========================================
+            // 4. AUTO DETECT LOCATION (Geolokasi IP)
+            // ==========================================
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // Jalankan HANYA jika belum ada parameter 'lokasi' di URL dan belum pernah di-set di sesi browser ini
+            if (!urlParams.has('lokasi') && !sessionStorage.getItem('auto_lokasi_done')) {
+                fetch('https://ipapi.co/json/')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.city) {
+                            let cityDetected = data.city.toLowerCase();
+                            let selectLokasi = document.getElementById('lokasi-select');
+                            let options = selectLokasi.options;
+                            let matchFound = false;
+
+                            for (let i = 0; i < options.length; i++) {
+                                let optionText = options[i].text.toLowerCase();
+                                // Contoh: "karawang" akan cocok dengan "kabupaten karawang"
+                                if (optionText.includes(cityDetected)) {
+                                    selectLokasi.selectedIndex = i;
+                                    matchFound = true;
+                                    break;
+                                }
+                            }
+
+                            if (matchFound) {
+                                // Tandai sesi agar tidak terus-terusan melacak dan mem-refresh halaman
+                                sessionStorage.setItem('auto_lokasi_done', 'true');
+
+                                // Tampilkan konsol untuk debug
+                                console.log('Lokasi otomatis diset ke: ' + data.city);
+
+                                // Submit form secara otomatis untuk menerapkan filter kota
+                                document.getElementById('filterForm').submit();
+                            }
+                        }
+                    })
+                    .catch(error => console.log('Auto-lokasi gagal atau diblokir:', error));
+            }
 
         });
     </script>
