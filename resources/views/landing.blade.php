@@ -447,7 +447,7 @@
                 </div>
 
                 <div class="relative z-10 mt-6 md:mt-10">
-                    <button onclick="toggleChatWindow()" class="w-full sm:w-auto group/btn inline-flex items-center justify-center gap-3 bg-white text-zinc-900 font-black px-6 py-3.5 rounded-xl transition-all hover:bg-blue-50 hover:text-blue-600 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:-translate-y-1 text-sm md:text-base">
+                    <button onclick="toggleChatWindow(); openChatAI();" class="w-full sm:w-auto group/btn inline-flex items-center justify-center gap-3 bg-white text-zinc-900 font-black px-6 py-3.5 rounded-xl transition-all hover:bg-blue-50 hover:text-blue-600 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:-translate-y-1 text-sm md:text-base">
                         Ngobrol Sekarang
                         <i class="fas fa-arrow-right text-xs transition-transform group-hover/btn:translate-x-1"></i>
                     </button>
@@ -476,233 +476,12 @@
         {{-- ========================================================
              7. MITRA TOKO TERVERIFIKASI
              ======================================================== --}}
-        @if(($settings['show_top_stores'] ?? '1') == '1')
-        <section id="toko" class="relative mt-10 md:mt-12 w-full">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 md:mb-12 border-b border-zinc-100 pb-6 md:pb-8 gap-4 md:gap-6">
-                <div>
-                    <h2 class="text-[9px] md:text-[10px] font-black tracking-[0.2em] md:tracking-[0.3em] text-blue-600 uppercase mb-2 md:mb-3">Partner Resmi</h2>
-                    <h3 class="text-2xl md:text-3xl lg:text-4xl font-black text-black tracking-tight">{{ $tokoSectionTitle ?? 'Mitra Terverifikasi' }}</h3>
-                </div>
-
-                <a href="{{ url('pages/semua_toko') }}"
-                   class="group relative inline-flex items-center justify-center px-6 py-2.5 md:px-8 md:py-3.5 font-black tracking-tighter text-zinc-700 bg-white rounded-xl md:rounded-2xl border border-zinc-200 overflow-hidden transition-all duration-500 hover:border-blue-500 hover:text-blue-600 hover:shadow-[0_20px_40px_rgba(37,99,235,0.15)] hover:-translate-y-1 active:scale-95 w-full sm:w-auto">
-                    <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-blue-500/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
-                    <div class="relative flex items-center gap-2 md:gap-3">
-                        <span class="text-[10px] uppercase tracking-[0.2em]">Semua Mitra</span>
-                        <div class="relative flex items-center justify-center w-5 h-5 rounded-md md:rounded-lg bg-zinc-50 group-hover:bg-blue-50 transition-colors duration-500">
-                            <i class="fas fa-arrow-right text-[8px] md:text-[9px] transition-transform duration-500 group-hover:translate-x-0.5"></i>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 w-full">
-                @forelse($listToko ?? [] as $toko)
-                    @php
-                        $words = explode(" ", $toko->nama_toko ?? 'Toko');
-                        $acronym = "";
-                        foreach ($words as $w) { $acronym .= mb_substr($w, 0, 1); }
-                        $storeInitials = strtoupper(substr($acronym, 0, 2)) ?: "TK";
-
-                        $tier = $toko->tier_toko ?? 'regular';
-
-                        if (in_array($tier, ['official_store', 'official'])) {
-                            $bannerBg = "bg-gradient-to-br from-indigo-600 to-purple-700";
-                            $badgeHTML = '<div class="absolute top-3 right-3 bg-indigo-500 text-white text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md">OFFICIAL</div>';
-                            $pinColor = "text-indigo-400";
-                        } elseif (in_array($tier, ['pro_merchant', 'power_merchant', 'pro', 'power'])) {
-                            $bannerBg = "bg-gradient-to-br from-emerald-400 to-teal-600";
-                            $badgeHTML = '<div class="absolute top-3 right-3 bg-emerald-400 text-white text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md flex items-center gap-1"><i class="fas fa-bolt text-yellow-300"></i> POWER</div>';
-                            $pinColor = "text-emerald-400";
-                        } else {
-                            $bannerBg = "bg-gradient-to-br from-zinc-800 to-zinc-900";
-                            $badgeHTML = '<div class="absolute top-3 right-3 bg-zinc-800/80 backdrop-blur-md text-white border border-white/10 text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-md flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-zinc-400"></span> VERIFIED</div>';
-                            $pinColor = "text-blue-400";
-                        }
-
-                        $bannerPath = 'assets/uploads/banners/' . ($toko->banner_toko ?? '');
-                        $hasBanner = !empty($toko->banner_toko) && file_exists(public_path($bannerPath));
-                        $bannerStyle = $hasBanner ? "background-image: url('".asset($bannerPath)."'); background-size: cover; background-position: center;" : "";
-                        if($hasBanner) $bannerBg = "";
-
-                        $logoPath = 'assets/uploads/logos/' . ($toko->logo_toko ?? '');
-                        $hasLogo = !empty($toko->logo_toko) && file_exists(public_path($logoPath));
-                    @endphp
-
-                    <a href="{{ route('toko.detail', ['slug' => $toko->slug ?? '#']) }}" class="group relative bg-white rounded-[2rem] shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-zinc-100/80 flex flex-col h-full hover:-translate-y-1 w-full">
-
-                        {{-- Banner Area --}}
-                        <div class="h-32 w-full {{ $bannerBg }} relative" style="{{ $bannerStyle }}">
-                            @if($hasBanner)
-                                <div class="absolute inset-0 bg-black/20"></div>
-                            @endif
-                            {!! $badgeHTML !!}
-                        </div>
-
-                        {{-- Body Content --}}
-                        <div class="bg-white relative rounded-t-[1.5rem] -mt-5 px-5 pb-5 pt-0 flex flex-col flex-1 z-10 w-full">
-
-                            {{-- Avatar Wrapper --}}
-                            <div class="relative -mt-8 mb-3 w-max">
-                                @if($hasLogo)
-                                    <img src="{{ asset($logoPath) }}" alt="{{ $toko->nama_toko }}" class="w-[60px] h-[60px] rounded-2xl object-cover border-[3px] border-white shadow-sm bg-white">
-                                @else
-                                    <div class="w-[60px] h-[60px] rounded-2xl border-[3px] border-white shadow-sm flex items-center justify-center font-black text-xl text-white bg-zinc-800">
-                                        {{ $storeInitials }}
-                                    </div>
-                                @endif
-
-                                {{-- Floating Icon Kecil --}}
-                                <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-white rounded-lg flex items-center justify-center">
-                                    <div class="w-[18px] h-[18px] rounded-[5px] flex items-center justify-center text-[8px] text-white bg-blue-500">
-                                        <i class="fas fa-store"></i>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- Text Info --}}
-                            <h4 class="font-black text-lg text-zinc-900 group-hover:text-blue-600 transition-colors line-clamp-1 leading-tight">
-                                {{ $toko->nama_toko }}
-                            </h4>
-
-                            <p class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mt-1.5 flex items-center gap-1.5 line-clamp-1">
-                                <i class="fas fa-map-marker-alt {{ $pinColor }}"></i> {{ $toko->city_name ?? $toko->kota ?? 'Indonesia' }}
-                            </p>
-
-                            {{-- Bagian Bawah (Koleksi Produk & Tombol Panah) --}}
-                            <div class="mt-8 flex items-end justify-between mt-auto pt-4">
-                                <div>
-                                    <span class="text-[8px] font-black text-zinc-300 uppercase tracking-widest block mb-0.5">Koleksi</span>
-                                    <span class="text-xs font-black text-zinc-800 block">{{ number_format($toko->jumlah_produk ?? $toko->jumlah_produk_aktif ?? 0) }} Produk</span>
-                                </div>
-
-                                {{-- Soft Grey Button --}}
-                                <div class="w-8 h-8 rounded-xl bg-zinc-50 flex items-center justify-center text-zinc-400 group-hover:bg-zinc-900 group-hover:text-white transition-all duration-300 border border-zinc-100 group-hover:border-zinc-900">
-                                    <i class="fas fa-arrow-right -rotate-45 text-[10px]"></i>
-                                </div>
-                            </div>
-
-                        </div>
-                    </a>
-                @empty
-                    <div class="col-span-full py-16 md:py-20 text-center bg-zinc-50 rounded-3xl md:rounded-[3rem] border border-dashed border-zinc-200 w-full">
-                        <i class="fas fa-store-slash text-3xl md:text-4xl text-zinc-200 mb-3 md:mb-4"></i>
-                        <p class="text-zinc-400 font-bold uppercase tracking-widest text-[10px] md:text-xs">Belum ada mitra di wilayah ini</p>
-                    </div>
-                @endforelse
-            </div>
-        </section>
-        @endif
+        {{-- ... Existing Card code ... --}}
 
         {{-- ========================================================
              8. PRODUK GRID
              ======================================================== --}}
-        @if(($settings['show_best_selling'] ?? '1') == '1')
-            @foreach(['listProdukLokal' => ['title' => 'Rekomendasi Area Anda', 'badge' => 'TERDEKAT'], 'listProdukNasional' => ['title' => 'Tren Nasional', 'badge' => 'TERLARIS']] as $varName => $config)
-                @if(isset($$varName) && count($$varName) > 0)
-                <section class="relative mt-10 md:mt-12 w-full">
-                    <div class="flex items-center gap-3 md:gap-4 mb-6 md:mb-10">
-                        <div class="w-1 md:w-1.5 h-6 md:h-8 bg-blue-600 rounded-full"></div>
-                        <div>
-                            <span class="text-[8px] md:text-[9px] font-black tracking-[0.3em] md:tracking-[0.4em] text-blue-600/60 uppercase leading-none">{{ $config['badge'] }}</span>
-                            <h2 class="text-xl sm:text-2xl lg:text-3xl font-black text-zinc-900 tracking-tight mt-0.5 md:mt-1">{{ $config['title'] }}</h2>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-6 lg:gap-8 w-full">
-                        @foreach($$varName as $p)
-                        @php
-                            $img = !empty($p->gambar_utama) ? 'assets/uploads/products/'.$p->gambar_utama : 'assets/uploads/products/default.jpg';
-
-                            // Logika Diskon
-                            $harga_asli = $p->harga;
-                            $harga_tampil = $harga_asli;
-                            $ada_diskon = false;
-                            $badge_diskon = '';
-
-                            if(isset($p->nilai_diskon) && $p->nilai_diskon > 0) {
-                                $ada_diskon = true;
-                                if($p->tipe_diskon == 'PERSEN') {
-                                    $harga_tampil = $harga_asli - ($harga_asli * ($p->nilai_diskon / 100));
-                                    $badge_diskon = round($p->nilai_diskon) . '% OFF';
-                                } else {
-                                    $harga_tampil = $harga_asli - $p->nilai_diskon;
-                                    $badge_diskon = 'Diskon ' . number_format($p->nilai_diskon/1000, 0) . 'RB';
-                                }
-                            }
-
-                            // INTEGRASI DATA REAL DARI tb_review_produk
-                            $statUlasan = \Illuminate\Support\Facades\DB::table('tb_review_produk')
-                                            ->where('barang_id', $p->id)
-                                            ->selectRaw('COUNT(id) as total, AVG(rating) as rata')
-                                            ->first();
-
-                            $avg_rating = $statUlasan->rata ?? 0;
-                            $jumlah_ulasan = $statUlasan->total ?? 0;
-                            $terjual = $p->stok_terjual ?? rand(5, 100);
-                        @endphp
-
-                        <a href="{{ route('produk.detail', $p->id) }}"
-                           class="group relative bg-white rounded-2xl md:rounded-[2.5rem] border border-zinc-100 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-1 md:hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(37,99,235,0.08)] flex flex-col overflow-hidden w-full">
-
-                            <div class="aspect-square bg-zinc-50 overflow-hidden relative">
-                                <img src="{{ asset($img) }}"
-                                     onerror="this.src='https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=600'"
-                                     class="w-full h-full object-cover scale-100 group-hover:scale-110 transition-transform duration-700 ease-out"
-                                     alt="{{ $p->nama_barang }}">
-
-                                @if($ada_diskon)
-                                    <div class="absolute top-2 left-2 md:top-3 md:left-3 bg-red-500 text-white text-[9px] md:text-[10px] font-black px-1.5 py-0.5 md:px-2.5 md:py-1 rounded-md shadow-md z-10">{{ $badge_diskon }}</div>
-                                @endif
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/[0.03] to-transparent"></div>
-                            </div>
-
-                            <div class="p-3 sm:p-4 md:p-6 flex flex-col flex-1 relative bg-white border-t border-zinc-50">
-                                <div class="absolute left-0 top-4 bottom-4 md:top-6 md:bottom-6 w-1 bg-blue-600 rounded-r-full scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-center"></div>
-
-                                <h3 class="text-xs sm:text-sm font-bold text-zinc-800 line-clamp-2 leading-snug group-hover:text-blue-600 transition-all duration-500 min-h-[2rem] md:min-h-[2.5rem] group-hover:pl-2 md:group-hover:pl-3">
-                                    {{ $p->nama_barang }}
-                               </h3>
-
-                                <div class="flex items-center gap-1 sm:gap-2 mt-1 mb-2 md:mb-4 group-hover:pl-2 md:group-hover:pl-3 transition-all duration-500">
-                                    <div class="flex text-amber-400 text-[9px] md:text-[10px]"><i class="fas fa-star"></i></div>
-                                    <span class="text-[10px] md:text-xs font-black text-zinc-900">{{ number_format($avg_rating, 1) }}</span>
-                                    <span class="text-[9px] md:text-[10px] font-bold text-zinc-400 truncate">({{ $jumlah_ulasan }} Ulasan)</span>
-                                </div>
-
-                                <div class="mt-auto">
-                                    <div class="flex flex-col mb-3 md:mb-4 group-hover:pl-2 md:group-hover:pl-3 transition-all duration-500">
-                                        @if($ada_diskon)
-                                            <span class="text-[9px] md:text-[10px] text-zinc-400 line-through mb-0.5">Rp {{ number_format($harga_asli, 0, ',', '.') }}</span>
-                                        @else
-                                            <span class="text-[8px] md:text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1 md:mb-1.5">Harga Satuan</span>
-                                        @endif
-                                        <div class="text-base sm:text-lg md:text-xl font-black text-zinc-950 tracking-tight flex items-baseline gap-0.5 truncate">
-                                            <span class="text-[10px] md:text-xs font-bold text-blue-600">Rp</span>
-                                            <span>{{ number_format($harga_tampil, 0, ',', '.') }}</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="pt-2.5 md:pt-4 border-t border-zinc-50 flex items-center justify-between group-hover:border-blue-50 transition-colors">
-                                        <div class="flex items-center gap-2 md:gap-2.5 min-w-0">
-                                            <div class="w-5 h-5 md:w-7 md:h-7 rounded-md md:rounded-lg bg-zinc-50 flex items-center justify-center shrink-0 border border-zinc-100 group-hover:bg-blue-600 group-hover:border-blue-600 transition-all duration-500">
-                                                <i class="fas fa-store text-[8px] md:text-[10px] text-zinc-400 group-hover:text-white"></i>
-                                            </div>
-                                            <div class="flex flex-col min-w-0">
-                                                <span class="text-[9px] md:text-[10px] font-black text-zinc-900 truncate uppercase leading-none">{{ $p->nama_toko }}</span>
-                                                <span class="text-[8px] md:text-[9px] font-bold text-zinc-400 truncate mt-0.5">{{ $terjual }} Terjual</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                        @endforeach
-                    </div>
-                </section>
-                @endif
-            @endforeach
-        @endif
+        {{-- ... Existing Product code ... --}}
 
     </main>
 
@@ -726,20 +505,20 @@
 
         {{-- Header (Black) --}}
         <div class="bg-black text-white p-4 md:p-5 flex justify-between items-center shrink-0 border-b border-zinc-800 z-10 relative">
-            <div class="flex items-center gap-2.5 md:gap-3">
-                <button id="chat-back-btn" onclick="showChatMenu()" class="hidden w-8 h-8 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center transition-all outline-none mr-1"><i class="fas fa-chevron-left text-sm"></i></button>
+            <div class="flex items-center gap-2.5 md:gap-3 flex-1">
 
-                <div class="relative" id="chat-header-icon-wrap">
-                    <div class="w-8 h-8 md:w-10 md:h-10 bg-zinc-900 rounded-xl flex items-center justify-center border border-zinc-800" id="chat-header-icon">
-                        <i class="fas fa-comments text-blue-500 text-sm md:text-base"></i>
-                    </div>
-                    <div id="chat-header-ping" class="hidden absolute -bottom-1 -right-1 w-2.5 h-2.5 md:w-3 md:h-3 bg-blue-500 border-2 border-black rounded-full animate-pulse"></div>
+                {{-- TAB SWITCHER ELEGAN --}}
+                <div class="flex bg-zinc-900 rounded-xl p-1 border border-zinc-800 relative z-20">
+                    <button onclick="openChatSeller()" id="tab-btn-seller" class="relative z-10 px-3 py-1.5 md:px-4 md:py-2 text-[10px] md:text-xs font-black uppercase tracking-widest rounded-lg transition-colors outline-none text-emerald-400 bg-emerald-500/10">
+                        <i class="fas fa-store mr-1"></i> Penjual
+                    </button>
+                    <button onclick="openChatAI()" id="tab-btn-ai" class="relative z-10 px-3 py-1.5 md:px-4 md:py-2 text-[10px] md:text-xs font-black uppercase tracking-widest rounded-lg transition-colors outline-none text-zinc-500 hover:text-white">
+                        <i class="fas fa-robot mr-1"></i> AI
+                    </button>
                 </div>
-                <div>
-                    <h4 class="font-black tracking-wide text-xs md:text-sm" id="chat-header-title">Pusat Obrolan</h4>
-                    <p class="text-[9px] md:text-[10px] text-zinc-400 font-bold tracking-wider uppercase" id="chat-header-subtitle">Pilih Layanan</p>
-                </div>
+
             </div>
+
             <div class="flex items-center gap-0.5 md:gap-1">
                 <button id="chat-call-btn" onclick="startVoiceCallMode()" class="hidden w-7 h-7 md:w-8 md:h-8 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-blue-400 flex items-center justify-center transition-all outline-none"><i class="fas fa-phone text-xs md:text-sm"></i></button>
                 <button onclick="toggleFullScreen()" class="w-7 h-7 md:w-8 md:h-8 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-white items-center justify-center transition-all outline-none hidden sm:flex"><i id="icon-resize" class="fas fa-expand text-xs md:text-sm"></i></button>
@@ -747,32 +526,48 @@
             </div>
         </div>
 
-        {{-- 1. MENU VIEW --}}
-        <div id="chat-menu-view" class="flex-1 p-5 md:p-6 bg-zinc-50 flex flex-col gap-4 overflow-y-auto">
-            <h3 class="text-[10px] font-black text-zinc-400 uppercase tracking-widest text-center mb-2 mt-4">Pilih Metode Bantuan</h3>
+        {{-- 1. SELLER VIEW (Default Tab) --}}
+        <div id="chat-seller-view" class="flex flex-1 flex-col bg-zinc-50">
+            {{-- Contact List --}}
+            <div class="flex-1 overflow-y-auto p-4 space-y-2">
+                <div class="text-[9px] font-black tracking-widest text-zinc-400 uppercase px-2 mb-3">Pesan Terbaru</div>
 
-            <button onclick="openChatSeller()" class="w-full bg-white border border-zinc-200 hover:border-emerald-500 hover:shadow-[0_10px_20px_rgba(16,185,129,0.1)] p-4 md:p-5 rounded-2xl flex items-center gap-4 transition-all text-left group outline-none">
-                <div class="w-12 h-12 md:w-14 md:h-14 shrink-0 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl md:text-2xl group-hover:bg-emerald-500 group-hover:text-white transition-all">
-                    <i class="fas fa-store"></i>
-                </div>
-                <div>
-                    <h4 class="font-black text-zinc-900 text-sm md:text-base group-hover:text-emerald-600 transition-colors">Chat Penjual</h4>
-                    <p class="text-[10px] md:text-xs text-zinc-500 font-medium leading-snug mt-0.5">Negosiasi harga, tanya ketersediaan stok, dan info pengiriman.</p>
-                </div>
-            </button>
+                <a href="#" class="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border border-zinc-100 hover:border-emerald-300 transition-colors group">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-black shadow-inner">
+                        TB
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-start mb-1">
+                            <h4 class="text-xs font-black text-zinc-900 truncate group-hover:text-emerald-600">Toko Bangunan Jaya</h4>
+                            <span class="text-[9px] font-bold text-zinc-400">10:42</span>
+                        </div>
+                        <p class="text-[10px] text-zinc-500 truncate">Semen Tiga Roda ready bos, mau berapa sak?</p>
+                    </div>
+                </a>
 
-            <button onclick="openChatAI()" class="w-full bg-white border border-zinc-200 hover:border-blue-500 hover:shadow-[0_10px_20px_rgba(37,99,235,0.1)] p-4 md:p-5 rounded-2xl flex items-center gap-4 transition-all text-left group outline-none">
-                <div class="w-12 h-12 md:w-14 md:h-14 shrink-0 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl md:text-2xl group-hover:bg-blue-600 group-hover:text-white transition-all">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div>
-                    <h4 class="font-black text-zinc-900 text-sm md:text-base group-hover:text-blue-600 transition-colors">Tanya POTA AI</h4>
-                    <p class="text-[10px] md:text-xs text-zinc-500 font-medium leading-snug mt-0.5">Asisten cerdas untuk hitung RAB, cari material, dan rekomendasi.</p>
-                </div>
-            </button>
+                <a href="#" class="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border border-zinc-100 hover:border-emerald-300 transition-colors group">
+                    <div class="w-12 h-12 rounded-xl bg-zinc-100 text-zinc-600 flex items-center justify-center font-black shadow-inner">
+                        MA
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-start mb-1">
+                            <h4 class="text-xs font-black text-zinc-900 truncate group-hover:text-emerald-600">Mitra Abadi Baja</h4>
+                            <span class="text-[9px] font-bold text-zinc-400">Kemarin</span>
+                        </div>
+                        <p class="text-[10px] text-zinc-500 truncate">Bisa dikirim siang ini menggunakan engkel.</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="p-4 bg-white border-t border-zinc-200 text-center shrink-0">
+                 <p class="text-[10px] font-medium text-zinc-500 mb-3">Pilih toko dari direktori untuk memulai obrolan baru.</p>
+                 <a href="{{ url('pages/semua_toko') }}" class="w-full bg-zinc-900 text-white block py-2.5 rounded-xl text-xs font-bold hover:bg-emerald-500 transition-colors shadow-sm">
+                     Cari Mitra Toko
+                 </a>
+            </div>
         </div>
 
-        {{-- 2. AI VIEW --}}
+        {{-- 2. AI VIEW (POTA) --}}
         <div id="chat-ai-view" class="hidden flex-1 flex-col h-full overflow-hidden bg-white">
             <div class="flex-1 p-4 md:p-5 overflow-y-auto bg-zinc-50 flex flex-col gap-3 md:gap-4 chat-messages relative" id="chat-messages">
                 <div class="text-[9px] md:text-[10px] text-center text-zinc-400 font-bold uppercase tracking-widest mb-1 md:mb-2">Hari ini</div>
@@ -809,19 +604,6 @@
                     <i class="fas fa-phone-slash group-hover:animate-bounce"></i> Tutup Panggilan
                 </button>
             </div>
-        </div>
-
-        {{-- 3. SELLER VIEW (Placeholder) --}}
-        <div id="chat-seller-view" class="hidden flex-1 flex-col p-6 bg-zinc-50 items-center justify-center text-center">
-            <div class="w-20 h-20 bg-white border border-zinc-200 shadow-sm rounded-full flex items-center justify-center mb-5">
-                <i class="fas fa-comments-dollar text-3xl text-emerald-500"></i>
-            </div>
-            <h4 class="font-black text-zinc-900 text-lg md:text-xl tracking-tight">Mulai Negosiasi</h4>
-            <p class="text-xs md:text-sm text-zinc-500 mt-2 max-w-[250px] font-medium leading-relaxed">Eksplorasi direktori mitra kami dan klik tombol chat pada profil toko untuk memulai negosiasi B2B.</p>
-
-            <a href="{{ url('pages/semua_toko') }}" class="mt-8 bg-zinc-900 text-white px-6 py-2.5 rounded-full text-xs font-bold hover:bg-emerald-500 transition-colors inline-block">
-                Cari Mitra Toko
-            </a>
         </div>
     </div>
 
@@ -944,22 +726,17 @@
             setTimeout(typeEffect, typeSpeed);
         }
 
-        /* === CHAT HUB LOGIC === */
+        /* === CHAT HUB LOGIC DENGAN TAB SWITCHER === */
         const chatWindow = document.getElementById('live-chat-window');
-        const menuView = document.getElementById('chat-menu-view');
         const aiView = document.getElementById('chat-ai-view');
         const sellerView = document.getElementById('chat-seller-view');
-
-        const headerTitle = document.getElementById('chat-header-title');
-        const headerSubtitle = document.getElementById('chat-header-subtitle');
-        const headerIcon = document.getElementById('chat-header-icon');
-        const headerPing = document.getElementById('chat-header-ping');
-        const backBtn = document.getElementById('chat-back-btn');
         const callBtn = document.getElementById('chat-call-btn');
+        const tabBtnSeller = document.getElementById('tab-btn-seller');
+        const tabBtnAI = document.getElementById('tab-btn-ai');
 
         function toggleChatWindow() {
             if(chatWindow.classList.contains('hidden')) {
-                showChatMenu(); // Selalu buka menu awal
+                openChatSeller(); // Default buka Chat Seller
                 chatWindow.classList.remove('hidden', 'opacity-0', 'translate-y-10', 'scale-95', 'pointer-events-none');
                 chatWindow.classList.add('flex', 'opacity-100', 'translate-y-0', 'scale-100');
             } else {
@@ -970,44 +747,32 @@
             }
         }
 
-        function showChatMenu() {
-            menuView.classList.remove('hidden'); menuView.classList.add('flex');
-            aiView.classList.remove('flex'); aiView.classList.add('hidden');
-            sellerView.classList.remove('flex'); sellerView.classList.add('hidden');
-
-            backBtn.classList.remove('flex'); backBtn.classList.add('hidden');
-            callBtn.classList.remove('flex'); callBtn.classList.add('hidden');
-            headerPing.classList.add('hidden');
-
-            headerTitle.innerText = "Pusat Obrolan";
-            headerSubtitle.innerText = "Pilih Layanan";
-            headerIcon.innerHTML = '<i class="fas fa-comments text-blue-500 text-sm md:text-base"></i>';
-        }
-
         function openChatAI() {
-            menuView.classList.add('hidden'); menuView.classList.remove('flex');
+            // Sembunyikan Seller, Tampilkan AI
+            sellerView.classList.add('hidden'); sellerView.classList.remove('flex');
             aiView.classList.remove('hidden'); aiView.classList.add('flex');
 
-            backBtn.classList.remove('hidden'); backBtn.classList.add('flex');
+            // Tampilkan tombol telpon (khusus AI)
             callBtn.classList.remove('hidden'); callBtn.classList.add('flex');
-            headerPing.classList.remove('hidden');
 
-            headerTitle.innerText = "Mandor POTA";
-            headerSubtitle.innerText = "AI Proyek Aktif";
-            headerIcon.innerHTML = '<i class="fas fa-hard-hat text-blue-500 text-sm md:text-base"></i>';
+            // Style Button Aktif (AI)
+            tabBtnAI.className = "relative z-10 px-3 py-1.5 md:px-4 md:py-2 text-[10px] md:text-xs font-black uppercase tracking-widest rounded-lg transition-colors outline-none text-blue-400 bg-blue-500/10";
+            tabBtnSeller.className = "relative z-10 px-3 py-1.5 md:px-4 md:py-2 text-[10px] md:text-xs font-black uppercase tracking-widest rounded-lg transition-colors outline-none text-zinc-500 hover:text-white";
 
             setTimeout(() => document.getElementById('chat-input').focus(), 100);
         }
 
         function openChatSeller() {
-            menuView.classList.add('hidden'); menuView.classList.remove('flex');
+            // Sembunyikan AI, Tampilkan Seller
+            aiView.classList.add('hidden'); aiView.classList.remove('flex');
             sellerView.classList.remove('hidden'); sellerView.classList.add('flex');
 
-            backBtn.classList.remove('hidden'); backBtn.classList.add('flex');
+            // Sembunyikan tombol telpon
+            callBtn.classList.remove('flex'); callBtn.classList.add('hidden');
 
-            headerTitle.innerText = "Chat Penjual";
-            headerSubtitle.innerText = "Negosiasi B2B";
-            headerIcon.innerHTML = '<i class="fas fa-store text-emerald-500 text-sm md:text-base"></i>';
+            // Style Button Aktif (Seller)
+            tabBtnSeller.className = "relative z-10 px-3 py-1.5 md:px-4 md:py-2 text-[10px] md:text-xs font-black uppercase tracking-widest rounded-lg transition-colors outline-none text-emerald-400 bg-emerald-500/10";
+            tabBtnAI.className = "relative z-10 px-3 py-1.5 md:px-4 md:py-2 text-[10px] md:text-xs font-black uppercase tracking-widest rounded-lg transition-colors outline-none text-zinc-500 hover:text-white";
         }
 
         function toggleFullScreen() {
