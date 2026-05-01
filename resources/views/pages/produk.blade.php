@@ -409,6 +409,7 @@
     <script src="{{ asset('assets/js/navbar.js') }}"></script>
 
     {{-- LOGIKA INTERAKSI (Termasuk Accordion & Mobile Sidebar) --}}
+{{-- LOGIKA INTERAKSI (Termasuk Accordion, Mobile Sidebar & Auto Detect) --}}
     <script>
         // 1. Munculkan Tombol "Terapkan" saat ada interaksi filter
         function showApplyButton() {
@@ -445,10 +446,9 @@
             if (closeFilterBtn) closeFilterBtn.addEventListener('click', closeFilter);
             if (filterOverlay) filterOverlay.addEventListener('click', closeFilter);
 
-            // 3. LOGIKA ACCORDION KATEGORI (Hanya buka satu)
+            // 3. LOGIKA ACCORDION KATEGORI
             const accordionHeaders = document.querySelectorAll('.accordion-header');
 
-            // Auto-open accordion yang punya checkbox tercentang saat loading
             document.querySelectorAll('.accordion-item').forEach(item => {
                 if (item.querySelector('input[type="checkbox"]:checked')) {
                     item.querySelector('.accordion-content').classList.add('open');
@@ -456,18 +456,15 @@
                 }
             });
 
-            // Logika Klik
             accordionHeaders.forEach(header => {
                 header.addEventListener('click', function() {
                     const currentContent = this.nextElementSibling;
                     const currentIcon = this.querySelector('.icon-arrow');
                     const isOpen = currentContent.classList.contains('open');
 
-                    // Tutup SEMUA accordion dulu
                     document.querySelectorAll('.accordion-content').forEach(content => content.classList.remove('open'));
                     document.querySelectorAll('.icon-arrow').forEach(icon => icon.classList.remove('rotate-180'));
 
-                    // Jika yang diklik tadinya tertutup, buka dia
                     if (!isOpen) {
                         currentContent.classList.add('open');
                         currentIcon.classList.add('rotate-180');
@@ -476,25 +473,32 @@
             });
 
             // ==========================================
-            // 4. AUTO DETECT LOCATION (Geolokasi IP)
+            // 4. AUTO DETECT LOCATION (Geolokasi IP - V2 SAKTI)
             // ==========================================
             const urlParams = new URLSearchParams(window.location.search);
 
-            // Jalankan HANYA jika belum ada parameter 'lokasi' di URL dan belum pernah di-set di sesi browser ini
-            if (!urlParams.has('lokasi') && !sessionStorage.getItem('auto_lokasi_done')) {
+            // Menggunakan key session 'auto_lokasi_v2' agar sesi lama yang nyangkut diabaikan
+            if (!urlParams.has('lokasi') && !sessionStorage.getItem('auto_lokasi_v2')) {
+
+                // Mencoba fetch dari API pertama, jika diblokir/gagal otomatis lari ke API kedua
                 fetch('https://ipapi.co/json/')
-                    .then(response => response.json())
+                    .then(res => res.ok ? res.json() : fetch('http://ip-api.com/json').then(r => r.json()))
                     .then(data => {
-                        if (data.city) {
-                            let cityDetected = data.city.toLowerCase();
+                        let detectedCity = (data.city || "").toLowerCase();
+
+                        // Bersihkan embel-embel wilayah administratif agar cocok 100%
+                        detectedCity = detectedCity.replace(/kabupaten|kota|kab\./g, '').trim();
+
+                        if (detectedCity) {
                             let selectLokasi = document.getElementById('lokasi-select');
                             let options = selectLokasi.options;
                             let matchFound = false;
 
                             for (let i = 0; i < options.length; i++) {
-                                let optionText = options[i].text.toLowerCase();
-                                // Contoh: "karawang" akan cocok dengan "kabupaten karawang"
-                                if (optionText.includes(cityDetected)) {
+                                // Bersihkan juga opsi di dropdown saat proses pencocokan
+                                let optionText = options[i].text.toLowerCase().replace(/kabupaten|kota|kab\./g, '').trim();
+
+                                if (optionText.includes(detectedCity) || detectedCity.includes(optionText)) {
                                     selectLokasi.selectedIndex = i;
                                     matchFound = true;
                                     break;
@@ -502,18 +506,18 @@
                             }
 
                             if (matchFound) {
-                                // Tandai sesi agar tidak terus-terusan melacak dan mem-refresh halaman
-                                sessionStorage.setItem('auto_lokasi_done', 'true');
-
-                                // Tampilkan konsol untuk debug
-                                console.log('Lokasi otomatis diset ke: ' + data.city);
-
-                                // Submit form secara otomatis untuk menerapkan filter kota
+                                // Kunci sesi agar tidak terjadi infinite reload loop
+                                sessionStorage.setItem('auto_lokasi_v2', 'true');
+                                console.log('✅ Lokasi otomatis diset ke: ' + data.city);
                                 document.getElementById('filterForm').submit();
+                            } else {
+                                console.log('⚠️ Lokasi terlacak (' + data.city + ') tapi tidak ditemukan di opsi dropdown.');
                             }
                         }
                     })
-                    .catch(error => console.log('Auto-lokasi gagal atau diblokir:', error));
+                    .catch(error => {
+                        console.log('❌ Sistem pelacak lokasi dicegat oleh Adblocker/Browser.', error);
+                    });
             }
 
         });
