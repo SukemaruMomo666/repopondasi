@@ -20,27 +20,30 @@ class ProductImport implements ToCollection, WithHeadingRow
         $toko = DB::table('tb_toko')->where('user_id', Auth::id())->first();
 
         foreach ($rows as $row) {
-            // Lewati baris kalau nama_barang di excel kosong
-            if (!isset($row['nama_barang']) || empty($row['nama_barang'])) {
+            // Lewati baris kalau nama_barang di excel benar-benar kosong
+            if (!isset($row['nama_barang']) || empty(trim($row['nama_barang']))) {
                 continue;
             }
 
-            // Masukkan ke database tb_barang
             DB::table('tb_barang')->insert([
                 'toko_id'         => $toko->id,
-                'kategori_id'     => $row['kategori_id'] ?? 1, // Pastikan ada kategori default
+                'kategori_id'     => $row['kategori_id'] ?? 1,
                 'nama_barang'     => $row['nama_barang'],
                 'kode_barang'     => $row['kode_barang'] ?? Str::random(8),
                 'harga'           => $row['harga'] ?? 0,
-                'stok'            => $row['stok'] ?? 0,
-                'berat_kg'        => $row['berat_kg'] ?? 1,
-                'satuan_unit'     => $row['satuan_unit'] ?? 'pcs',
-                'deskripsi'       => $row['deskripsi'] ?? 'Deskripsi otomatis dari Excel.',
 
-                // DATA DEFAULT UNTUK IMPORT EXCEL
+                // ==========================================
+                // DIBUAT OPSIONAL (NOL / NULL) SESUAI REQUEST
+                // ==========================================
+                'stok'            => $row['stok'] ?? 0,
+                'berat_kg'        => $row['berat_kg'] ?? 0,
+                'satuan_unit'     => $row['satuan_unit'] ?? null,
+                'deskripsi'       => $row['deskripsi'] ?? null,
+                // ==========================================
+
                 'gambar_utama'    => 'default.jpg',
-                'is_active'       => 0,         // <-- INI DIA BOS! Otomatis OFF Etalase
-                'status_moderasi' => 'pending', // <-- Otomatis nunggu di-ACC Admin
+                'is_active'       => 0,         // Otomatis OFF Etalase
+                'status_moderasi' => 'pending', // Nunggu approval
 
                 'created_at'      => now(),
                 'updated_at'      => now(),
