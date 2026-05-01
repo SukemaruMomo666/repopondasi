@@ -32,9 +32,15 @@
             </div>
         </div>
 
-        <a href="{{ route('seller.products.create') }}" class="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-sm shadow-blue-600/20 transition-all flex-shrink-0">
-            <i class="mdi mdi-plus-box-outline text-lg leading-none"></i> Tambah Material
-        </a>
+        {{-- ACTION BUTTONS --}}
+        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto flex-shrink-0">
+            <button type="button" onclick="openImportModal()" class="flex items-center justify-center gap-2 px-5 py-3 bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-600 hover:text-white text-sm font-bold rounded-xl transition-all shadow-sm">
+                <i class="mdi mdi-file-excel text-lg leading-none"></i> Import Excel
+            </button>
+            <a href="{{ route('seller.products.create') }}" class="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-sm shadow-blue-600/20 transition-all">
+                <i class="mdi mdi-plus-box-outline text-lg leading-none"></i> Tambah Material
+            </a>
+        </div>
     </div>
 
     {{-- MAIN CARD --}}
@@ -210,72 +216,166 @@
 
     </div>
 </div>
+
+{{-- MODAL IMPORT EXCEL --}}
+<div id="importModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300" id="importModalContent">
+
+        {{-- Modal Header --}}
+        <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h3 class="text-lg font-black text-slate-800 flex items-center gap-2">
+                <i class="mdi mdi-file-excel text-emerald-600 text-2xl"></i> Import Material Baru
+            </h3>
+            <button type="button" onclick="closeImportModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                <i class="mdi mdi-close text-2xl"></i>
+            </button>
+        </div>
+
+        {{-- Modal Body --}}
+        <div class="p-6">
+            <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3 mb-6">
+                <i class="mdi mdi-information text-blue-500 text-xl shrink-0"></i>
+                <div class="text-sm text-blue-800 font-medium leading-relaxed">
+                    Semua material yang di-import akan otomatis masuk ke gudang dengan status <b class="font-black">Off Etalase</b>. Ini berguna jika barang hanya untuk stok POS Kasir offline.
+                </div>
+            </div>
+
+            <div class="mb-6 flex justify-center">
+                <a href="{{ route('seller.products.template') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors border border-slate-200">
+                    <i class="mdi mdi-download text-lg"></i> Download Template Excel
+                </a>
+            </div>
+
+            <form action="{{ route('seller.products.import') }}" method="POST" enctype="multipart/form-data" id="formImportExcel">
+                @csrf
+                <div class="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center hover:bg-slate-50 hover:border-blue-400 transition-colors cursor-pointer group" onclick="document.getElementById('fileExcel').click()">
+                    <i class="mdi mdi-cloud-upload-outline text-5xl text-slate-300 group-hover:text-blue-500 transition-colors mb-2 block"></i>
+                    <h5 class="text-sm font-bold text-slate-700 mb-1">Klik untuk upload file</h5>
+                    <p class="text-[11px] font-medium text-slate-400 uppercase tracking-widest">HANYA FILE .XLS ATAU .XLSX</p>
+
+                    <input type="file" id="fileExcel" name="file_excel" class="hidden" accept=".xls,.xlsx" required onchange="updateFileName(this)">
+                </div>
+
+                {{-- Penampil nama file --}}
+                <div id="fileNameDisplay" class="mt-3 text-center text-sm font-bold text-emerald-600 hidden">
+                    <i class="mdi mdi-check-circle"></i> <span id="fileNameText">nama_file.xlsx</span>
+                </div>
+
+                <div class="mt-6 flex gap-3">
+                    <button type="button" onclick="closeImportModal()" class="flex-1 px-4 py-3 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold rounded-xl text-sm transition-colors">Batal</button>
+                    <button type="submit" id="btnProsesImport" class="flex-1 px-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-sm transition-colors shadow-sm shadow-emerald-500/30 flex items-center justify-center gap-2">
+                        <i class="mdi mdi-upload"></i> Proses Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+    // FUNGSI MODAL IMPORT EXCEL
+    const importModal = document.getElementById('importModal');
+    const importModalContent = document.getElementById('importModalContent');
 
-    // 1. LIVE TOGGLE ETALASE
-    document.querySelectorAll('.toggle-etalase').forEach(toggle => {
-        toggle.addEventListener('change', function() {
-            let productId = this.dataset.id;
-            let isActive = this.checked ? 1 : 0;
-            let checkbox = this;
+    function openImportModal() {
+        importModal.classList.remove('hidden');
+        setTimeout(() => {
+            importModal.classList.remove('opacity-0');
+            importModalContent.classList.remove('scale-95');
+            importModalContent.classList.add('scale-100');
+        }, 10);
+    }
 
-            checkbox.disabled = true;
+    function closeImportModal() {
+        importModal.classList.add('opacity-0');
+        importModalContent.classList.remove('scale-100');
+        importModalContent.classList.add('scale-95');
+        setTimeout(() => {
+            importModal.classList.add('hidden');
+        }, 300);
+    }
 
-            fetch("{{ route('seller.products.toggle') }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ product_id: productId, is_active: isActive })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.success) {
-                    Toast.fire({
-                        icon: 'success',
-                        title: isActive ? 'Material Ditampilkan di Etalase' : 'Material Disembunyikan'
-                    });
-                } else {
-                    throw new Error('Gagal update');
-                }
-            })
-            .catch(error => {
-                Toast.fire({icon: 'error', title: 'Koneksi gagal! Gagal merubah etalase.'});
-                checkbox.checked = !isActive;
-            })
-            .finally(() => {
-                checkbox.disabled = false;
+    function updateFileName(input) {
+        const displayDiv = document.getElementById('fileNameDisplay');
+        const textSpan = document.getElementById('fileNameText');
+
+        if (input.files && input.files.length > 0) {
+            textSpan.textContent = input.files[0].name;
+            displayDiv.classList.remove('hidden');
+        } else {
+            displayDiv.classList.add('hidden');
+        }
+    }
+
+    document.getElementById('formImportExcel').addEventListener('submit', function() {
+        const btn = document.getElementById('btnProsesImport');
+        btn.innerHTML = '<i class="mdi mdi-loading mdi-spin"></i> Memproses...';
+        btn.classList.add('opacity-70', 'cursor-not-allowed');
+        btn.disabled = true;
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // LIVE TOGGLE ETALASE
+        document.querySelectorAll('.toggle-etalase').forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                let productId = this.dataset.id;
+                let isActive = this.checked ? 1 : 0;
+                let checkbox = this;
+
+                checkbox.disabled = true;
+
+                fetch("{{ route('seller.products.toggle') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ product_id: productId, is_active: isActive })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.success) {
+                        Toast.fire({
+                            icon: 'success',
+                            title: isActive ? 'Material Ditampilkan di Etalase' : 'Material Disembunyikan'
+                        });
+                    } else {
+                        throw new Error('Gagal update');
+                    }
+                })
+                .catch(error => {
+                    Toast.fire({icon: 'error', title: 'Koneksi gagal! Gagal merubah etalase.'});
+                    checkbox.checked = !isActive;
+                })
+                .finally(() => {
+                    checkbox.disabled = false;
+                });
+            });
+        });
+
+        // KONFIRMASI HAPUS (Soft Delete Logic)
+        document.querySelectorAll('.btn-delete-confirm').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                let form = this.closest('.delete-form');
+                Swal.fire({
+                    title: 'Arsipkan Material?',
+                    text: "Material ini akan ditarik dari etalase. Data tidak dihapus permanen untuk menjaga riwayat invoice pesanan pembeli terdahulu.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#94a3b8',
+                    confirmButtonText: 'Ya, Arsipkan!',
+                    cancelButtonText: 'Batal',
+                    reverseButtons: true,
+                    customClass: { popup: 'rounded-3xl' }
+                }).then((result) => {
+                    if (result.isConfirmed) form.submit();
+                });
             });
         });
     });
-
-    // 2. KONFIRMASI HAPUS (Soft Delete Logic)
-    document.querySelectorAll('.btn-delete-confirm').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            let form = this.closest('.delete-form');
-            Swal.fire({
-                title: 'Arsipkan Material?',
-                text: "Material ini akan ditarik dari etalase. Data tidak dihapus permanen untuk menjaga riwayat invoice pesanan pembeli terdahulu.",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ef4444',
-                cancelButtonColor: '#94a3b8',
-                confirmButtonText: 'Ya, Arsipkan!',
-                cancelButtonText: 'Batal',
-                reverseButtons: true,
-                customClass: { popup: 'rounded-3xl' }
-            }).then((result) => {
-                if (result.isConfirmed) form.submit();
-            });
-        });
-    });
-
-});
 </script>
 @endpush

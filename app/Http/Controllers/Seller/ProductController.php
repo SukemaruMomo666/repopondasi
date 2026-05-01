@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\ProductImport;
 
 class ProductController extends Controller
 {
@@ -288,5 +290,38 @@ class ProductController extends Controller
             ->update(['is_active' => $request->is_active, 'updated_at' => now()]);
 
         return response()->json(['success' => (bool)$updated]);
+    }
+
+    /**
+     * ==========================================
+     * FITUR IMPORT EXCEL & DOWNLOAD TEMPLATE
+     * ==========================================
+     */
+    public function importExcel(Request $request)
+    {
+        $request->validate([
+            'file_excel' => 'required|mimes:xls,xlsx|max:5120' // Max 5MB
+        ]);
+
+        try {
+            // Eksekusi file ProductImport
+            Excel::import(new ProductImport, $request->file('file_excel'));
+
+            return redirect()->back()->with('success', 'Material berhasil di-import! Barang otomatis masuk gudang POS (Off Etalase).');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal import Excel. Pastikan format kolom sesuai template! Error: ' . $e->getMessage());
+        }
+    }
+
+    public function downloadTemplate()
+    {
+        // Pastikan file ini ada di folder public/assets/templates/
+        $filePath = public_path('assets/templates/template_material.xlsx');
+
+        if(File::exists($filePath)) {
+            return response()->download($filePath);
+        }
+
+        return back()->with('error', 'File template Excel belum di-upload oleh Admin ke server.');
     }
 }

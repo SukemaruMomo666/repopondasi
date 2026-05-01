@@ -49,30 +49,28 @@ Route::controller(PageController::class)->group(function () {
     Route::get('/pages/toko', 'detailToko')->name('toko.detail');
     Route::get('/pages/search', 'search')->name('search');
 
+    // Route untuk menampilkan halaman (Link yang dipanggil di halaman Login)
+    Route::get('/lupa-password', [ForgotPasswordController::class, 'showLinkRequestForm'])
+        ->name('password.request');
 
-   // Route untuk menampilkan halaman (Link yang dipanggil di halaman Login)
-Route::get('/lupa-password', [ForgotPasswordController::class, 'showLinkRequestForm'])
-    ->name('password.request');
-
-// Route untuk menangani submit form email
-Route::post('/lupa-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])
-    ->name('password.email');
+    // Route untuk menangani submit form email
+    Route::post('/lupa-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])
+        ->name('password.email');
 
     // Keranjang Belanja
     Route::get('/pages/keranjang', 'keranjang')->name('keranjang.index');
     Route::post('/api/keranjang/tambah', 'tambahKeranjang')->name('keranjang.tambah');
     Route::post('/api/keranjang/update', 'updateKeranjang')->name('keranjang.update');
     Route::post('/api/keranjang/hapus', 'hapusKeranjang')->name('keranjang.hapus');
-    
-Route::middleware(['auth'])->group(function () {
-    
-    // Rute untuk tombol "+ Keranjang" (AJAX JSON)
-    Route::post('/keranjang/tambah', [KeranjangController::class, 'tambah'])->name('keranjang.tambah');
-    
-    // Rute untuk tombol "Beli Sekarang" (Form Submit)
-    Route::post('/checkout/langsung', [KeranjangController::class, 'checkoutLangsung'])->name('checkout.langsung');
-    
-});
+
+    Route::middleware(['auth'])->group(function () {
+        // Rute untuk tombol "+ Keranjang" (AJAX JSON)
+        Route::post('/keranjang/tambah', [KeranjangController::class, 'tambah'])->name('keranjang.tambah');
+
+        // Rute untuk tombol "Beli Sekarang" (Form Submit)
+        Route::post('/checkout/langsung', [KeranjangController::class, 'checkoutLangsung'])->name('checkout.langsung');
+    });
+
     // Checkout
     Route::match(['get', 'post'], '/checkout', 'checkout')->name('checkout');
     Route::post('/checkout/proses', 'prosesCheckout')->name('checkout.process');
@@ -112,7 +110,9 @@ Route::middleware(['auth', 'role:seller'])->prefix('seller')->name('seller.')->g
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Product Management
+    // Product Management (SUDAH DITAMBAHKAN ROUTE EXCEL)
+    Route::get('/products/template', [SellerProductController::class, 'downloadTemplate'])->name('products.template');
+    Route::post('/products/import', [SellerProductController::class, 'importExcel'])->name('products.import');
     Route::resource('products', SellerProductController::class);
     Route::post('/products/toggle-status', [SellerProductController::class, 'toggleStatus'])->name('products.toggle');
 
@@ -183,7 +183,7 @@ Route::middleware(['auth', 'role:seller'])->prefix('seller')->name('seller.')->g
         Route::get('/decoration/editor-desktop', [ShopController::class, 'editorDesktop'])->name('decoration.editor.desktop');
         Route::get('/decoration/template', [ShopController::class, 'templateSelection'])->name('decoration.template');
         Route::post('/decoration/update', [ShopController::class, 'updateDecoration'])->name('decoration.update');
-        
+
         // ✅ INI RUTE SAKTI YANG BARU SAJA DITAMBAHKAN
         Route::post('/decoration/save', [ShopController::class, 'saveDecoration'])->name('decoration.save');
 
@@ -210,7 +210,7 @@ Route::prefix('portal-rahasia-pks')->name('admin.')->middleware(['admin'])->grou
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])
         ->name('dashboard')
         ->middleware('admin.role:super,finance,cs');
-        
+
     // PERBAIKAN: Name cukup ditulis 'dashboard.top_stores' karena grup sudah punya awalan 'admin.'
     Route::get('/dashboard/top-stores', [AdminDashboardController::class, 'topStores'])
         ->name('dashboard.top_stores')
