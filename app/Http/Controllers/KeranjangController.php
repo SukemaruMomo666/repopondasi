@@ -29,7 +29,7 @@ class KeranjangController extends Controller
 
         // 1. Cek Stok Barang
         $barang = DB::table('tb_barang')->where('id', $barangId)->first();
-        
+
         if (!$barang || $barang->stok < $qtyBaru) {
             return response()->json(['status' => 'error', 'message' => 'Stok tidak mencukupi.'], 400);
         }
@@ -44,13 +44,13 @@ class KeranjangController extends Controller
             // Jika sudah ada, tambahkan jumlahnya (jangan melebihi stok)
             $totalQty = $keranjangLama->jumlah + $qtyBaru;
             if ($totalQty > $barang->stok) {
-                $totalQty = $barang->stok; 
+                $totalQty = $barang->stok;
             }
 
             // HAPUS updated_at DISINI
             DB::table('tb_keranjang')
                 ->where('id', $keranjangLama->id)
-                ->update(['jumlah' => $totalQty]); 
+                ->update(['jumlah' => $totalQty]);
         } else {
             // Jika belum ada, insert baru (HAPUS created_at & updated_at DISINI)
             DB::table('tb_keranjang')->insert([
@@ -97,7 +97,7 @@ class KeranjangController extends Controller
             DB::table('tb_keranjang')
                 ->where('id', $keranjangLama->id)
                 ->update(['jumlah' => $jumlahBeli]);
-            
+
             $cartId = $keranjangLama->id;
         } else {
             // HAPUS created_at & updated_at DISINI
@@ -109,6 +109,6 @@ class KeranjangController extends Controller
         }
 
         // PENTING: Arahkan ke halaman checkout dengan membawa ID keranjang
-        return redirect()->route('checkout')->with('selected_items', $cartId);
+        return redirect()->route('checkout', ['selected_items' => [$cartId]]);
     }
 }
