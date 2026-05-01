@@ -91,7 +91,7 @@
 
             {{-- Form Wrapper --}}
             <div class="w-full h-full lg:h-auto flex flex-col bg-white lg:rounded-[2rem] lg:border lg:border-zinc-100 lg:shadow-soft overflow-hidden">
-                
+
                 {{-- Header Desktop Filter --}}
                 <div class="hidden lg:flex items-center justify-between px-6 py-5 border-b border-zinc-100 bg-zinc-50/50">
                     <h3 class="text-xs font-black text-zinc-900 uppercase tracking-widest flex items-center gap-2">
@@ -110,7 +110,7 @@
 
                     {{-- FILTER: KATEGORI (ACCORDION) --}}
                     <div class="space-y-3" id="category-accordion">
-                            
+
                             {{-- 1. BAHAN BANGUNAN DASAR --}}
                             <div class="accordion-item border border-zinc-100 rounded-2xl bg-zinc-50/50 overflow-hidden">
                                 <button type="button" class="accordion-header w-full px-4 py-3 flex items-center justify-between text-sm font-bold text-zinc-700 hover:text-blue-600 transition-colors">
@@ -219,19 +219,20 @@
                                 </div>
                             </div>
 
-                        </div>
-                    {{-- FILTER: JENIS TOKO --}}
+                    </div>
+
+                    {{-- FILTER: JENIS TOKO (DIPERBAIKI) --}}
                     <div>
                         <h4 class="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-4">Jenis Mitra</h4>
                         <div class="space-y-3">
                             <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" class="custom-checkbox" onchange="showApplyButton()">
+                                <input type="checkbox" name="tier_toko[]" value="official_store" class="custom-checkbox" {{ in_array('official_store', request('tier_toko', [])) ? 'checked' : '' }} onchange="showApplyButton()">
                                 <span class="text-sm font-semibold text-zinc-600 group-hover:text-zinc-900 select-none flex items-center gap-2">
                                     <i class="fas fa-crown text-purple-500 w-4"></i> Official Store
                                 </span>
                             </label>
                             <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" class="custom-checkbox" onchange="showApplyButton()">
+                                <input type="checkbox" name="tier_toko[]" value="pro_merchant" class="custom-checkbox" {{ in_array('pro_merchant', request('tier_toko', [])) ? 'checked' : '' }} onchange="showApplyButton()">
                                 <span class="text-sm font-semibold text-zinc-600 group-hover:text-zinc-900 select-none flex items-center gap-2">
                                     <i class="fas fa-check-circle text-emerald-500 w-4"></i> Pro Merchant
                                 </span>
@@ -356,12 +357,21 @@
                                 <div class="text-base sm:text-lg font-black text-zinc-900 tracking-tight mb-2.5">Rp{{ number_format($b->harga, 0, ',', '.') }}</div>
 
                                 <div class="pt-3 border-t border-zinc-100/80 space-y-1.5">
-                                    <div class="flex items-center text-[10px] sm:text-xs font-semibold text-zinc-500">
-                                        <i class="fas fa-store text-blue-500 w-4"></i>
+                                    {{-- INFO TOKO DAN BADGE --}}
+                                    <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold text-zinc-500">
+                                        <i class="fas fa-store text-blue-500 w-3.5"></i>
                                         <span class="truncate">{{ $b->nama_toko }}</span>
+
+                                        {{-- LOGIKA BADGE TOKO --}}
+                                        @if(isset($b->tier_toko) && $b->tier_toko == 'official_store')
+                                            <span class="bg-purple-100 text-purple-700 px-1 py-0.5 rounded text-[8px] leading-none shrink-0" title="Official Store"><i class="fas fa-crown"></i></span>
+                                        @elseif(isset($b->tier_toko) && $b->tier_toko == 'pro_merchant')
+                                            <span class="bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded text-[8px] leading-none shrink-0" title="Pro Merchant"><i class="fas fa-check-circle"></i></span>
+                                        @endif
                                     </div>
-                                    <div class="flex items-center text-[10px] sm:text-xs font-semibold text-zinc-400">
-                                        <i class="fas fa-map-marker-alt text-red-400 w-4"></i>
+
+                                    <div class="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold text-zinc-400">
+                                        <i class="fas fa-map-marker-alt text-red-400 w-3.5"></i>
                                         <span class="truncate">{{ $b->nama_kota ?? 'Nasional' }}</span>
                                     </div>
                                 </div>
@@ -406,7 +416,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            
+
             // 2. Mobile Sidebar Logic
             const mobileFilterBtn = document.getElementById('mobile-filter-btn');
             const sidebarFilters = document.getElementById('sidebar-filters');
@@ -433,7 +443,7 @@
 
             // 3. LOGIKA ACCORDION KATEGORI (Hanya buka satu)
             const accordionHeaders = document.querySelectorAll('.accordion-header');
-            
+
             // Auto-open accordion yang punya checkbox tercentang saat loading
             document.querySelectorAll('.accordion-item').forEach(item => {
                 if (item.querySelector('input[type="checkbox"]:checked')) {
