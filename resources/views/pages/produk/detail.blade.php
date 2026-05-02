@@ -260,9 +260,10 @@
                                 @php
                                     $storeInitial = strtoupper(substr($product->nama_toko ?? 'TK', 0, 1));
                                 @endphp
-                                <button type="button" onclick="openChatWithStore({{ $product->toko_id }}, '{{ addslashes($product->nama_toko) }}', '{{ $storeInitial }}')" class="flex-1 py-3 bg-emerald-50 hover:bg-emerald-500 hover:text-white text-emerald-600 text-center text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all border border-emerald-200">
-                                    <i class="fas fa-comments mr-1"></i> Chat
-                                </button>
+{{-- TOMBOL CHAT PENJUAL (Terhubung dengan Chat Hub) --}}
+<button type="button" onclick="openChatWithStore({{ $product->toko_id }}, '{{ addslashes($product->nama_toko) }}', '{{ $storeInitials }}')" class="flex-1 py-3 bg-emerald-50 hover:bg-emerald-500 hover:text-white text-emerald-600 text-center text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all border border-emerald-200">
+    <i class="fas fa-comments mr-1"></i> Chat
+</button>
                             </div>
                         </div>
                     </div>

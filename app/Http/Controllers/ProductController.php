@@ -18,10 +18,12 @@ class ProductController extends Controller
             ->leftJoin('cities as c', 't.city_id', '=', 'c.id')
             ->leftJoin('tb_kategori as k', 'p.kategori_id', '=', 'k.id')
             ->select(
-                'p.*', 
+                'p.*',
                 'k.nama_kategori',
-                't.id AS toko_id', 't.nama_toko', 't.slug AS slug_toko', 't.logo_toko', 't.tier_toko', 
-                'c.name as nama_kota_toko'
+                't.id AS toko_id', 't.nama_toko', 't.slug AS slug_toko', 't.logo_toko', 't.tier_toko',
+                'c.name as nama_kota_toko',
+                // FITUR DEWA: Menghitung jumlah terjual real-time dari tabel detail_transaksi
+                DB::raw("(SELECT COALESCE(SUM(jumlah), 0) FROM tb_detail_transaksi WHERE barang_id = p.id AND status_pesanan_item NOT IN ('dibatalkan', 'pengembalian_disetujui')) as stok_terjual")
             )
             ->where('p.is_active', 1)
             ->where('p.status_moderasi', 'approved');
@@ -51,7 +53,6 @@ class ProductController extends Controller
 
         // E. Filter Jenis Toko (Official Store / Power Store)
         if ($request->has('jenis_toko') && is_array($request->jenis_toko)) {
-            // FIX: Menggunakan tier_toko sesuai database
             $query->whereIn('t.tier_toko', $request->jenis_toko);
         }
 
@@ -69,17 +70,15 @@ class ProductController extends Controller
             }
         } else {
             // Default Sorting jika tidak ada pilihan
-            $query->orderBy('p.created_at', 'desc'); 
+            $query->orderBy('p.created_at', 'desc');
         }
 
         // Eksekusi Query dengan Pagination (misal 20 data per halaman)
         $products = $query->paginate(20);
 
         // --- Data Pendukung untuk Sidebar Filter ---
-        // (Silakan sesuaikan nama tabel jika berbeda)
         $categories = DB::table('tb_kategori')->get();
-        // Asumsi struktur tabel cities punya id dan name
-        $locations = DB::table('cities')->select('id as city_id', 'name as nama_kota')->get(); 
+        $locations = DB::table('cities')->select('id as city_id', 'name as nama_kota')->get();
 
         return view('pages.produk.index', compact('products', 'categories', 'locations'));
     }
@@ -98,9 +97,10 @@ class ProductController extends Controller
             ->select(
                 'p.*',
                 'k.nama_kategori',
-                // FIX: Menggunakan tier_toko agar tidak error SQL
                 't.id AS toko_id', 't.nama_toko', 't.slug AS slug_toko', 't.logo_toko', 't.tier_toko',
-                'c.name as nama_kota_toko'
+                'c.name as nama_kota_toko',
+                // FITUR DEWA: Menghitung jumlah terjual real-time dari tabel detail_transaksi
+                DB::raw("(SELECT COALESCE(SUM(jumlah), 0) FROM tb_detail_transaksi WHERE barang_id = p.id AND status_pesanan_item NOT IN ('dibatalkan', 'pengembalian_disetujui')) as stok_terjual")
             )
             ->where('p.id', $id)
             ->where('p.is_active', 1)
@@ -162,7 +162,7 @@ class ProductController extends Controller
     // =========================================================================
     // --- HELPER FUNCTIONS ---
     // =========================================================================
-    
+
     private function getStoreInitials($nama_toko) {
         if (empty($nama_toko)) return "TK";
         $words = explode(" ", $nama_toko);
@@ -175,8 +175,8 @@ class ProductController extends Controller
 
     private function getStoreColor($nama_toko) {
         $colors = [
-            '#e53935', '#d81b60', '#8e24aa', '#5e35b1', '#3949ab', '#1e88e5', 
-            '#039be5', '#00acc1', '#00897b', '#43a047', '#7cb342', '#c0ca33', 
+            '#e53935', '#d81b60', '#8e24aa', '#5e35b1', '#3949ab', '#1e88e5',
+            '#039be5', '#00acc1', '#00897b', '#43a047', '#7cb342', '#c0ca33',
             '#fdd835', '#ffb300', '#fb8c00', '#f4511e'
         ];
         $index = crc32($nama_toko) % count($colors);
