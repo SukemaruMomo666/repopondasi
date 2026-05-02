@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Seller;
+namespace App\Http\Controllers\Seller; // <- Pastikan Namespace nya Seller
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -53,11 +53,9 @@ class ChatController extends Controller
                 // Hitung pesan yang belum dibaca dari pelanggan
                 DB::raw("(SELECT COUNT(*) FROM messages m2 WHERE m2.chat_id = chats.id AND m2.is_read = 0 AND m2.sender_id != {$userId}) as unread_count")
             )
-            // ========================================================
-            // BUG FIX DEWA: Cukup pakai orderByDesc bawaan Laravel!
-            // MariaDB/MySQL otomatis memindahkan pesan kosong (NULL) ke paling bawah
-            // ========================================================
-            ->orderByDesc('messages.timestamp')
+            // BUG FIX DEWA: Menggunakan CASE WHEN agar aman di SEMUA versi MySQL/MariaDB
+            // Pesan kosong ditaruh di bawah, pesan terbaru di atas.
+            ->orderByRaw('CASE WHEN messages.timestamp IS NULL THEN 1 ELSE 0 END, messages.timestamp DESC')
             ->get();
 
         // Format data untuk Frontend
@@ -123,9 +121,10 @@ class ChatController extends Controller
                 return [
                     'is_mine' => ($msg->sender_id == $userId),
                     'text' => $content,
-                    'content' => $content, // Backup key untuk kompatibilitas frontend
+                    'content' => $content,
                     'type' => $msg->message_type,
                     'fileName' => $msg->message_type === 'file' ? $msg->message_text : '',
+                    'is_read' => $msg->is_read, // <--- PENYELARASAN: Wajib dikirim agar centang biru berfungsi!
                     'time' => Carbon::parse($msg->timestamp)->format('H:i')
                 ];
             });
