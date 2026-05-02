@@ -1,10 +1,12 @@
 {{-- ===================== CHAT HUB PREMIUM (POTA AI & SELLER) ===================== --}}
 {{-- Tombol Toggle Floating --}}
-<button id="live-chat-toggle" class="fixed bottom-4 right-4 md:bottom-8 md:right-8 bg-zinc-950 text-white p-1.5 pr-5 md:pr-6 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_15px_50px_rgba(37,99,235,0.4)] transition-all duration-300 z-[9998] flex items-center gap-2.5 md:gap-3 group overflow-hidden outline-none hover:-translate-y-1 border border-zinc-800" onclick="toggleChatWindow()">
-    <div class="bg-blue-600 w-11 h-11 md:w-12 md:h-12 rounded-full relative flex items-center justify-center shadow-inner overflow-hidden">
-        <div class="absolute inset-0 bg-blue-500 animate-pulse opacity-50"></div>
+<button id="live-chat-toggle" class="fixed bottom-4 right-4 md:bottom-8 md:right-8 bg-zinc-950 text-white p-1.5 pr-5 md:pr-6 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_15px_50px_rgba(37,99,235,0.4)] transition-all duration-300 z-[9998] flex items-center gap-2.5 md:gap-3 group outline-none hover:-translate-y-1 border border-zinc-800" onclick="toggleChatWindow()">
+    {{-- PERBAIKAN: overflow-hidden dihapus agar dot merah tidak terpotong --}}
+    <div class="bg-blue-600 w-11 h-11 md:w-12 md:h-12 rounded-full relative flex items-center justify-center shadow-inner">
+        <div class="absolute inset-0 bg-blue-500 animate-pulse opacity-50 rounded-full"></div>
         <i class="fas fa-comments text-lg md:text-xl relative z-10 text-white group-hover:scale-110 transition-transform duration-300"></i>
-        <div class="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-blue-600 animate-bounce shadow-sm"></div>
+        {{-- Dot Merah --}}
+        <div class="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-zinc-950 animate-bounce shadow-sm z-20"></div>
     </div>
     <div class="flex flex-col text-left hidden sm:flex">
         <span class="font-black text-sm md:text-base tracking-wide text-white leading-tight">Pusat Obrolan</span>
@@ -261,44 +263,35 @@
             document.getElementById('seller-chat-messages').innerHTML = savedSellerDom;
             document.getElementById('seller-chat-messages').scrollTop = document.getElementById('seller-chat-messages').scrollHeight;
 
-            // Re-fetch only active store to make sure it's up to date
             openStoreChat(savedStoreId, sessionStorage.getItem('pota_active_name'), sessionStorage.getItem('pota_active_avatar'), false);
         }
 
         if(isOpen && chatWindow) {
-            chatWindow.classList.remove('hidden', 'opacity-0', 'translate-y-10', 'scale-95', 'pointer-events-none');
-            chatWindow.classList.add('flex', 'opacity-100', 'translate-y-0', 'scale-100');
+            chatWindow.classList.remove('hidden');
+            // Timeout hack for initial load animation
+            setTimeout(() => {
+                chatWindow.classList.remove('opacity-0', 'translate-y-10', 'scale-95', 'pointer-events-none');
+                chatWindow.classList.add('flex', 'opacity-100', 'translate-y-0', 'scale-100');
+            }, 10);
             switchChatTab(activeTab, true);
         }
 
         fetchSellerContacts();
     });
 
-    // ✨ FUNGSI SAKTI: DIPANGGIL DARI PAGE LAIN UNTUK MUNCULKAN CHAT POPUP ✨
-    window.openChatWithStore = function(storeId, storeName, initials) {
-        // 1. Munculkan Chat Window dengan animasi super mulus
-        if(chatWindow.classList.contains('hidden')) {
-            chatWindow.classList.remove('hidden', 'opacity-0', 'translate-y-10', 'scale-95', 'pointer-events-none');
-            chatWindow.classList.add('flex', 'opacity-100', 'translate-y-0', 'scale-100');
-            sessionStorage.setItem('pota_chat_open', 'true');
-        }
-
-        // 2. Switch langsung ke tab Penjual
-        switchChatTab('seller', false);
-
-        // 3. Eksekusi chat ruang tersebut
-        setTimeout(() => {
-            openStoreChat(storeId, storeName, initials);
-        }, 300);
-    }
-
+    // PERBAIKAN: Animasi mulus saat klik tombol "Pusat Obrolan"
     function toggleChatWindow() {
         if(chatWindow.classList.contains('hidden')) {
             const lastTab = sessionStorage.getItem('pota_chat_tab') || 'seller';
-            switchChatTab(lastTab, true);
 
-            chatWindow.classList.remove('hidden', 'opacity-0', 'translate-y-10', 'scale-95', 'pointer-events-none');
-            chatWindow.classList.add('flex', 'opacity-100', 'translate-y-0', 'scale-100');
+            chatWindow.classList.remove('hidden');
+            // Timeout hack agar Tailwind punya waktu me-render 'display: block/flex' sebelum transisi
+            setTimeout(() => {
+                chatWindow.classList.remove('opacity-0', 'translate-y-10', 'scale-95', 'pointer-events-none');
+                chatWindow.classList.add('flex', 'opacity-100', 'translate-y-0', 'scale-100');
+            }, 10);
+
+            switchChatTab(lastTab, true);
             sessionStorage.setItem('pota_chat_open', 'true');
         } else {
             chatWindow.classList.add('opacity-0', 'translate-y-10', 'scale-95', 'pointer-events-none');
@@ -376,16 +369,13 @@
         if(icon) icon.className = chatWindow.classList.contains('w-[95vw]') ? 'fas fa-compress text-sm' : 'fas fa-expand text-sm';
     }
 
-    // Khusus mobile back btn di mode split pane
     function closeActiveChatMobile() {
-        // Sembunyikan form chat, munculkan list di mobile
         document.getElementById('seller-active-chat').classList.replace('flex', 'hidden');
         document.getElementById('seller-empty-state').classList.replace('hidden', 'flex');
         document.getElementById('seller-empty-state').classList.remove('opacity-0');
-        // Clear state
         currentStoreId = null;
         sessionStorage.removeItem('pota_active_store');
-        fetchSellerContacts(); // refresh highlight
+        fetchSellerContacts();
     }
 
 
@@ -437,7 +427,6 @@
         });
     }
 
-    // Pencarian Kontak
     document.getElementById('sellerSearchInput').addEventListener('keyup', function() {
         let keyword = this.value.toLowerCase();
         let items = document.getElementById('seller-contact-list').querySelectorAll('div[onclick]');
@@ -451,7 +440,6 @@
     async function openStoreChat(storeId, storeName, initials, triggerAnimation = true) {
         currentStoreId = storeId;
 
-        // Simpan Active State
         sessionStorage.setItem('pota_active_store', storeId);
         sessionStorage.setItem('pota_active_name', storeName);
         sessionStorage.setItem('pota_active_avatar', initials);
@@ -487,7 +475,7 @@
             } else {
                  data.forEach(msg => appendSellerMessage(msg.content, msg.sender, msg.time, msg.type, msg.fileName));
             }
-            fetchSellerContacts(); // Remove unread badge in sidebar
+            fetchSellerContacts();
         } catch(e) {
             msgContainer.innerHTML = `<div class="text-center text-xs font-bold text-red-500 my-4 bg-red-50 p-2 rounded-xl border border-red-200 mx-auto max-w-[250px]">Gagal memuat histori chat. Pastikan server terhubung.</div>`;
         }
@@ -542,7 +530,6 @@
         sessionStorage.setItem('pota_seller_dom', container.innerHTML);
     }
 
-    // UPLOAD IMAGE / FILE (Real API Base64)
     async function handleFileUpload(inputElement, type) {
         const file = inputElement.files[0];
         if(!file || !currentStoreId) return;
@@ -557,17 +544,15 @@
             const base64data = e.target.result;
             const timeNow = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
 
-            // Tampilkan Optimistic UI
             appendSellerMessage(base64data, 'user', timeNow, type, file.name);
 
-            // Kirim ke Real Backend API
             try {
                 await fetch('/api/chat/send', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}'},
                     body: JSON.stringify({ message: base64data, store_id: currentStoreId, type: type, file_name: file.name })
                 });
-                fetchSellerContacts(); // update left sidebar
+                fetchSellerContacts();
             } catch(error) {
                 console.error("Gagal mengirim file ke server", error);
             }
@@ -576,7 +561,6 @@
         inputElement.value = '';
     }
 
-    // VOICE NOTE (MediaRecorder + Real API)
     let vnRecorder;
     let vnChunks = [];
     let isRecordingVN = false;
@@ -616,7 +600,6 @@
 
                         appendSellerMessage(base64audio, 'user', timeNow, 'audio');
 
-                        // Kirim ke Backend API
                         try {
                             await fetch('/api/chat/send', {
                                 method: 'POST',
@@ -642,7 +625,6 @@
         }
     }
 
-    // KIRIM TEKS (Real API)
     async function sendSellerMessage() {
         const input = document.getElementById('seller-chat-input');
         const text = input.value.trim();
@@ -652,7 +634,6 @@
         const msgContainer = document.getElementById('seller-chat-messages');
         const tempId = `msg-temp-${Date.now()}`;
 
-        // Optimistic UI Append
         const html = `
         <div class="flex justify-end max-w-[85%] self-end group opacity-70 origin-bottom-right animate-[scale-in_0.2s_ease-out]" id="${tempId}">
             <div class="flex flex-col items-end">
@@ -672,7 +653,6 @@
             });
             if(!res.ok) throw new Error();
 
-            // Success State
             const tempMsg = document.getElementById(tempId);
             if(tempMsg) {
                 tempMsg.classList.remove('opacity-70');
@@ -683,10 +663,9 @@
                     clockIcon.parentElement.innerHTML = `<i class="fas fa-check-double text-blue-500"></i> ${timeNow}`;
                 }
                 sessionStorage.setItem('pota_seller_dom', msgContainer.innerHTML);
-                fetchSellerContacts(); // Update preview
+                fetchSellerContacts();
             }
         } catch(e) {
-            // Failed State
             const tempMsg = document.getElementById(tempId);
             if(tempMsg) {
                 tempMsg.classList.remove('opacity-70');
