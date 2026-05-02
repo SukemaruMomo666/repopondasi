@@ -147,6 +147,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     let activeChatId = null;
     let pollingInterval = null;
+    let currentMessageCount = -1; // Variabel Sakti Penjaga Flicker
 
     const contactListDiv = document.getElementById('contactList');
     const msgArea = document.getElementById('messageArea');
@@ -171,11 +172,10 @@ document.addEventListener('DOMContentLoaded', function() {
         sendMediaMessage(msgInput.value.trim(), 'text');
     });
 
-    // 1. LOAD DAFTAR KONTAK (CHAT LIST) DENGAN ANTI-MUTER LOGIC
+    // 1. LOAD DAFTAR KONTAK (CHAT LIST)
     function loadChatList() {
         fetch("{{ route('seller.service.chat.list') }}")
             .then(async res => {
-                // Tangkap jika status server bukan 200 OK (Mencegah Silent Failure)
                 if(!res.ok) {
                     let errText = await res.text();
                     throw new Error("HTTP " + res.status + ": " + errText.substring(0, 50));
@@ -183,7 +183,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return res.json();
             })
             .then(data => {
-                // Validasi format JSON agar tidak nyangkut
                 if(data && data.status === 'success') {
                     renderContactList(data.data);
                 } else if (Array.isArray(data)) {
@@ -218,7 +217,6 @@ document.addEventListener('DOMContentLoaded', function() {
             let id = chat.id || chat.store_id;
             let initial = nama.charAt(0).toUpperCase();
 
-            // Format Badge
             let badgeUnread = chat.unread_count > 0 ? `<div class="bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center absolute -top-1 -right-1 shadow-sm">${chat.unread_count}</div>` : '';
             let isActiveClass = (id == activeChatId) ? 'bg-blue-50/50 border-l-4 border-l-blue-600 pl-3 pr-4' : 'bg-transparent border-l-4 border-l-transparent hover:bg-slate-100/50 px-4';
 
@@ -260,7 +258,6 @@ document.addEventListener('DOMContentLoaded', function() {
         let item = e.target.closest('.contact-item');
         if(!item) return;
 
-        // Set Active State Visual UI
         contactListDiv.querySelectorAll('.contact-item').forEach(el => {
             el.classList.remove('bg-blue-50/50', 'border-l-blue-600', 'pl-3', 'pr-4');
             el.classList.add('bg-transparent', 'border-l-transparent', 'hover:bg-slate-100/50', 'px-4');
@@ -271,7 +268,6 @@ document.addEventListener('DOMContentLoaded', function() {
         activeChatId = item.dataset.id;
         let cName = item.dataset.name;
 
-        // UI Updates
         placeholder.classList.add('hidden'); placeholder.classList.remove('flex');
         activeWindow.classList.remove('hidden'); activeWindow.classList.add('flex');
 
@@ -279,22 +275,22 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('activeAvatar').textContent = cName.charAt(0).toUpperCase();
         document.getElementById('activeChatId').value = activeChatId;
 
-        // Mode Mobile: Slide Panel
         if(window.innerWidth <= 768) {
             pnlChat.classList.remove('hidden', 'translate-x-full');
             pnlChat.classList.add('flex', 'translate-x-0');
         }
 
-        // Load Pesan
+        // Load Pesan Pertama Kali (isInitialLoad = true)
         loadMessages(activeChatId, true);
+
         if(pollingInterval) clearInterval(pollingInterval);
 
-        // REALTIME AJAX POLLING (Setiap 4 Detik)
+        // REALTIME AJAX POLLING (isInitialLoad = false)
         pollingInterval = setInterval(() => { loadMessages(activeChatId, false); }, 4000);
     });
 
-    // 4. LOAD PESAN DARI DATABASE DENGAN ANTI-MUTER LOGIC
-    function loadMessages(chatId, forceScroll = false) {
+    // 4. LOAD PESAN (LOGIKA DEWA ANTI FLICKER)
+    function loadMessages(chatId, isInitialLoad = false) {
         if(!chatId) return;
         let url = "{{ route('seller.service.chat.messages', ':id') }}".replace(':id', chatId);
 
@@ -306,24 +302,31 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if(data && data.status === 'error') throw new Error(data.message);
 
-                let items = data.data || data; // Handle jika root response adalah array
+                let items = data.data || data;
                 if(!Array.isArray(items)) items = [];
 
-                msgArea.innerHTML = '';
+                // MURNI ANTI FLICKER: Hanya eksekusi render jika pesan bertambah ATAU ini loading pertama!
+                if (isInitialLoad || items.length !== currentMessageCount) {
 
-                if(items.length === 0) {
-                     msgArea.innerHTML = `<div class="text-center text-[10px] font-bold text-slate-400 my-4 bg-white p-2 mx-auto rounded-full border border-slate-200 max-w-[200px] shadow-sm">Belum ada obrolan.</div>`;
+                    msgArea.innerHTML = '';
+                    currentMessageCount = items.length; // Update jumlah pesan saat ini
+
+                    if(items.length === 0) {
+                        msgArea.innerHTML = `<div class="text-center text-[10px] font-bold text-slate-400 my-4 bg-white p-2 mx-auto rounded-full border border-slate-200 max-w-[200px] shadow-sm">Belum ada obrolan.</div>`;
+                    }
+
+                    items.forEach(msg => {
+                        let isOut = msg.sender === 'seller' || msg.is_mine === true;
+                        // Parameter terakhir = false jika ini polling background (TIDAK ADA ANIMASI)
+                        appendMessageUI(msg.content || msg.text, isOut, msg.time, msg.type, msg.fileName, isInitialLoad);
+                    });
+
+                    scrollToBottom();
                 }
-
-                items.forEach(msg => {
-                    let isOut = msg.sender === 'seller' || msg.is_mine === true;
-                    appendMessageUI(msg.content || msg.text, isOut, msg.time, msg.type, msg.fileName);
-                });
-
-                if(forceScroll) scrollToBottom();
             })
             .catch(err => {
-                msgArea.innerHTML = `<div class="text-center text-xs font-bold text-red-500 my-4 bg-red-50 p-2 rounded-xl border border-red-200 mx-auto max-w-[250px]">Koneksi Terputus:<br>${err.message}</div>`;
+                // Jangan munculkan pesan putus koneksi yang mengganggu jika hanya kedip sinyal
+                console.error("Koneksi Terputus: ", err.message);
             });
     }
 
@@ -332,10 +335,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // FUNGSI RENDER BALON PESAN (UI MAKER)
-    function appendMessageUI(content, isOut, time, type = 'text', fileName = '') {
+    function appendMessageUI(content, isOut, time, type = 'text', fileName = '', animate = true) {
         let wrapAlign = isOut ? 'self-end items-end' : 'self-start items-start';
         let bubbleColor = isOut ? 'bg-blue-600 text-white rounded-l-2xl rounded-tr-2xl rounded-br-sm shadow-md' : 'bg-white border border-slate-200 text-slate-800 rounded-r-2xl rounded-tl-2xl rounded-bl-sm shadow-sm';
         let timeColor = isOut ? 'text-blue-200' : 'text-slate-400';
+
+        // Atur Kelas Animasi
+        let animClass = animate ? 'animate-[scale-in_0.2s_ease-out]' : '';
+        let transformOrigin = isOut ? 'origin-bottom-right' : 'origin-bottom-left';
 
         let innerHTML = '';
         if(!type || type === 'text') {
@@ -356,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         let html = `
-            <div class="flex flex-col max-w-[85%] md:max-w-[75%] ${wrapAlign} origin-bottom animate-[scale-in_0.2s_ease-out]">
+            <div class="flex flex-col max-w-[85%] md:max-w-[75%] ${wrapAlign} ${transformOrigin} ${animClass}">
                 <div class="px-4 py-2.5 text-[13px] md:text-sm font-medium leading-relaxed break-words ${bubbleColor}">
                     ${innerHTML}
                     <div class="text-[9px] font-bold mt-1.5 text-right ${timeColor}">${time}</div>
@@ -398,7 +405,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const indicator = document.getElementById('recording-indicator');
 
         if(isRecordingVN) {
-            // Berhenti rekam
             vnRecorder.stop();
             isRecordingVN = false;
 
@@ -406,7 +412,6 @@ document.addEventListener('DOMContentLoaded', function() {
             ping.classList.add('hidden');
             indicator.classList.add('hidden'); indicator.classList.remove('flex');
         } else {
-            // Mulai rekam
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 vnRecorder = new MediaRecorder(stream);
@@ -443,13 +448,16 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.disabled = true;
         btn.innerHTML = '<i class="mdi mdi-loading mdi-spin text-xl leading-none"></i>';
 
-        // Optimistic UI (Tampil Langsung)
+        // Optimistic UI (Tampil Langsung ke layar dengan animasi true)
         const timeNow = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
-        appendMessageUI(content, true, timeNow, type, fileName);
-        if(type === 'text') msgInput.value = '';
+        appendMessageUI(content, true, timeNow, type, fileName, true);
         scrollToBottom();
 
-        // API Payloads
+        // Trick: Tambah counter agar sistem ngerti pesan bertambah dari kita sendiri, jadi gak perlu refresh ganda
+        currentMessageCount++;
+
+        if(type === 'text') msgInput.value = '';
+
         let payload = {
             chat_id: activeChatId,
             message: content,
@@ -471,7 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             if(data.status !== 'success') throw new Error(data.message);
-            // Sukses! Data diam-diam diperbarui oleh ajax polling 4 detik
+            // Sukses terkirim! (Refresh daftar kontak kiri)
             loadChatList();
         })
         .catch(err => {
