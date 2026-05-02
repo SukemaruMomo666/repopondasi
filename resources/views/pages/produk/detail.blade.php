@@ -380,7 +380,7 @@
             btn.classList.remove('opacity-60');
         }
 
-        // --- FUNGSI TRIGGER CHAT ANTI BUG ---
+        // --- FUNGSI TRIGGER CHAT KEBAL PELURU (ANTI BUG) ---
         function requireChatLogin() {
             Swal.fire({
                 icon: 'warning',
@@ -399,25 +399,31 @@
         }
 
         function triggerOpenChat(tokoId, namaToko, inisial) {
-            // Jika script partials.chat berjalan mulus
-            if (typeof openChatWithStore === 'function') {
-                openChatWithStore(tokoId, namaToko, inisial);
-            } else {
-                // Fallback Kasar jika openChatWithStore gagal diload
-                const chatWin = document.getElementById('live-chat-window');
-                if(chatWin) {
-                    chatWin.classList.remove('hidden', 'opacity-0', 'translate-y-10', 'scale-95', 'pointer-events-none');
+            const chatWin = document.getElementById('live-chat-window');
+            if(chatWin) {
+                // 1. Tampilkan window dengan trick setTimeout agar browser sempat render 'display: flex'
+                chatWin.classList.remove('hidden');
+                setTimeout(() => {
+                    chatWin.classList.remove('opacity-0', 'translate-y-10', 'scale-95', 'pointer-events-none');
                     chatWin.classList.add('flex', 'opacity-100', 'translate-y-0', 'scale-100');
-                    sessionStorage.setItem('pota_chat_open', 'true');
+                }, 10);
 
-                    if(typeof switchChatTab === 'function') switchChatTab('seller', false);
+                sessionStorage.setItem('pota_chat_open', 'true');
 
-                    setTimeout(() => {
-                        if(typeof openStoreChat === 'function') openStoreChat(tokoId, namaToko, inisial);
-                    }, 300);
-                } else {
-                    Swal.fire('Error', 'Sistem chat sedang memuat atau terblokir. Silakan refresh halaman.', 'error');
+                // 2. Pindah tab ke Seller (secara instan tanpa delay animasi tab)
+                if(typeof window.switchChatTab === 'function') {
+                    window.switchChatTab('seller', true);
                 }
+
+                // 3. Eksekusi buka room chat spesifik (diberi jeda agar UI tab selesai render)
+                setTimeout(() => {
+                    if(typeof window.openStoreChat === 'function') {
+                        // Parameter false = jangan paksakan animasi dobel di dalam chat room
+                        window.openStoreChat(tokoId, namaToko, inisial, false);
+                    }
+                }, 100);
+            } else {
+                Swal.fire('Error', 'Sistem chat sedang memuat atau terblokir. Silakan refresh halaman.', 'error');
             }
         }
 
