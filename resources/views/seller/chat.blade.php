@@ -4,7 +4,7 @@
 
 @push('styles')
 <style>
-    /* Styling khusus scrollbar Chat agar terlihat seperti Mac/iOS */
+    /* Styling khusus scrollbar Chat */
     .chat-scrollbar::-webkit-scrollbar { width: 6px; }
     .chat-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .chat-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -117,7 +117,7 @@
                 {{-- Form Input Bawah --}}
                 <div class="bg-white border-t border-slate-200 flex flex-col flex-shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] relative z-20">
 
-                    {{-- MEDIA PREVIEW CONTAINER (Tampung sebelum kirim) --}}
+                    {{-- MEDIA PREVIEW CONTAINER --}}
                     <div id="media-preview-container" class="hidden items-center justify-between p-3 mx-4 mt-3 bg-slate-50 border border-slate-200 rounded-xl shadow-inner">
                         <div id="media-preview-content" class="flex items-center gap-3 w-full overflow-hidden">
                             <!-- Preview Injected Here -->
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let activeChatId = null;
     let pollingInterval = null;
     let currentMessageCount = -1;
-    let pendingMedia = null; // Menyimpan data media sementara sebelum dikirim
+    let pendingMedia = null;
 
     const contactListDiv = document.getElementById('contactList');
     const msgArea = document.getElementById('messageArea');
@@ -182,7 +182,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const placeholder = document.getElementById('chatPlaceholder');
     const activeWindow = document.getElementById('chatActiveWindow');
 
-    // Mencegah enter mengirim form langsung, shift+enter untuk baris baru
     msgInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -202,7 +201,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 1. LOAD DAFTAR KONTAK
     function loadChatList() {
         fetch("{{ route('seller.service.chat.list') }}")
             .then(async res => {
@@ -250,7 +248,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 3. KLIK KONTAK BUKA RUANG CHAT
     contactListDiv.addEventListener('click', function(e) {
         let item = e.target.closest('.contact-item');
         if(!item) return;
@@ -279,7 +276,6 @@ document.addEventListener('DOMContentLoaded', function() {
         pollingInterval = setInterval(() => { loadMessages(activeChatId, false); }, 4000);
     });
 
-    // 4. LOAD PESAN (LOGIKA DEWA ANTI FLICKER + CENTANG BIRU)
     function loadMessages(chatId, isInitialLoad = false) {
         if(!chatId) return;
         let url = "{{ route('seller.service.chat.messages', ':id') }}".replace(':id', chatId);
@@ -290,14 +286,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 let items = data.data || data;
                 if(!Array.isArray(items)) items = [];
 
-                // Cek status mengetik
                 if(data.is_typing) {
                     typingIndicator.classList.remove('hidden');
                 } else {
                     typingIndicator.classList.add('hidden');
                 }
 
-                // Hanya render ulang jika jumlah pesan berubah atau loading awal
                 if (isInitialLoad || items.length !== currentMessageCount) {
                     msgArea.innerHTML = '';
                     currentMessageCount = items.length;
@@ -323,16 +317,17 @@ document.addEventListener('DOMContentLoaded', function() {
         msgArea.scrollTop = msgArea.scrollHeight;
     }
 
-    // UPDATE TICK REALTIME TANPA FLICKER
+    // UPDATE TICK REALTIME (PERUBAHAN VISUAL DEWA SEEN)
     function updateReadTicks(items) {
         const messageElements = msgArea.querySelectorAll('.message-bubble');
         items.forEach((msg, index) => {
             let isOut = msg.sender === 'seller' || msg.is_mine === true;
             if (isOut && msg.is_read == 1 && messageElements[index]) {
-                const tickIcon = messageElements[index].querySelector('.chat-tick');
-                // Mengubah Centang 1 Putih menjadi Centang 2 Biru Sky
-                if (tickIcon && tickIcon.classList.contains('mdi-check')) {
-                    tickIcon.className = 'chat-tick mdi mdi-check-all text-sky-300 text-sm leading-none ml-1 drop-shadow-sm';
+                const statusContainer = messageElements[index].querySelector('.chat-status');
+                // Jika masih 1 centang (belum read), ubah jadi tag SEEN
+                if (statusContainer && statusContainer.innerHTML.includes('mdi-check') && !statusContainer.innerHTML.includes('mdi-check-all')) {
+                    statusContainer.className = 'chat-status flex items-center gap-1 bg-white/25 text-white px-1.5 py-[2px] rounded uppercase ml-1 transition-all duration-300';
+                    statusContainer.innerHTML = `<span class="text-[8px] tracking-wider font-black">SEEN</span><i class="chat-tick mdi mdi-check-all text-[11px] leading-none"></i>`;
                 }
             }
         });
@@ -342,19 +337,19 @@ document.addEventListener('DOMContentLoaded', function() {
     function appendMessageUI(content, isOut, time, type = 'text', fileName = '', isRead = 0, animate = true) {
         let wrapAlign = isOut ? 'self-end items-end' : 'self-start items-start';
         let bubbleColor = isOut ? 'bg-blue-600 text-white rounded-l-2xl rounded-tr-2xl rounded-br-sm shadow-md' : 'bg-white border border-slate-200 text-slate-800 rounded-r-2xl rounded-tl-2xl rounded-bl-sm shadow-sm';
-        let timeColor = isOut ? 'text-blue-200' : 'text-slate-400';
+        let timeColor = isOut ? 'text-blue-100' : 'text-slate-400';
         let animClass = animate ? 'animate-[scale-in_0.2s_ease-out]' : '';
         let transformOrigin = isOut ? 'origin-bottom-right' : 'origin-bottom-left';
 
-        // Logika Centang dengan Ikon MDI
+        // Logika Centang (Desain Tegas)
         let tickHtml = '';
         if(isOut) {
             if(isRead == 1) {
-                // Centang Dua Biru Terang (Dibaca)
-                tickHtml = `<i class="chat-tick mdi mdi-check-all text-sky-300 text-sm leading-none ml-1 drop-shadow-sm"></i>`;
+                // Centang Dua + Seen (Jelas banget)
+                tickHtml = `<div class="chat-status flex items-center gap-1 bg-white/25 text-white px-1.5 py-[2px] rounded uppercase ml-1"><span class="text-[8px] tracking-wider font-black">SEEN</span><i class="chat-tick mdi mdi-check-all text-[11px] leading-none"></i></div>`;
             } else {
-                // Centang Satu Putih Transparan (Terkirim)
-                tickHtml = `<i class="chat-tick mdi mdi-check text-white/50 text-sm leading-none ml-1"></i>`;
+                // Centang Satu (Belum dibaca)
+                tickHtml = `<div class="chat-status flex items-center gap-1 text-blue-200 px-1.5 py-0.5 ml-1"><i class="chat-tick mdi mdi-check text-[11px] leading-none"></i></div>`;
             }
         }
 
@@ -380,7 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="message-bubble flex flex-col max-w-[85%] md:max-w-[75%] ${wrapAlign} ${transformOrigin} ${animClass}">
                 <div class="px-4 py-2.5 text-[13px] md:text-sm font-medium leading-relaxed break-words ${bubbleColor}">
                     ${innerHTML}
-                    <div class="text-[9px] font-bold mt-1.5 text-right ${timeColor} flex items-center justify-end gap-1">
+                    <div class="text-[9px] font-bold mt-1.5 flex items-center justify-end ${timeColor}">
                         ${time} ${tickHtml}
                     </div>
                 </div>
@@ -389,9 +384,6 @@ document.addEventListener('DOMContentLoaded', function() {
         msgArea.insertAdjacentHTML('beforeend', html);
     }
 
-    // ========================================================
-    // LOGIKA PREVIEW MEDIA (Menampung Sebelum Dikirim)
-    // ========================================================
     window.handleFileUpload = function(inputElement, type) {
         const file = inputElement.files[0];
         if(!file || !activeChatId) return;
@@ -453,7 +445,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // TAMPILKAN PREVIEW DI ATAS INPUT CHAT
     function showMediaPreview(type, content, fileName) {
         pendingMedia = { type, content, fileName };
         const container = document.getElementById('media-preview-container');
@@ -476,7 +467,6 @@ document.addEventListener('DOMContentLoaded', function() {
         container.classList.add('hidden'); container.classList.remove('flex');
     }
 
-    // LOGIKA PENGIRIMAN FINAL KE BACKEND
     function sendMediaMessage(content, type = 'text', fileName = '', caption = '') {
         if(!content || !activeChatId) return;
 
@@ -486,7 +476,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const timeNow = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
 
-        // Optimistic Tampil ke Layar (Muncul 1 Centang Putih)
+        // Optimistic Tampil ke Layar (Muncul 1 Centang)
         appendMessageUI(content, true, timeNow, type, fileName, 0, true);
 
         if (caption && type !== 'text') {
@@ -540,7 +530,6 @@ document.addEventListener('DOMContentLoaded', function() {
     style.innerHTML = `@keyframes scale-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }`;
     document.head.appendChild(style);
 
-    // Initial Load
     loadChatList();
     setInterval(() => { loadChatList(); }, 4000);
 });
