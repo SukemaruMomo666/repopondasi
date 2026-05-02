@@ -256,14 +256,17 @@
                                    class="flex-1 py-3 bg-zinc-50 hover:bg-zinc-900 hover:text-white text-zinc-700 text-center text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all border border-zinc-200">
                                    Kunjungi
                                 </a>
-                                {{-- TOMBOL CHAT PENJUAL (Terhubung dengan Chat Hub) --}}
-                                @php
-                                    $storeInitial = strtoupper(substr($product->nama_toko ?? 'TK', 0, 1));
-                                @endphp
-{{-- TOMBOL CHAT PENJUAL (Terhubung dengan Chat Hub) --}}
-<button type="button" onclick="openChatWithStore({{ $product->toko_id }}, '{{ addslashes($product->nama_toko) }}', '{{ $storeInitials }}')" class="flex-1 py-3 bg-emerald-50 hover:bg-emerald-500 hover:text-white text-emerald-600 text-center text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all border border-emerald-200">
-    <i class="fas fa-comments mr-1"></i> Chat
-</button>
+
+                                {{-- TOMBOL CHAT PENJUAL DEWA --}}
+                                @auth
+                                    <button type="button" onclick="triggerOpenChat({{ $product->toko_id }}, '{{ addslashes($product->nama_toko) }}', '{{ $storeInitials ?? 'TK' }}')" class="flex-1 py-3 bg-emerald-50 hover:bg-emerald-500 hover:text-white text-emerald-600 text-center text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all border border-emerald-200 shadow-sm">
+                                        <i class="fas fa-comments mr-1"></i> Chat
+                                    </button>
+                                @else
+                                    <button type="button" onclick="requireChatLogin()" class="flex-1 py-3 bg-emerald-50 hover:bg-emerald-500 hover:text-white text-emerald-600 text-center text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all border border-emerald-200 shadow-sm">
+                                        <i class="fas fa-comments mr-1"></i> Chat
+                                    </button>
+                                @endauth
                             </div>
                         </div>
                     </div>
@@ -339,7 +342,7 @@
         // 3. Fungsi Tambah/Kurang QTY
         function updateQty(change) {
             let currentVal = parseInt(inputQty.value);
-            if (isNaN(currentVal)) currentVal = 1; // Jaga-jaga kalau input kosong
+            if (isNaN(currentVal)) currentVal = 1;
 
             let newVal = currentVal + change;
 
@@ -377,6 +380,47 @@
             btn.classList.remove('opacity-60');
         }
 
+        // --- FUNGSI TRIGGER CHAT ANTI BUG ---
+        function requireChatLogin() {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Harus Login!',
+                text: 'Silakan login terlebih dahulu untuk memulai obrolan atau negosiasi dengan penjual.',
+                confirmButtonText: 'Login Sekarang',
+                confirmButtonColor: '#2563eb',
+                showCancelButton: true,
+                cancelButtonText: 'Batal',
+                customClass: { popup: 'rounded-3xl' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = "{{ route('login') }}";
+                }
+            });
+        }
+
+        function triggerOpenChat(tokoId, namaToko, inisial) {
+            // Jika script partials.chat berjalan mulus
+            if (typeof openChatWithStore === 'function') {
+                openChatWithStore(tokoId, namaToko, inisial);
+            } else {
+                // Fallback Kasar jika openChatWithStore gagal diload
+                const chatWin = document.getElementById('live-chat-window');
+                if(chatWin) {
+                    chatWin.classList.remove('hidden', 'opacity-0', 'translate-y-10', 'scale-95', 'pointer-events-none');
+                    chatWin.classList.add('flex', 'opacity-100', 'translate-y-0', 'scale-100');
+                    sessionStorage.setItem('pota_chat_open', 'true');
+
+                    if(typeof switchChatTab === 'function') switchChatTab('seller', false);
+
+                    setTimeout(() => {
+                        if(typeof openStoreChat === 'function') openStoreChat(tokoId, namaToko, inisial);
+                    }, 300);
+                } else {
+                    Swal.fire('Error', 'Sistem chat sedang memuat atau terblokir. Silakan refresh halaman.', 'error');
+                }
+            }
+        }
+
         // 5. DOM Ready (Nyawa untuk Tombol Keranjang & Beli)
         document.addEventListener('DOMContentLoaded', function() {
 
@@ -386,13 +430,11 @@
             // --- A. LOGIKA TOMBOL "+ KERANJANG" ---
             if (btnKeranjang) {
                 btnKeranjang.addEventListener('click', async function() {
-                    // Validasi Login
                     @guest
                         window.location.href = "{{ route('login') }}";
                         return;
                     @endguest
 
-                    // Animasi Loading
                     const originalText = btnKeranjang.innerHTML;
                     btnKeranjang.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
                     btnKeranjang.disabled = true;
