@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    {{-- Tailwind CSS CDN --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -99,7 +100,7 @@
                             <span class="text-sm font-bold text-zinc-400">({{ $jumlah_ulasan }} Ulasan)</span>
                         </div>
                         <div class="w-1.5 h-1.5 rounded-full bg-zinc-200"></div>
-                        <div class="text-sm font-bold text-zinc-500 italic">Terjual <span class="text-zinc-900 font-black not-italic">200+ Produk</span></div>
+                        <div class="text-sm font-bold text-zinc-500 italic">Terjual <span class="text-zinc-900 font-black not-italic">{{ $product->stok_terjual ?? 0 }} Produk</span></div>
                     </div>
                 </div>
 
@@ -109,7 +110,7 @@
                         <div class="w-12 h-12 rounded-2xl bg-brand-50 flex items-center justify-center text-brand-600"><i class="fas fa-weight-hanging text-lg"></i></div>
                         <div>
                             <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Berat</p>
-                            <p class="text-base font-black text-zinc-900">{{ $product->berat_kg ?? '1' }} Kg</p>
+                            <p class="text-base font-black text-zinc-900">{{ number_format($product->berat_kg ?? 1, 2) }} Kg</p>
                         </div>
                     </div>
                     <div class="bg-white border border-zinc-100 p-6 rounded-[2rem] flex items-center gap-4 transition-all hover:border-brand-100">
@@ -210,6 +211,7 @@
             {{-- KOLOM 3: CHECKOUT & STORE --}}
             {{-- ========================================== --}}
             <div class="w-full lg:col-span-3 space-y-6 lg:sticky lg:top-28">
+
                 {{-- Store Card --}}
                 <div class="bg-white rounded-[2.5rem] border border-zinc-100 shadow-sm overflow-hidden group">
                     <div class="h-24 bg-zinc-900 relative">
@@ -227,16 +229,41 @@
                         <div class="pt-12 space-y-5">
                             <div class="space-y-1">
                                 <h4 class="font-black text-xl text-zinc-900 truncate flex items-center gap-2">
-                                    {{ $product->nama_toko }} <i class="fas fa-check-circle text-brand-500 text-sm"></i>
+                                    {{ $product->nama_toko }}
+                                    @if(isset($product->tier_toko) && in_array($product->tier_toko, ['official', 'official_store']))
+                                        <i class="fas fa-check-decagram text-purple-500 text-sm" title="Official Store"></i>
+                                    @elseif(isset($product->tier_toko) && in_array($product->tier_toko, ['power', 'power_merchant']))
+                                        <i class="fas fa-bolt text-emerald-500 text-sm" title="Power Merchant"></i>
+                                    @else
+                                        <i class="fas fa-check-circle text-brand-500 text-sm" title="Verified Store"></i>
+                                    @endif
                                 </h4>
-                                <p class="text-[11px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1.5">
-                                    <i class="fas fa-location-dot text-brand-500/50"></i> {{ $product->nama_kota_toko }}
+
+                                {{-- Tier Badge Text --}}
+                                @if(isset($product->tier_toko) && in_array($product->tier_toko, ['official', 'official_store']))
+                                    <span class="inline-block mt-0.5 bg-purple-100 text-purple-700 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">Official Store</span>
+                                @elseif(isset($product->tier_toko) && in_array($product->tier_toko, ['power', 'power_merchant']))
+                                    <span class="inline-block mt-0.5 bg-emerald-100 text-emerald-700 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-sm">Power Merchant</span>
+                                @endif
+
+                                <p class="text-[11px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 mt-2">
+                                    <i class="fas fa-location-dot text-brand-500/50"></i> {{ $product->nama_kota_toko ?? 'Kota Tidak Diketahui' }}
                                 </p>
                             </div>
-                            <a href="{{ url('pages/toko?slug=' . $product->slug_toko) }}"
-                               class="block w-full py-4 bg-zinc-50 hover:bg-zinc-900 hover:text-white text-zinc-700 text-center text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all border border-zinc-100">
-                               Kunjungi Toko
-                            </a>
+
+                            <div class="flex items-center gap-2 w-full">
+                                <a href="{{ url('pages/toko?slug=' . $product->slug_toko) }}"
+                                   class="flex-1 py-3 bg-zinc-50 hover:bg-zinc-900 hover:text-white text-zinc-700 text-center text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all border border-zinc-200">
+                                   Kunjungi
+                                </a>
+                                {{-- TOMBOL CHAT PENJUAL (Terhubung dengan Chat Hub) --}}
+                                @php
+                                    $storeInitial = strtoupper(substr($product->nama_toko ?? 'TK', 0, 1));
+                                @endphp
+                                <button type="button" onclick="openChatWithStore({{ $product->toko_id }}, '{{ addslashes($product->nama_toko) }}', '{{ $storeInitial }}')" class="flex-1 py-3 bg-emerald-50 hover:bg-emerald-500 hover:text-white text-emerald-600 text-center text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all border border-emerald-200">
+                                    <i class="fas fa-comments mr-1"></i> Chat
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -257,7 +284,7 @@
                             </div>
                             <div class="text-right">
                                 <p class="text-[9px] font-black text-zinc-300 uppercase tracking-widest leading-none mb-1">Stok Ready</p>
-                                <p class="text-sm font-black text-zinc-900">{{ $product->stok }} <span class="text-[10px] text-zinc-400">Unit</span></p>
+                                <p class="text-sm font-black text-zinc-900">{{ $product->stok }} <span class="text-[10px] text-zinc-400">{{ $product->satuan_unit ?? 'Unit' }}</span></p>
                             </div>
                         </div>
 
@@ -289,7 +316,8 @@
     </main>
 
     @include('partials.footer')
-        {{-- Tambahkan baris ini --}}
+
+    {{-- SISTEM CHAT HUB PREMIUM --}}
     @include('partials.chat')
 
     {{-- SWEETALERT & JAVASCRIPT LOGIC --}}
@@ -357,7 +385,7 @@
             // --- A. LOGIKA TOMBOL "+ KERANJANG" ---
             if (btnKeranjang) {
                 btnKeranjang.addEventListener('click', async function() {
-                    // Validasi Login (Opsional, pastikan route sudah benar)
+                    // Validasi Login
                     @guest
                         window.location.href = "{{ route('login') }}";
                         return;
@@ -371,7 +399,6 @@
                     try {
                         const formData = new FormData(formKeranjang);
 
-                        // PASTIKAN NAMA ROUTE DI BAWAH INI SESUAI DENGAN web.php BOS!
                         const response = await fetch('{{ route('keranjang.tambah') }}', {
                             method: 'POST',
                             headers: {
@@ -391,7 +418,6 @@
                                 confirmButtonColor: '#2563eb',
                                 customClass: { popup: 'rounded-3xl' }
                             });
-                            // Refresh untuk update badge keranjang di navbar
                             setTimeout(() => window.location.reload(), 1500);
                         } else {
                             throw new Error(result.message || 'Gagal menambahkan ke keranjang');
@@ -416,12 +442,9 @@
                         return;
                     @endguest
 
-                    // Ubah action form untuk direct checkout
-                    // PASTIKAN NAMA ROUTE DI BAWAH INI SESUAI DENGAN web.php BOS!
                     formKeranjang.action = "{{ route('checkout.langsung') }}";
                     formKeranjang.method = "POST";
 
-                    // Tambahkan CSRF manual jika form belum punya (biasanya butuh jika dikirim murni via HTML)
                     if (!formKeranjang.querySelector('input[name="_token"]')) {
                         const csrfInput = document.createElement('input');
                         csrfInput.type = 'hidden';
