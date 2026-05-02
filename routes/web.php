@@ -11,6 +11,7 @@ use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\ChatAiController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\ChatController; // <-- TAMBAHAN IMPORT UNTUK FITUR CHAT SELLER
 
 // --- IMPORT CONTROLLER SELLER ---
 use App\Http\Controllers\SellerController;
@@ -256,7 +257,15 @@ Route::get('/api/cities/{province_id}', [AuthController::class, 'getCities']);
 Route::get('/api/districts/{city_id}', [PageController::class, 'getDistrictsOnDemand']);
 Route::post('/api/get-or-create-district', [PageController::class, 'getOrCreateDistrict'])->name('api.get.create.district');
 
+// Chat AI (POTA)
 Route::post('/api/chat', [ChatAiController::class, 'handleChat'])->name('api.chat');
+
+// --- RUTE CHAT SELLER (BARU DITAMBAHKAN - DIBUNGKUS MIDDLEWARE AUTH AGAR AMAN) ---
+Route::middleware(['auth'])->group(function () {
+    Route::get('/api/chat/contacts', [ChatController::class, 'getContacts']);
+    Route::get('/api/chat/messages/{storeId}', [ChatController::class, 'getMessages']);
+    Route::post('/api/chat/send', [ChatController::class, 'sendMessage']);
+});
 
 // Webhook Midtrans (Payment Gateway)
 Route::post('/webhook/midtrans', [WebhookController::class, 'midtransHandler'])->name('webhook.midtrans');
