@@ -5,8 +5,6 @@
 @push('styles')
 {{-- FONT AWESOME STABIL --}}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-{{-- LEAFLET CSS - WAJIB UNTUK PETA --}}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 {{-- FONT AWESOME UNTUK MATCH DENGAN REFERENSI --}}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -14,33 +12,6 @@
     /* HIDE SCROLLBAR BUT KEEP FUNCTIONALITY */
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-    /* ========================================================
-       JURUS MUTLAK ANTI GREY TILES & PETA PECAH LEAFLET
-       ======================================================== */
-    .leaflet-container {
-        z-index: 10 !important;
-        font-family: 'Inter', sans-serif;
-    }
-
-    /* Mencegah Tailwind me-reset lebar gambar di dalam peta */
-    .leaflet-container img.leaflet-tile {
-        max-width: none !important;
-        max-height: none !important;
-        width: 256px !important;
-        height: 256px !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        border: none !important;
-    }
-
-    /* Pastikan icon marker tidak terpengaruh CSS global */
-    .leaflet-marker-icon,
-    .leaflet-marker-shadow {
-        max-width: none !important;
-        max-height: none !important;
-    }
-    /* ======================================================== */
 
     /* CUSTOM TAILWIND UTILITIES */
     .shadow-soft { box-shadow: 0 4px 40px -4px rgba(0,0,0,0.03); }
@@ -75,13 +46,6 @@
     .gps-active {
         animation: pulse-ring 2s infinite;
         background-color: #1d4ed8 !important;
-    }
-
-    /* Memaksa map mengambil seluruh tinggi dan lebar yang tersedia */
-    #modalMap {
-        width: 100% !important;
-        height: 50vh !important;
-        display: block;
     }
 </style>
 @endpush
@@ -380,8 +344,25 @@
 </div>
 
 {{-- ========================================================================= --}}
-{{-- MODAL POPUP LEAFLET MAP (ANTI GREY TILES MUTLAK)                          --}}
+{{-- JALUR BYPASS CSS LEAFLET: TARUH DISINI AGAR PASTI TERBACA BROWSER --}}
 {{-- ========================================================================= --}}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+    /* Paksa map mengambil ruang yang cukup */
+    #modalMap { width: 100% !important; height: 50vh !important; display: block; z-index: 10; }
+    
+    /* Perbaikan mutlak untuk Tailwind Reset yang menghancurkan Leaflet */
+    .leaflet-container { z-index: 10 !important; font-family: 'Inter', sans-serif; }
+    .leaflet-container img {
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .leaflet-control-container .leaflet-control { z-index: 40 !important; }
+</style>
+
+{{-- MODAL POPUP LEAFLET MAP --}}
 <div id="mapModal" class="fixed inset-0 z-[9999] hidden flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
     <div class="bg-white rounded-3xl shadow-float w-full max-w-4xl overflow-hidden flex flex-col transform transition-all scale-95 opacity-0" id="mapModalContent">
 
@@ -467,10 +448,7 @@
         // ==========================================
         // 1. MANAJEMEN MODAL & INIT MAP
         // ==========================================
-// ==========================================
-        // 1. MANAJEMEN MODAL & INIT MAP (FIXED)
-        // ==========================================
-window.openMapModal = function() {
+        window.openMapModal = function() {
             // 1. Tampilkan modal ke DOM
             mapModal.classList.remove('hidden');
 
