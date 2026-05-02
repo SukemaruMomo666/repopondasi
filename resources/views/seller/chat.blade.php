@@ -162,6 +162,19 @@
         </div>
     </div>
 </div>
+
+{{-- ======================================================== --}}
+{{-- MODAL LIGHTBOX IMAGE (POPUP GAMBAR)                      --}}
+{{-- ======================================================== --}}
+<div id="image-lightbox" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-black/90 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0" onclick="closeLightbox()">
+    <button class="absolute top-6 right-6 text-white text-4xl hover:text-red-500 transition-colors outline-none z-50">
+        <i class="mdi mdi-close"></i>
+    </button>
+    <div class="relative max-w-full max-h-full flex items-center justify-center p-2" onclick="event.stopPropagation()">
+        <img id="lightbox-img" src="" class="max-w-full max-h-[90dvh] object-contain rounded-lg shadow-2xl scale-95 transition-transform duration-300">
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -182,6 +195,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const placeholder = document.getElementById('chatPlaceholder');
     const activeWindow = document.getElementById('chatActiveWindow');
 
+    // ==========================================
+    // LOGIKA LIGHTBOX GAMBAR
+    // ==========================================
+    window.openLightbox = function(src) {
+        const lightbox = document.getElementById('image-lightbox');
+        const img = document.getElementById('lightbox-img');
+        img.src = src;
+        lightbox.classList.remove('hidden');
+        lightbox.classList.add('flex');
+
+        // Timeout untuk trigger animasi CSS opacity & scale
+        setTimeout(() => {
+            lightbox.classList.remove('opacity-0');
+            lightbox.classList.add('opacity-100');
+            img.classList.replace('scale-95', 'scale-100');
+        }, 10);
+    }
+
+    window.closeLightbox = function() {
+        const lightbox = document.getElementById('image-lightbox');
+        const img = document.getElementById('lightbox-img');
+
+        lightbox.classList.remove('opacity-100');
+        lightbox.classList.add('opacity-0');
+        img.classList.replace('scale-100', 'scale-95');
+
+        // Timeout untuk display hidden
+        setTimeout(() => {
+            lightbox.classList.remove('flex');
+            lightbox.classList.add('hidden');
+        }, 300);
+    }
+
+    // Mencegah enter mengirim form langsung, shift+enter untuk baris baru
     msgInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -306,7 +353,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     scrollToBottom();
                 } else {
-                    // Update Centang Biru Tanpa Refresh Layar
                     updateReadTicks(items);
                 }
             })
@@ -317,14 +363,12 @@ document.addEventListener('DOMContentLoaded', function() {
         msgArea.scrollTop = msgArea.scrollHeight;
     }
 
-    // UPDATE TICK REALTIME (PERUBAHAN VISUAL DEWA SEEN)
     function updateReadTicks(items) {
         const messageElements = msgArea.querySelectorAll('.message-bubble');
         items.forEach((msg, index) => {
             let isOut = msg.sender === 'seller' || msg.is_mine === true;
             if (isOut && msg.is_read == 1 && messageElements[index]) {
                 const statusContainer = messageElements[index].querySelector('.chat-status');
-                // Jika masih 1 centang (belum read), ubah jadi tag SEEN
                 if (statusContainer && statusContainer.innerHTML.includes('mdi-check') && !statusContainer.innerHTML.includes('mdi-check-all')) {
                     statusContainer.className = 'chat-status flex items-center gap-1 bg-white/25 text-white px-1.5 py-[2px] rounded uppercase ml-1 transition-all duration-300';
                     statusContainer.innerHTML = `<span class="text-[8px] tracking-wider font-black">SEEN</span><i class="chat-tick mdi mdi-check-all text-[11px] leading-none"></i>`;
@@ -333,7 +377,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // FUNGSI RENDER BALON PESAN (UI MAKER)
+    // FUNGSI RENDER BALON PESAN (UI MAKER) DENGAN LIGHTBOX
     function appendMessageUI(content, isOut, time, type = 'text', fileName = '', isRead = 0, animate = true) {
         let wrapAlign = isOut ? 'self-end items-end' : 'self-start items-start';
         let bubbleColor = isOut ? 'bg-blue-600 text-white rounded-l-2xl rounded-tr-2xl rounded-br-sm shadow-md' : 'bg-white border border-slate-200 text-slate-800 rounded-r-2xl rounded-tl-2xl rounded-bl-sm shadow-sm';
@@ -341,14 +385,11 @@ document.addEventListener('DOMContentLoaded', function() {
         let animClass = animate ? 'animate-[scale-in_0.2s_ease-out]' : '';
         let transformOrigin = isOut ? 'origin-bottom-right' : 'origin-bottom-left';
 
-        // Logika Centang (Desain Tegas)
         let tickHtml = '';
         if(isOut) {
             if(isRead == 1) {
-                // Centang Dua + Seen (Jelas banget)
                 tickHtml = `<div class="chat-status flex items-center gap-1 bg-white/25 text-white px-1.5 py-[2px] rounded uppercase ml-1"><span class="text-[8px] tracking-wider font-black">SEEN</span><i class="chat-tick mdi mdi-check-all text-[11px] leading-none"></i></div>`;
             } else {
-                // Centang Satu (Belum dibaca)
                 tickHtml = `<div class="chat-status flex items-center gap-1 text-blue-200 px-1.5 py-0.5 ml-1"><i class="chat-tick mdi mdi-check text-[11px] leading-none"></i></div>`;
             }
         }
@@ -357,7 +398,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if(!type || type === 'text') {
             innerHTML = content;
         } else if (type === 'image') {
-            innerHTML = `<div class="p-1"><img src="${content}" class="max-w-[200px] md:max-w-[250px] rounded-xl object-cover hover:opacity-90 transition-opacity" alt="Image"></div>`;
+            // Tambahkan onclick="openLightbox(...)" dan cursor-pointer
+            innerHTML = `<div class="p-1"><img src="${content}" onclick="openLightbox('${content}')" class="max-w-[200px] md:max-w-[250px] rounded-xl object-cover hover:opacity-90 transition-opacity cursor-pointer shadow-sm"></div>`;
         } else if (type === 'file') {
             innerHTML = `
             <a href="${content}" download="${fileName}" class="flex items-center gap-3 hover:bg-black/10 transition-colors rounded-xl no-underline p-1">
@@ -476,7 +518,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const timeNow = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
 
-        // Optimistic Tampil ke Layar (Muncul 1 Centang)
         appendMessageUI(content, true, timeNow, type, fileName, 0, true);
 
         if (caption && type !== 'text') {
