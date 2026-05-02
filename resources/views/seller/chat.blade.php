@@ -171,19 +171,38 @@ document.addEventListener('DOMContentLoaded', function() {
         sendMediaMessage(msgInput.value.trim(), 'text');
     });
 
-    // 1. LOAD DAFTAR KONTAK (CHAT LIST)
+    // 1. LOAD DAFTAR KONTAK (CHAT LIST) DENGAN ANTI-MUTER LOGIC
     function loadChatList() {
         fetch("{{ route('seller.service.chat.list') }}")
-            .then(res => res.json())
+            .then(async res => {
+                // Tangkap jika status server bukan 200 OK (Mencegah Silent Failure)
+                if(!res.ok) {
+                    let errText = await res.text();
+                    throw new Error("HTTP " + res.status + ": " + errText.substring(0, 50));
+                }
+                return res.json();
+            })
             .then(data => {
-                if(data.status === 'success') {
+                // Validasi format JSON agar tidak nyangkut
+                if(data && data.status === 'success') {
                     renderContactList(data.data);
-                } else if (Array.isArray(data)) { // Fallback jika controller return langsung array
+                } else if (Array.isArray(data)) {
                     renderContactList(data);
+                } else {
+                    throw new Error(data.message || "Format data dari server tidak valid.");
                 }
             })
             .catch(err => {
-                contactListDiv.innerHTML = '<div class="text-center py-10 text-red-500 font-bold text-xs"><i class="mdi mdi-alert-circle text-2xl block mb-2"></i>Gagal memuat kontak.</div>';
+                console.error("Error Loading Chat List:", err);
+                contactListDiv.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-10 px-6 text-center">
+                        <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-4">
+                            <i class="mdi mdi-alert-circle-outline text-3xl"></i>
+                        </div>
+                        <h5 class="text-sm font-black text-slate-800 mb-1">Gagal Memuat Kontak</h5>
+                        <p class="text-xs text-slate-500">${err.message}</p>
+                        <button onclick="window.location.reload()" class="mt-4 px-4 py-2 bg-slate-900 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-slate-800 transition-colors">Muat Ulang</button>
+                    </div>`;
             });
     }
 
@@ -200,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let initial = nama.charAt(0).toUpperCase();
 
             // Format Badge
-            let badgeUnread = chat.unread_count > 0 ? `<div class="bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center absolute -top-1 -right-1">${chat.unread_count}</div>` : '';
+            let badgeUnread = chat.unread_count > 0 ? `<div class="bg-red-500 text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center absolute -top-1 -right-1 shadow-sm">${chat.unread_count}</div>` : '';
             let isActiveClass = (id == activeChatId) ? 'bg-blue-50/50 border-l-4 border-l-blue-600 pl-3 pr-4' : 'bg-transparent border-l-4 border-l-transparent hover:bg-slate-100/50 px-4';
 
             let html = `
@@ -269,28 +288,42 @@ document.addEventListener('DOMContentLoaded', function() {
         // Load Pesan
         loadMessages(activeChatId, true);
         if(pollingInterval) clearInterval(pollingInterval);
+
+        // REALTIME AJAX POLLING (Setiap 4 Detik)
         pollingInterval = setInterval(() => { loadMessages(activeChatId, false); }, 4000);
     });
 
-    // 4. LOAD PESAN DARI DATABASE (SUPPORT MEDIA)
+    // 4. LOAD PESAN DARI DATABASE DENGAN ANTI-MUTER LOGIC
     function loadMessages(chatId, forceScroll = false) {
         if(!chatId) return;
         let url = "{{ route('seller.service.chat.messages', ':id') }}".replace(':id', chatId);
 
         fetch(url)
-            .then(res => res.json())
+            .then(async res => {
+                if(!res.ok) throw new Error("Gagal menyinkronkan pesan.");
+                return res.json();
+            })
             .then(data => {
+                if(data && data.status === 'error') throw new Error(data.message);
+
                 let items = data.data || data; // Handle jika root response adalah array
+                if(!Array.isArray(items)) items = [];
+
                 msgArea.innerHTML = '';
 
+                if(items.length === 0) {
+                     msgArea.innerHTML = `<div class="text-center text-[10px] font-bold text-slate-400 my-4 bg-white p-2 mx-auto rounded-full border border-slate-200 max-w-[200px] shadow-sm">Belum ada obrolan.</div>`;
+                }
+
                 items.forEach(msg => {
-                    // Cek logic sender (apabila API dari customer mengirim 'user', berarti 'seller' adalah diri kita disini)
-                    // Sesuaikan 'seller' sebagai diri sendiri (isOut = true)
                     let isOut = msg.sender === 'seller' || msg.is_mine === true;
                     appendMessageUI(msg.content || msg.text, isOut, msg.time, msg.type, msg.fileName);
                 });
 
                 if(forceScroll) scrollToBottom();
+            })
+            .catch(err => {
+                msgArea.innerHTML = `<div class="text-center text-xs font-bold text-red-500 my-4 bg-red-50 p-2 rounded-xl border border-red-200 mx-auto max-w-[250px]">Koneksi Terputus:<br>${err.message}</div>`;
             });
     }
 
@@ -331,7 +364,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         msgArea.insertAdjacentHTML('beforeend', html);
-        scrollToBottom();
     }
 
     // 5. KIRIM PESAN & MEDIA AJAX
@@ -415,6 +447,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const timeNow = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
         appendMessageUI(content, true, timeNow, type, fileName);
         if(type === 'text') msgInput.value = '';
+        scrollToBottom();
 
         // API Payloads
         let payload = {
@@ -432,13 +465,18 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify(payload)
         })
-        .then(res => res.json())
+        .then(async res => {
+            if(!res.ok) throw new Error("Gagal mengirim ke server.");
+            return res.json();
+        })
         .then(data => {
-            // Refresh tanpa scroll paksa
+            if(data.status !== 'success') throw new Error(data.message);
+            // Sukses! Data diam-diam diperbarui oleh ajax polling 4 detik
             loadChatList();
         })
         .catch(err => {
-            console.error("Pesan gagal, tapi tetap tampil sebagai fallback demo", err);
+            console.error(err);
+            alert("Terjadi kesalahan: Pesan gagal terkirim!");
         })
         .finally(() => {
             btn.disabled = false;
@@ -471,6 +509,8 @@ document.addEventListener('DOMContentLoaded', function() {
     style.innerHTML = `@keyframes scale-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }`;
     document.head.appendChild(style);
 
+    // Initial Load
+    loadChatList();
 });
 </script>
 @endpush
