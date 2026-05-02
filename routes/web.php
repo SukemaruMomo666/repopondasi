@@ -11,13 +11,14 @@ use App\Http\Controllers\WebhookController;
 use App\Http\Controllers\ChatAiController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\ForgotPasswordController;
-use App\Http\Controllers\ChatController; // <-- TAMBAHAN IMPORT UNTUK FITUR CHAT SELLER
+use App\Http\Controllers\ChatController; // <-- CHAT UNTUK CUSTOMER DI FRONTEND
 
 // --- IMPORT CONTROLLER SELLER ---
 use App\Http\Controllers\SellerController;
 use App\Http\Controllers\Seller\DashboardController;
 use App\Http\Controllers\Seller\ProductController as SellerProductController;
 use App\Http\Controllers\Seller\ShopController;
+use App\Http\Controllers\Seller\ChatController as SellerChatController; // <-- CHAT DEWA UNTUK SELLER
 
 // --- IMPORT CONTROLLER ADMIN ---
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
@@ -111,10 +112,10 @@ Route::middleware(['auth', 'role:seller'])->prefix('seller')->name('seller.')->g
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-// Product Management (SUDAH DITAMBAHKAN ROUTE EXCEL)
+    // Product Management (SUDAH DITAMBAHKAN ROUTE EXCEL)
     Route::get('/products/template', [SellerProductController::class, 'downloadTemplate'])->name('products.template');
     Route::post('/products/import', [SellerProductController::class, 'importExcel'])->name('products.import');
-    Route::resource('products', SellerProductController::class)->except(['show']); // <-- DITAMBAHKAN EXCEPT SHOW
+    Route::resource('products', SellerProductController::class)->except(['show']);
     Route::post('/products/toggle-status', [SellerProductController::class, 'toggleStatus'])->name('products.toggle');
 
     // Order & Logistics
@@ -144,12 +145,13 @@ Route::middleware(['auth', 'role:seller'])->prefix('seller')->name('seller.')->g
         Route::delete('/vouchers/{id}', [SellerController::class, 'destroyVoucher'])->name('vouchers.destroy');
     });
 
-    // Customer Service (Chat & Reviews)
+    // Customer Service (Chat & Reviews) - MENGGUNAKAN SELLER CHAT CONTROLLER DEWA
     Route::prefix('service')->name('service.')->group(function() {
-        Route::get('/chat', [SellerController::class, 'chat'])->name('chat');
-        Route::get('/chat/list', [SellerController::class, 'getChatList'])->name('chat.list');
-        Route::get('/chat/messages/{chatId}', [SellerController::class, 'getMessages'])->name('chat.messages');
-        Route::post('/chat/send', [SellerController::class, 'sendMessage'])->name('chat.send');
+        Route::get('/chat', [SellerChatController::class, 'chat'])->name('chat');
+        Route::get('/chat/list', [SellerChatController::class, 'getChatList'])->name('chat.list');
+        Route::get('/chat/messages/{chatId}', [SellerChatController::class, 'getMessages'])->name('chat.messages');
+        Route::post('/chat/send', [SellerChatController::class, 'sendMessage'])->name('chat.send');
+
         Route::get('/reviews', [SellerController::class, 'reviews'])->name('reviews');
         Route::post('/reviews/reply', [SellerController::class, 'replyReview'])->name('reviews.reply');
     });
@@ -212,7 +214,6 @@ Route::prefix('portal-rahasia-pks')->name('admin.')->middleware(['admin'])->grou
         ->name('dashboard')
         ->middleware('admin.role:super,finance,cs');
 
-    // PERBAIKAN: Name cukup ditulis 'dashboard.top_stores' karena grup sudah punya awalan 'admin.'
     Route::get('/dashboard/top-stores', [AdminDashboardController::class, 'topStores'])
         ->name('dashboard.top_stores')
         ->middleware('admin.role:super,finance,cs');
@@ -260,7 +261,7 @@ Route::post('/api/get-or-create-district', [PageController::class, 'getOrCreateD
 // Chat AI (POTA)
 Route::post('/api/chat', [ChatAiController::class, 'handleChat'])->name('api.chat');
 
-// --- RUTE CHAT SELLER (BARU DITAMBAHKAN - DIBUNGKUS MIDDLEWARE AUTH AGAR AMAN) ---
+// --- RUTE CHAT CUSTOMER (HUBUNGI SELLER DARI FRONTEND) ---
 Route::middleware(['auth'])->group(function () {
     Route::get('/api/chat/contacts', [ChatController::class, 'getContacts']);
     Route::get('/api/chat/messages/{storeId}', [ChatController::class, 'getMessages']);
