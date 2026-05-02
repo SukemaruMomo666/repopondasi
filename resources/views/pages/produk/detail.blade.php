@@ -31,7 +31,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        
+
         @keyframes shimmer { 100% { transform: translateX(100%); } }
         .animate-shimmer { animation: shimmer 2.5s infinite; }
 
@@ -52,10 +52,10 @@
             <div class="w-full lg:col-span-4 lg:sticky lg:top-28">
                 <div class="space-y-6">
                     <div class="relative group aspect-square bg-white rounded-[2.5rem] border border-zinc-100 shadow-sm overflow-hidden p-3 transition-all duration-500 hover:shadow-xl hover:shadow-blue-500/5">
-                        <img src="{{ asset('assets/uploads/products/' . $gallery_images[0]) }}" id="mainProductImage" 
-                             class="w-full h-full object-cover rounded-[2rem] transition-transform duration-700 group-hover:scale-110" 
+                        <img src="{{ asset('assets/uploads/products/' . $gallery_images[0]) }}" id="mainProductImage"
+                             class="w-full h-full object-cover rounded-[2rem] transition-transform duration-700 group-hover:scale-110"
                              onerror="this.src='{{ asset('assets/uploads/products/default.jpg') }}'">
-                        
+
                         {{-- Badge Kondisi --}}
                         <div class="absolute top-8 left-8">
                             <span class="bg-white/80 backdrop-blur-md px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-zinc-900 border border-white/20 shadow-sm">
@@ -67,7 +67,7 @@
                     {{-- Thumbnails --}}
                     <div class="flex gap-4 overflow-x-auto no-scrollbar py-2">
                         @foreach ($gallery_images as $index => $img)
-                            <button onclick="changeImage(this, '{{ asset('assets/uploads/products/' . $img) }}')" 
+                            <button onclick="changeImage(this, '{{ asset('assets/uploads/products/' . $img) }}')"
                                     class="thumb-btn shrink-0 w-20 h-20 rounded-2xl bg-white border-2 overflow-hidden transition-all duration-300 {{ $index == 0 ? 'border-brand-600 shadow-md ring-4 ring-brand-50' : 'border-zinc-100 opacity-60 hover:opacity-100' }}">
                                 <img src="{{ asset('assets/uploads/products/' . $img) }}" class="w-full h-full object-cover">
                             </button>
@@ -85,7 +85,7 @@
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-zinc-100 text-zinc-500 text-[10px] font-black uppercase tracking-widest">
                         <i class="fas fa-tag"></i> {{ $product->nama_kategori }}
                     </div>
-                    
+
                     <h1 class="text-4xl lg:text-5xl font-black text-zinc-900 leading-[1.1] tracking-tighter break-words">
                         {{ $product->nama_barang }}
                     </h1>
@@ -233,7 +233,7 @@
                                     <i class="fas fa-location-dot text-brand-500/50"></i> {{ $product->nama_kota_toko }}
                                 </p>
                             </div>
-                            <a href="{{ url('pages/toko?slug=' . $product->slug_toko) }}" 
+                            <a href="{{ url('pages/toko?slug=' . $product->slug_toko) }}"
                                class="block w-full py-4 bg-zinc-50 hover:bg-zinc-900 hover:text-white text-zinc-700 text-center text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all border border-zinc-100">
                                Kunjungi Toko
                             </a>
@@ -244,10 +244,10 @@
                 {{-- Checkout Card --}}
                 <div class="bg-white rounded-[3rem] border border-zinc-100 p-8 lg:p-10 shadow-[0_30px_60px_rgba(0,0,0,0.04)] relative overflow-hidden">
                     <h3 class="text-xs font-black text-zinc-900 uppercase tracking-[0.3em] mb-8 italic">Konfirmasi Pesanan</h3>
-                    
+
                     <form id="formTambahKeranjang" class="space-y-8">
                         <input type="hidden" name="barang_id" value="{{ $product->id }}">
-                        
+
                         {{-- Qty Selector --}}
                         <div class="flex items-center justify-between gap-4">
                             <div class="flex items-center bg-zinc-50 rounded-2xl p-1.5 border border-zinc-100 flex-1">
@@ -274,8 +274,8 @@
                             <button type="button" id="btnKeranjang" class="w-full py-5 bg-white border-2 border-zinc-900 text-zinc-900 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] hover:bg-zinc-950 hover:text-white transition-all active:scale-95 shadow-sm">
                                 <i class="fas fa-cart-plus mr-2"></i> + Keranjang
                             </button>
-                            
-                            <button type="button" id="btnBeliLangsung" 
+
+                            <button type="button" id="btnBeliLangsung"
                                     class="group relative w-full py-5 bg-brand-600 text-white rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] overflow-hidden shadow-xl shadow-brand-500/20 transition-all hover:-translate-y-1 active:scale-95">
                                 <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer"></div>
                                 <span class="relative z-10">Beli Sekarang <i class="fas fa-arrow-right ml-2 text-[10px]"></i></span>
@@ -289,6 +289,8 @@
     </main>
 
     @include('partials.footer')
+        {{-- Tambahkan baris ini --}}
+    @include('partials.chat')
 
     {{-- SWEETALERT & JAVASCRIPT LOGIC --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -301,8 +303,8 @@
         const formKeranjang = document.getElementById('formTambahKeranjang');
 
         // 2. Fungsi Format Rupiah
-        function formatRupiah(angka) { 
-            return 'Rp' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "."); 
+        function formatRupiah(angka) {
+            return 'Rp' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
 
         // 3. Fungsi Tambah/Kurang QTY
@@ -311,10 +313,10 @@
             if (isNaN(currentVal)) currentVal = 1; // Jaga-jaga kalau input kosong
 
             let newVal = currentVal + change;
-            
+
             if (newVal >= 1 && newVal <= maxStock) {
                 inputQty.value = newVal;
-                
+
                 // Animasi subtotal
                 subtotalDisplay.style.transform = "scale(0.95)";
                 setTimeout(() => {
@@ -337,7 +339,7 @@
                 mainImg.src = url;
                 mainImg.style.opacity = "1";
             }, 150);
-            
+
             document.querySelectorAll('.thumb-btn').forEach(el => {
                 el.classList.remove('border-brand-600', 'shadow-md', 'ring-4', 'ring-brand-50');
                 el.classList.add('border-zinc-100', 'opacity-60');
@@ -348,7 +350,7 @@
 
         // 5. DOM Ready (Nyawa untuk Tombol Keranjang & Beli)
         document.addEventListener('DOMContentLoaded', function() {
-            
+
             const btnKeranjang = document.getElementById('btnKeranjang');
             const btnBeliLangsung = document.getElementById('btnBeliLangsung');
 
@@ -368,7 +370,7 @@
 
                     try {
                         const formData = new FormData(formKeranjang);
-                        
+
                         // PASTIKAN NAMA ROUTE DI BAWAH INI SESUAI DENGAN web.php BOS!
                         const response = await fetch('{{ route('keranjang.tambah') }}', {
                             method: 'POST',
@@ -390,7 +392,7 @@
                                 customClass: { popup: 'rounded-3xl' }
                             });
                             // Refresh untuk update badge keranjang di navbar
-                            setTimeout(() => window.location.reload(), 1500); 
+                            setTimeout(() => window.location.reload(), 1500);
                         } else {
                             throw new Error(result.message || 'Gagal menambahkan ke keranjang');
                         }
@@ -416,9 +418,9 @@
 
                     // Ubah action form untuk direct checkout
                     // PASTIKAN NAMA ROUTE DI BAWAH INI SESUAI DENGAN web.php BOS!
-                    formKeranjang.action = "{{ route('checkout.langsung') }}"; 
+                    formKeranjang.action = "{{ route('checkout.langsung') }}";
                     formKeranjang.method = "POST";
-                    
+
                     // Tambahkan CSRF manual jika form belum punya (biasanya butuh jika dikirim murni via HTML)
                     if (!formKeranjang.querySelector('input[name="_token"]')) {
                         const csrfInput = document.createElement('input');
