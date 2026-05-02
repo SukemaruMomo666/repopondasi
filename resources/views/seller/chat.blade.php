@@ -4,7 +4,7 @@
 
 @push('styles')
 <style>
-    /* Styling khusus scrollbar Chat */
+    /* Styling khusus scrollbar Chat agar terlihat seperti Mac/iOS */
     .chat-scrollbar::-webkit-scrollbar { width: 6px; }
     .chat-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .chat-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -98,10 +98,10 @@
                     {{-- Balon pesan akan di-inject JS ke sini --}}
                 </div>
 
-                {{-- Animasi Typing Indicator (Ditampilkan saat polling mendeteksi user mengetik) --}}
+                {{-- Animasi Typing Indicator --}}
                 <div id="typing-indicator" class="hidden px-6 py-2 pb-4 border-t border-transparent">
                     <div class="flex gap-2.5 max-w-[85%] self-start items-start origin-bottom-left animate-[scale-in_0.2s_ease-out]">
-                        <div class="w-8 h-8 rounded-full bg-slate-200 shrink-0 flex items-center justify-center text-slate-500 text-xs mt-auto shadow-sm"><i class="fas fa-user"></i></div>
+                        <div class="w-8 h-8 rounded-full bg-slate-200 shrink-0 flex items-center justify-center text-slate-500 text-xs mt-auto shadow-sm"><i class="mdi mdi-account"></i></div>
                         <div class="bg-white border border-slate-200 p-3.5 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1.5 h-10">
                             <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
                             <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></span>
@@ -117,13 +117,13 @@
                 {{-- Form Input Bawah --}}
                 <div class="bg-white border-t border-slate-200 flex flex-col flex-shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] relative z-20">
 
-                    {{-- MEDIA PREVIEW CONTAINER (Baru) --}}
+                    {{-- MEDIA PREVIEW CONTAINER (Tampung sebelum kirim) --}}
                     <div id="media-preview-container" class="hidden items-center justify-between p-3 mx-4 mt-3 bg-slate-50 border border-slate-200 rounded-xl shadow-inner">
                         <div id="media-preview-content" class="flex items-center gap-3 w-full overflow-hidden">
                             <!-- Preview Injected Here -->
                         </div>
-                        <button type="button" onclick="cancelMediaPreview()" class="w-8 h-8 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center transition-colors flex-shrink-0 ml-2">
-                            <i class="fas fa-times"></i>
+                        <button type="button" onclick="cancelMediaPreview()" class="w-8 h-8 rounded-full bg-red-100 text-red-500 hover:bg-red-200 flex items-center justify-center transition-colors flex-shrink-0 ml-2 shadow-sm">
+                            <i class="mdi mdi-close"></i>
                         </button>
                     </div>
 
@@ -141,7 +141,7 @@
                         </button>
 
                         {{-- Indikator Rekaman --}}
-                        <div id="recording-indicator" class="hidden items-center gap-1.5 text-[10px] font-bold text-red-500 bg-red-50 px-2 py-1 rounded-md animate-pulse ml-2">
+                        <div id="recording-indicator" class="hidden items-center gap-1.5 text-[10px] font-bold text-red-500 bg-red-50 px-2 py-1 rounded-md animate-pulse ml-2 border border-red-100">
                             <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Merekam VN...
                         </div>
                     </div>
@@ -290,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 let items = data.data || data;
                 if(!Array.isArray(items)) items = [];
 
-                // Cek status mengetik (Opsional: Jika API memberikan status 'is_typing')
+                // Cek status mengetik
                 if(data.is_typing) {
                     typingIndicator.classList.remove('hidden');
                 } else {
@@ -308,7 +308,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     items.forEach(msg => {
                         let isOut = msg.sender === 'seller' || msg.is_mine === true;
-                        // Pastikan Backend mengirim `is_read`
                         appendMessageUI(msg.content || msg.text, isOut, msg.time, msg.type, msg.fileName, msg.is_read, isInitialLoad);
                     });
                     scrollToBottom();
@@ -331,8 +330,9 @@ document.addEventListener('DOMContentLoaded', function() {
             let isOut = msg.sender === 'seller' || msg.is_mine === true;
             if (isOut && msg.is_read == 1 && messageElements[index]) {
                 const tickIcon = messageElements[index].querySelector('.chat-tick');
-                if (tickIcon && tickIcon.classList.contains('fa-check')) {
-                    tickIcon.className = 'chat-tick fas fa-check-double text-blue-500 text-[10px] ml-1';
+                // Mengubah Centang 1 Putih menjadi Centang 2 Biru Sky
+                if (tickIcon && tickIcon.classList.contains('mdi-check')) {
+                    tickIcon.className = 'chat-tick mdi mdi-check-all text-sky-300 text-sm leading-none ml-1 drop-shadow-sm';
                 }
             }
         });
@@ -346,13 +346,15 @@ document.addEventListener('DOMContentLoaded', function() {
         let animClass = animate ? 'animate-[scale-in_0.2s_ease-out]' : '';
         let transformOrigin = isOut ? 'origin-bottom-right' : 'origin-bottom-left';
 
-        // Logika Centang
+        // Logika Centang dengan Ikon MDI
         let tickHtml = '';
         if(isOut) {
             if(isRead == 1) {
-                tickHtml = `<i class="chat-tick fas fa-check-double text-blue-400 text-[10px] ml-1"></i>`;
+                // Centang Dua Biru Terang (Dibaca)
+                tickHtml = `<i class="chat-tick mdi mdi-check-all text-sky-300 text-sm leading-none ml-1 drop-shadow-sm"></i>`;
             } else {
-                tickHtml = `<i class="chat-tick fas fa-check text-blue-300 text-[10px] ml-1"></i>`;
+                // Centang Satu Putih Transparan (Terkirim)
+                tickHtml = `<i class="chat-tick mdi mdi-check text-white/50 text-sm leading-none ml-1"></i>`;
             }
         }
 
@@ -458,7 +460,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const contentDiv = document.getElementById('media-preview-content');
 
         if(type === 'image') {
-            contentDiv.innerHTML = `<img src="${content}" class="h-12 w-12 object-cover rounded-lg border border-slate-200 shadow-sm"> <div class="flex flex-col"><span class="text-xs font-black text-slate-800 truncate">Gambar Siap Kirim</span><span class="text-[10px] text-slate-400">Tambahkan pesan di bawah...</span></div>`;
+            contentDiv.innerHTML = `<img src="${content}" class="h-12 w-12 object-cover rounded-lg border border-slate-200 shadow-sm"> <div class="flex flex-col"><span class="text-xs font-black text-slate-800 truncate">Gambar Siap Kirim</span><span class="text-[10px] text-slate-400">Tambahkan pesan teks di bawah jika perlu...</span></div>`;
         } else if (type === 'file') {
             contentDiv.innerHTML = `<div class="h-12 w-12 bg-red-100 text-red-500 rounded-lg flex items-center justify-center text-xl shadow-sm"><i class="mdi mdi-file-pdf-box"></i></div> <div class="flex flex-col"><span class="text-xs font-black text-slate-800 truncate max-w-[200px]">${fileName}</span><span class="text-[10px] text-slate-400">Dokumen siap kirim</span></div>`;
         } else if (type === 'audio') {
@@ -484,11 +486,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const timeNow = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
 
-        // Optimistic Tampil ke Layar (1 Centang)
+        // Optimistic Tampil ke Layar (Muncul 1 Centang Putih)
         appendMessageUI(content, true, timeNow, type, fileName, 0, true);
 
         if (caption && type !== 'text') {
-            // Jika ada caption, kirim juga captionnya
             setTimeout(() => appendMessageUI(caption, true, timeNow, 'text', '', 0, true), 100);
         }
 
@@ -509,7 +510,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             if (caption && type !== 'text') {
-                // Eksekusi API kedua untuk caption
                 fetch("{{ route('seller.service.chat.send') }}", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value },
@@ -540,7 +540,9 @@ document.addEventListener('DOMContentLoaded', function() {
     style.innerHTML = `@keyframes scale-in { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }`;
     document.head.appendChild(style);
 
+    // Initial Load
     loadChatList();
+    setInterval(() => { loadChatList(); }, 4000);
 });
 </script>
 @endpush
