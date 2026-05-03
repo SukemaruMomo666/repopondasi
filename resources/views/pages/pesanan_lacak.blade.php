@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Transaksi #{{ $order->kode_invoice }} - Pondasikita</title>
-    
+
     {{-- Tailwind CSS CDN + Config Dewa --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -25,10 +25,11 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
+            {{-- Tambahkan baris ini --}}
+    @include('partials.chat')
     <style>
         body { background-color: #f8fafc; scroll-behavior: smooth; }
-        
+
         /* Timeline Dashed Effect */
         .timeline-container::before {
             content: '';
@@ -39,12 +40,12 @@
             width: 2px;
             background: repeating-linear-gradient(to bottom, #e2e8f0 0, #e2e8f0 4px, transparent 4px, transparent 8px);
         }
-        
+
         @keyframes pulse-ring {
             0% { transform: scale(.33); opacity: 0.8; }
             80%, 100% { opacity: 0; transform: scale(3); }
         }
-        
+
         .pulse-active { position: relative; }
         .pulse-active::before {
             content: '';
@@ -66,7 +67,7 @@
     @include('partials.navbar')
 
     <main class="max-w-[1250px] mx-auto px-4 sm:px-6">
-        
+
         {{-- TOP HEADER: B2B STATUS BAR --}}
         <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12 animate-fade-in">
             <div class="space-y-3">
@@ -94,12 +95,12 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-            
+
             {{-- ======================================================= --}}
             {{-- LEFT COLUMN: SHIPMENT & INVENTORY (Span 8) --}}
             {{-- ======================================================= --}}
             <div class="lg:col-span-8 space-y-10">
-                
+
                 {{-- 1. LOGISTICS TIMELINE --}}
                 <div class="bg-white rounded-[3rem] shadow-premium border border-zinc-200/50 p-8 lg:p-12 relative overflow-hidden">
                     <div class="flex items-center justify-between mb-12">
@@ -145,20 +146,20 @@
                         </div>
                         <h2 class="text-xl font-black text-zinc-900">Manifest Barang</h2>
                     </div>
-                    
+
                     <div class="space-y-4">
                         @foreach($items as $item)
                         <div class="flex items-center gap-6 p-5 rounded-[2rem] hover:bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all duration-300 group">
-                            
+
                             {{-- FOTO PRODUK DINAMIS (FIXED) --}}
                             <div class="w-24 h-24 rounded-3xl bg-zinc-100 overflow-hidden border border-zinc-200 flex-shrink-0 relative">
                                 @php
                                     $fotoProduk = !empty($item->gambar_utama) ? $item->gambar_utama : ($item->gambar_saat_transaksi ?? 'default.jpg');
                                 @endphp
-                                <img src="{{ asset('assets/uploads/products/' . $fotoProduk) }}" 
+                                <img src="{{ asset('assets/uploads/products/' . $fotoProduk) }}"
                                      class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-multiply"
                                      onerror="this.onerror=null; this.src='{{ asset('assets/uploads/products/default.jpg') }}';">
-                                
+
                                 <div class="absolute bottom-2 right-2 bg-black text-white text-[10px] font-black px-2 py-1 rounded-lg">x{{ $item->jumlah }}</div>
                             </div>
 
@@ -181,19 +182,19 @@
             {{-- RIGHT COLUMN: BILLING & SUPPORT (Span 4) --}}
             {{-- ======================================================= --}}
             <div class="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
-                
+
                 {{-- 3. PREMIUM INVOICE CARD (DARK MODE) --}}
                 <div class="bg-zinc-950 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden text-white border border-white/5">
                     {{-- Blue Light Flare --}}
                     <div class="absolute -top-20 -right-20 w-64 h-64 bg-blue-600/30 rounded-full blur-[80px]"></div>
                     <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-600/20 rounded-full blur-[60px]"></div>
-                    
+
                     <div class="relative z-10">
                         <div class="flex items-center gap-3 mb-10 opacity-60">
                             <i class="fas fa-file-invoice-dollar"></i>
                             <h3 class="text-[10px] font-black uppercase tracking-[0.3em]">Billing Summary</h3>
                         </div>
-                        
+
                         <div class="space-y-5 mb-10">
                             <div class="flex justify-between items-center text-sm">
                                 <span class="text-zinc-500 font-medium tracking-wide">Produk Subtotal</span>
@@ -213,7 +214,7 @@
 
                         @if($order->status_pembayaran == 'pending')
                             <button id="pay-button" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-[1.5rem] transition-all duration-500 shadow-glow flex items-center justify-center gap-3 group active:scale-95">
-                                <i class="fas fa-shield-check text-blue-200 group-hover:scale-110 transition-transform"></i> 
+                                <i class="fas fa-shield-check text-blue-200 group-hover:scale-110 transition-transform"></i>
                                 Selesaikan Pembayaran
                             </button>
                             <p class="text-[10px] text-zinc-500 text-center mt-6 leading-relaxed font-medium">
@@ -241,7 +242,7 @@
                     <h3 class="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
                         <i class="fas fa-user-gear text-blue-600"></i> Informasi Pengiriman
                     </h3>
-                    
+
                     <div class="space-y-6">
                         <div class="flex items-center gap-5">
                             <div class="w-14 h-14 rounded-2xl bg-zinc-50 flex items-center justify-center text-zinc-400 border border-zinc-100 shrink-0">
@@ -253,7 +254,7 @@
                                 <p class="text-[11px] font-bold text-zinc-500 mt-0.5">{{ $order->shipping_telepon_penerima }}</p>
                             </div>
                         </div>
-                        
+
                         <div class="bg-zinc-50 rounded-[2rem] p-6 border border-zinc-100">
                             <div class="flex items-center gap-2 mb-3">
                                 <i class="fas fa-location-dot text-blue-600 text-[10px]"></i>
@@ -275,7 +276,7 @@
                 <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2.5rem] p-8 text-white shadow-glow relative overflow-hidden group cursor-pointer active:scale-95 transition-all">
                     {{-- Texture --}}
                     <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.1] pointer-events-none"></div>
-                    
+
                     <div class="relative z-10 flex flex-col gap-6">
                         <div class="flex items-center justify-between">
                             <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">

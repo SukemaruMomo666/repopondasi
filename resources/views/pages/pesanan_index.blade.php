@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen Pesanan - Pondasikita</title>
-    
+            {{-- Tambahkan baris ini --}}
+    @include('partials.chat')
     {{-- Tailwind CSS CDN + Config Dewa --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -28,11 +29,11 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f4f4f5; }
         .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); }
-        
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f4f4f5; }
@@ -53,7 +54,7 @@
                 <h1 class="text-3xl lg:text-4xl font-black text-black tracking-tight">Pesanan Saya</h1>
                 <p class="text-sm font-medium text-zinc-500 mt-2">Pantau status pengadaan material dan riwayat transaksi proyek Anda.</p>
             </div>
-            
+
             {{-- Mini Stats (Membuat user merasa progresif) --}}
             <div class="flex items-center gap-3">
                 <div class="bg-white border border-zinc-200 px-5 py-3 rounded-2xl shadow-soft">
@@ -120,7 +121,7 @@
                                     <h6 class="font-black text-black tracking-tight leading-none uppercase">{{ $row->kode_invoice }}</h6>
                                 </div>
                             </div>
-                            
+
                             <div class="flex items-center gap-3">
                                 <span class="text-[10px] font-bold text-zinc-400 hidden sm:block">STATUS AKHIR:</span>
                                 <div class="px-4 py-1.5 rounded-full border {{ $cfg['color'] }} text-[10px] font-black tracking-widest uppercase flex items-center gap-2 shadow-sm">
@@ -132,7 +133,7 @@
 
                         {{-- Card Body --}}
                         <div class="px-6 sm:px-10 py-8 flex flex-col md:flex-row md:items-center justify-between gap-8">
-                            
+
                             {{-- Info Utama --}}
                             <div class="flex items-center gap-8">
                                 {{-- Date --}}
@@ -163,7 +164,7 @@
                                 <a href="{{ route('pesanan.lacak', $row->kode_invoice) }}" class="flex-1 md:flex-none bg-zinc-900 hover:bg-blue-600 text-white font-black py-3.5 px-8 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-blue-500/40 text-xs flex items-center justify-center gap-3 group/btn">
                                     Track & Manage <i class="fas fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
                                 </a>
-                                
+
                                 {{-- Opsional: Tombol Hubungi CS (Hanya muncul jika butuh bantuan) --}}
                                 <button onclick="alert('Menghubungkan ke POTA Support...')" class="w-12 h-12 rounded-2xl bg-zinc-100 text-zinc-400 hover:bg-zinc-200 hover:text-black transition-all flex items-center justify-center border border-zinc-200">
                                     <i class="fas fa-headset text-sm"></i>

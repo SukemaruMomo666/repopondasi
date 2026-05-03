@@ -405,6 +405,8 @@
         </main>
     </div>
 
+    {{-- Tambahkan baris ini --}}
+    @include('partials.chat')
     @include('partials.footer')
 
     @include('partials.chat')
