@@ -182,8 +182,8 @@
                                             </button>
                                         </form>
                                     @else
-                                        {{-- Dummy Link untuk Rincian --}}
-                                        <a href="#" class="w-full flex items-center justify-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 text-sm font-bold rounded-xl px-3 py-2.5 transition-colors">
+                                        {{-- Ganti $item dengan variabel yang ada di @foreach Bos, biasanya $item atau $pesanan --}}
+                                        <a href="{{ route('seller.orders.show', $item->kode_invoice) }}" class="...">
                                             <i class="mdi mdi-file-find-outline text-lg leading-none"></i> Lihat Rincian
                                         </a>
                                     @endif

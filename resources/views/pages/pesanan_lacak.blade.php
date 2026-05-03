@@ -296,6 +296,8 @@
 
     @include('partials.footer')
 
+    @include('partials.chat')
+
     {{-- MIDTRANS SCRIPTS --}}
     <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ $clientKey }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

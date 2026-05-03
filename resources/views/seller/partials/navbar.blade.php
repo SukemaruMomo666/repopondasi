@@ -24,10 +24,10 @@
             <span class="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border border-slate-900"></span>
         </button>
 
-        {{-- Ikon Pesan (Email) --}}
+        <!-- {{-- Ikon Pesan (Email) --}}
         <button class="relative p-2.5 text-slate-400 rounded-xl hover:bg-slate-800 hover:text-white transition-all group focus:outline-none">
             <i class="mdi mdi-email-outline text-xl group-hover:scale-110 transition-transform"></i>
-        </button>
+        </button> -->
 
         {{-- Garis Pemisah --}}
         <div class="w-px h-6 bg-slate-800 mx-1 sm:mx-2"></div>

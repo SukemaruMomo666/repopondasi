@@ -157,7 +157,8 @@
                                     @endif
 
                                     <form action="{{ route('seller.promotion.vouchers.destroy', $vch->id) }}" method="POST" class="m-0 form-delete">
-                                        @csrf @method('DELETE')
+                                        @csrf 
+                                        @method('DELETE')
                                         <button type="button" class="text-slate-400 hover:text-red-500 transition-transform hover:scale-110 btn-delete-confirm" title="Hapus Permanen">
                                             <i class="mdi mdi-trash-can-outline text-xl leading-none"></i>
                                         </button>
@@ -166,7 +167,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr>
+                        <tr>    
                             <td colspan="6" class="py-16 text-center">
                                 <div class="flex flex-col items-center justify-center opacity-60">
                                     <i class="mdi mdi-ticket-outline text-6xl text-slate-300 mb-4"></i>

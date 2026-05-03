@@ -125,6 +125,8 @@ Route::middleware(['auth', 'role:seller'])->prefix('seller')->name('seller.')->g
         Route::post('/mass-update', [SellerController::class, 'massUpdateOrderStatus'])->name('massUpdate');
         Route::get('/return', [SellerController::class, 'pengembalian'])->name('return');
         Route::post('/return/process', [SellerController::class, 'processPengembalian'])->name('return.process');
+        // Ubah rutenya menjadi seperti ini:
+        Route::get('/{invoice}/detail', [SellerController::class, 'detailPesanan'])->name('show');
     });
 
     // Shipping Settings
@@ -200,9 +202,9 @@ Route::middleware(['auth', 'role:seller'])->prefix('seller')->name('seller.')->g
         Route::get('/api/products', [SellerController::class, 'getPosProducts'])->name('api.products');
         Route::get('/api/categories', [SellerController::class, 'getPosCategories'])->name('api.categories');
         Route::post('/api/checkout', [SellerController::class, 'processPosCheckout'])->name('api.checkout');
+        Route::get('/print/{invoice}', [SellerController::class, 'printStruk'])->name('print');
     });
 });
-
 // 5. ADMIN PANEL (ENTRANCE)
 Route::get('/kunci-brankas-pks', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
 Route::post('/kunci-brankas-pks', [AdminAuthController::class, 'login'])->name('admin.login.submit');

@@ -6,18 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
-        Schema::table('tokos', function (Blueprint $table) {
-            // Kolom ini akan menyimpan semua data dekorasi (banner, urutan, dll)
-            $table->json('layout_data')->nullable()->after('deskripsi');
-        });
+    	Schema::table('tb_toko', function (Blueprint $table) {
+        // biarkan isi di dalamnya tetap sama
+   	 });
     }
 
-    public function down()
+    public function down(): void
     {
-        Schema::table('tokos', function (Blueprint $table) {
-            $table->dropColumn('layout_data');
-        });
+    	Schema::table('tb_toko', function (Blueprint $table) {
+        // biarkan isi di dalamnya tetap sama
+    	});
     }
 };

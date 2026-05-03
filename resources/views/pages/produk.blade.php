@@ -406,6 +406,9 @@
     </div>
 
     @include('partials.footer')
+
+    @include('partials.chat')
+    
     <script src="{{ asset('assets/js/navbar.js') }}"></script>
 
     {{-- LOGIKA INTERAKSI (Termasuk Accordion & Mobile Sidebar) --}}

@@ -146,16 +146,18 @@
                         </div>
                     </div>
 
-                    <form id="formSendMessage" class="p-4 pt-3 flex items-end gap-3">
+                    {{-- PERBAIKAN 1: Tag <form> diubah menjadi <div> agar tidak memicu reload browser --}}
+                    <div id="formSendMessage" class="p-4 pt-3 flex items-end gap-3">
                         @csrf
                         <input type="hidden" id="activeChatId">
 
                         <textarea id="inputMessage" class="flex-1 bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-xl px-4 py-3 min-h-[44px] max-h-[120px] resize-none focus:bg-white focus:ring-2 focus:ring-blue-600 outline-none transition-all placeholder-slate-400 chat-scrollbar" placeholder="Ketik balasan Anda..."></textarea>
 
-                        <button type="submit" id="btnSendMsg" class="w-11 h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors shadow-sm shadow-blue-600/20 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed outline-none">
+                        {{-- PERBAIKAN 2: type="submit" diubah menjadi type="button" --}}
+                        <button type="button" id="btnSendMsg" class="w-11 h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors shadow-sm shadow-blue-600/20 flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed outline-none">
                             <i class="mdi mdi-send text-lg leading-none"></i>
                         </button>
-                    </form>
+                    </div>
                 </div>
 
             </div>
@@ -228,15 +230,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 300);
     }
 
-    // Mencegah enter mengirim form langsung, shift+enter untuk baris baru
+    // PERBAIKAN 3: Mencegah enter me-reload halaman, langsung triger klik tombol
     msgInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            document.getElementById('formSendMessage').dispatchEvent(new Event('submit'));
+            document.getElementById('btnSendMsg').click(); 
         }
     });
 
-    document.getElementById('formSendMessage').addEventListener('submit', function(e) {
+    // PERBAIKAN 4: Ganti pembaca 'submit' menjadi pembaca 'click' pada tombol kirim
+    document.getElementById('btnSendMsg').addEventListener('click', function(e) {
         e.preventDefault();
         const text = msgInput.value.trim();
 
@@ -398,7 +401,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if(!type || type === 'text') {
             innerHTML = content;
         } else if (type === 'image') {
-            // Tambahkan onclick="openLightbox(...)" dan cursor-pointer
             innerHTML = `<div class="p-1"><img src="${content}" onclick="openLightbox('${content}')" class="max-w-[200px] md:max-w-[250px] rounded-xl object-cover hover:opacity-90 transition-opacity cursor-pointer shadow-sm"></div>`;
         } else if (type === 'file') {
             innerHTML = `
@@ -532,7 +534,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetch("{{ route('seller.service.chat.send') }}", {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json', 
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value 
+            },
             body: JSON.stringify(payload)
         })
         .then(async res => {

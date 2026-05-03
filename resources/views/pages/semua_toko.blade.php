@@ -229,6 +229,9 @@
 
     {{-- Include Footer --}}
     @include('partials.footer')
+
+    @include('partials.chat')
+    
     <script src="{{ asset('assets/js/navbar.js') }}"></script>
 </body>
 </html>

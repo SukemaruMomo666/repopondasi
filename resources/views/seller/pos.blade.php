@@ -240,10 +240,20 @@
         </div>
 
         <div class="customer-box">
-            <div class="customer-input-wrapper">
-                <i class="fas fa-user customer-icon"></i>
-                <input type="text" id="customer-name" class="customer-input" placeholder="Nama Pelanggan (Opsional)">
+            {{-- 1. Menampilkan Nama Toko (Readonly / Tidak bisa diedit) --}}
+            <div class="customer-input-wrapper" style="margin-bottom: 12px; opacity: 0.7;" title="Toko Anda">
+                <i class="fas fa-store customer-icon"></i>
+                <input type="text" class="customer-input" value="{{ $tokoPos->nama_toko ?? 'Pondasikita Enterprise' }}" readonly>
             </div>
+            
+            {{-- 2. Menampilkan Nama Kasir (Bisa diedit oleh kasir shift lain) --}}
+            <div class="customer-input-wrapper" title="Ketik nama kasir yang bertugas">
+                <i class="fas fa-user-tie customer-icon"></i>
+                <input type="text" id="kasir-name" class="customer-input" value="{{ auth()->user()->nama ?? auth()->user()->username }}" placeholder="Nama Kasir">
+            </div>
+
+            {{-- 3. Input Tersembunyi: KUNCI UTAMA VALIDASI DATABASE --}}
+            <input type="hidden" id="pos-user-id" value="{{ auth()->id() }}">
         </div>
 
         <div class="cart-body" id="cart-items">
@@ -472,7 +482,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if(change < 0) {
-            changeDisplay.innerText = "UANG KURANG";
+            changeDisplay.innerText = "UANG KURANG!!!!";
             changeDisplay.className = "change-value font-digital error";
         } else {
             changeDisplay.innerText = "Rp " + formatRp(change);
@@ -482,17 +492,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('process-payment-btn').addEventListener('click', function() {
         let paid = parseInt(amountInput.value) || 0;
-        if(paid < currentTotal) { Swal.fire({icon: 'error', title: 'Uang Tidak Cukup', text: 'Jumlah uang tunai kurang.'}); return; }
+        if(paid < currentTotal) { 
+            Swal.fire({icon: 'error', title: 'Uang Tidak Cukup', text: 'Jumlah uang tunai kurang.'}); 
+            return; 
+        }
 
         this.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> MEMPROSES...';
         this.disabled = true;
 
         fetch("{{ route('seller.pos.api.checkout') }}", {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json' // Tambahkan ini agar Laravel mengembalikan JSON jika error
+            },
             body: JSON.stringify({
-                customer_name: document.getElementById('customer-name').value || 'Pelanggan Walk-in',
+                user_id: document.getElementById('pos-user-id').value, // Kirim ID ke backend
+                kasir_name: document.getElementById('kasir-name').value || 'Kasir', // Kirim Nama Kasir
                 payment_method: 'Tunai Kasir',
+                amount_paid: paid,
                 total: currentTotal,
                 cart: cart
             })
@@ -501,18 +520,48 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if(data.status === 'success') {
                 Swal.fire({
-                    title: 'LUNAS!',
-                    html: `<div style="background:#f4f4f5; padding:15px; border-radius:12px; margin:15px 0;">
+                    title: 'TRANSAKSI BERHASIL!',
+                    html: `
+                        <div style="background:#f4f4f5; padding:15px; border-radius:12px; margin:15px 0;">
                             <span style="font-size:10px; font-weight:900; color:#71717a;">KEMBALIAN</span>
                             <b style="font-size:32px; color:#2563eb; display:block; font-family:monospace;">Rp ${formatRp(paid - currentTotal)}</b>
-                           </div><span style="font-size:10px; color:#a1a1aa; font-weight:bold;">No. Struk: ${data.invoice}</span>`,
-                    icon: 'success', confirmButtonText: '<i class="fas fa-print"></i> Cetak & Selesai', confirmButtonColor: '#09090b', allowOutsideClick: false
-                }).then(() => {
-                    cart = []; amountInput.value = ''; document.getElementById('customer-name').value = '';
-                    updateCartDisplay(); loadProducts(); searchInput.focus(); resetBtn();
+                        </div>
+                        <span style="font-size:10px; color:#a1a1aa; font-weight:bold;">No. Struk: ${data.invoice}</span>
+                    `,
+                    icon: 'success',
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="fas fa-print"></i> Cetak Struk',
+                    cancelButtonText: 'Selesai',
+                    confirmButtonColor: '#2563eb',
+                    cancelButtonColor: '#09090b',
+                    allowOutsideClick: false
+                }).then((result) => {
+                    // JIKA KLIK CETAK STRUK
+                    if (result.isConfirmed) {
+                        // Ganti URL ini sesuai dengan route print struk Anda di backend
+                        window.open("{{ url('seller/pos/print') }}/" + data.invoice, '_blank');
+                    }
+                    
+                    // Reset POS
+                    cart = []; 
+                    amountInput.value = ''; 
+                    document.getElementById('customer-name').value = '';
+                    updateCartDisplay(); 
+                    loadProducts(); 
+                    searchInput.focus(); 
+                    resetBtn();
                 });
-            } else { Swal.fire('Error', data.message, 'error'); resetBtn(); }
-        }).catch(() => { Swal.fire('Offline', 'Periksa internet.', 'error'); resetBtn(); });
+            } else { 
+                // Menangani pesan error spesifik dari database yang dikirim Controller
+                Swal.fire('Gagal Simpan', data.message, 'error'); 
+                resetBtn(); 
+            }
+        })
+        .catch(err => { 
+            console.error(err);
+            Swal.fire('System Error', 'Pastikan Anda masih dalam keadaan Login.', 'error'); 
+            resetBtn(); 
+        });
 
         function resetBtn() {
             const btn = document.getElementById('process-payment-btn');

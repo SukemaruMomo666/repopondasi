@@ -188,16 +188,17 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     // 1. Setup Data dari Backend
-    const dataChart = {
-        bulan: {
-            labels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
-            data: [0, 0, 0, 0]
-        },
-        tahun: {
-            labels: {!! json_encode($labels_bulan ?? ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']) !!},
-            data: {!! json_encode(isset($penjualan_tahunan) ? array_values($penjualan_tahunan) : [0,0,0,0,0,0,0,0,0,0,0,0]) !!}
-        }
-    };
+    // Ganti bagian dataChart di Blade Anda dengan ini:
+const dataChart = {
+    bulan: {
+        labels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4'],
+        data: {!! json_encode($penjualan_mingguan) !!} // Sekarang Riil!
+    },
+    tahun: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
+        data: {!! json_encode($penjualan_tahunan) !!} // Riil!
+    }
+};
 
     const ctx = document.getElementById('penjualanChart').getContext('2d');
 
