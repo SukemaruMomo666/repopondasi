@@ -38,10 +38,10 @@
         // 1. Data Identitas Toko Dasar
         $bannerPath = 'assets/uploads/banners/' . ($toko->banner_toko ?? '');
         $bgBanner = (!empty($toko->banner_toko) && file_exists(public_path($bannerPath))) ? asset($bannerPath) : 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=2000&auto=format&fit=crop';
-        
+
         $logoPath = 'assets/uploads/logos/' . ($toko->logo_toko ?? '');
         $hasLogo = !empty($toko->logo_toko) && file_exists(public_path($logoPath));
-        
+
         $colors = ['#18181b', '#27272a', '#3f3f46', '#09090b', '#1e3a8a'];
         $storeColor = $colors[crc32($toko->nama_toko) % count($colors)];
         $acronym = ""; foreach (explode(" ", $toko->nama_toko) as $w) { $acronym .= mb_substr($w, 0, 1); }
@@ -49,7 +49,7 @@
 
         // 2. Decode Dekorasi JSON dari Database
         $dekorasi = !empty($toko->dekorasi_desktop) ? json_decode($toko->dekorasi_desktop) : null;
-        
+
         // Cek apakah pakai header kustom dari Editor
         if ($dekorasi && isset($dekorasi->header) && $dekorasi->header !== 'Custom Image' && str_starts_with($dekorasi->header, 'bg-')) {
             $headerColorClass = $dekorasi->header;
@@ -97,7 +97,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     {{-- Aksi --}}
                     <div class="flex flex-col items-center md:items-end w-full md:w-auto mt-4 md:mt-6 gap-4">
                         <div class="flex items-center gap-3 w-full sm:w-auto">
@@ -128,7 +128,7 @@
 
                     {{-- 1. RENDER BANNER --}}
                     @if($item->type === 'banner')
-                        @php 
+                        @php
                             $aspectClass = 'aspect-[4/1]';
                             if(isset($config->ratio) && $config->ratio == '16:9') $aspectClass = 'aspect-video';
                             elseif(isset($config->ratio) && $config->ratio == '3:1') $aspectClass = 'aspect-[3/1]';
@@ -221,7 +221,7 @@
                                         $pId = is_object($prod) ? $prod->id : ($prod->id ?? '#');
                                         $pName = is_object($prod) && isset($prod->nama_barang) ? $prod->nama_barang : ($prod->name ?? 'Produk');
                                         $pPrice = is_object($prod) && isset($prod->harga) ? 'Rp'.number_format($prod->harga,0,',','.') : ($prod->price ?? '0');
-                                        
+
                                         $pImg = 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400';
                                         if(is_object($prod) && !empty($prod->gambar_utama)) $pImg = asset('assets/uploads/products/'.$prod->gambar_utama);
                                         elseif(is_object($prod) && isset($prod->img)) $pImg = $prod->img;
@@ -285,7 +285,8 @@
         @endif
 
     </main>
-
+        {{-- Tambahkan baris ini --}}
+    @include('partials.chat')
     @include('partials.footer')
     <script src="{{ asset('assets/js/navbar.js') }}"></script>
 </body>

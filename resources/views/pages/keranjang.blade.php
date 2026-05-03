@@ -79,13 +79,13 @@
         @if(isset($is_guest) && $is_guest)
             <div class="bg-white rounded-[2.5rem] shadow-sm border border-zinc-100 p-12 text-center animate-fade-in-up flex flex-col items-center justify-center min-h-[500px] relative overflow-hidden">
                 <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-[0.03]"></div>
-                
+
                 <div class="w-24 h-24 bg-zinc-50 border border-zinc-100 rounded-[2rem] flex items-center justify-center mb-8 relative z-10 shadow-inner">
                     <i class="fas fa-lock text-4xl text-zinc-300"></i>
                 </div>
                 <h2 class="text-3xl font-black text-zinc-900 tracking-tight mb-3 relative z-10">Akses Dibatasi</h2>
                 <p class="text-zinc-500 font-medium max-w-md mb-10 relative z-10">Anda harus masuk ke akun B2B Anda terlebih dahulu untuk melihat dan mengelola keranjang belanja.</p>
-                
+
                 <a href="{{ route('login') }}" class="group relative bg-zinc-950 hover:bg-blue-600 text-white font-black py-4 px-10 rounded-2xl transition-all duration-500 shadow-xl hover:shadow-blue-500/25 hover:-translate-y-1 overflow-hidden z-10">
                     <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer"></div>
                     <span class="relative">Masuk ke Akun <i class="fas fa-arrow-right ml-2 text-xs"></i></span>
@@ -104,7 +104,7 @@
                 </div>
                 <h2 class="text-3xl font-black text-zinc-900 tracking-tight mb-3 relative z-10">Keranjang Masih Kosong</h2>
                 <p class="text-zinc-500 font-medium max-w-md mb-10 relative z-10">Mulai eksplorasi ribuan material terbaik untuk membangun proyek impian Anda.</p>
-                
+
                 <a href="{{ route('produk.index') }}" class="group relative bg-blue-600 text-white font-black py-4 px-10 rounded-2xl transition-all duration-500 shadow-xl hover:shadow-blue-500/30 hover:-translate-y-1 overflow-hidden z-10">
                     <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer"></div>
                     <span class="relative">Mulai Belanja <i class="fas fa-arrow-right ml-2 text-xs"></i></span>
@@ -269,7 +269,8 @@
             </button>
         </div>
     @endif
-
+    {{-- Tambahkan baris ini --}}
+    @include('partials.chat')
     @include('partials.footer')
 
     <script src="{{ asset('assets/js/navbar.js') }}"></script>
@@ -336,7 +337,7 @@
 
             if(elements.count) elements.count.innerText = totalBarang;
             if(elements.price) elements.price.innerText = formattedTotal;
-            
+
             // Animasi scale untuk total harga desktop
             if(elements.total) {
                 elements.total.style.transform = 'scale(0.95)';
@@ -345,7 +346,7 @@
                     elements.total.style.transform = 'scale(1)';
                 }, 50);
             }
-            
+
             if(elements.input) elements.input.value = selectedIds.join(',');
             if(elements.totalMobile) elements.totalMobile.innerText = formattedTotal;
 
@@ -380,11 +381,11 @@
 
                 if (res.ok) {
                     input.value = newQty;
-                    checkbox.setAttribute('data-qty', newQty); 
-                    
+                    checkbox.setAttribute('data-qty', newQty);
+
                     input.style.transform = 'scale(1.2)';
                     setTimeout(() => input.style.transform = 'scale(1)', 150);
-                    calculateTotal(); 
+                    calculateTotal();
                 } else {
                     input.value = currentQty;
                     Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal memperbarui jumlah', customClass: { popup: 'rounded-3xl' }});
@@ -426,7 +427,7 @@
 
                             setTimeout(() => {
                                 row.remove();
-                                calculateTotal(); 
+                                calculateTotal();
 
                                 if(document.querySelectorAll('.js-item-checkbox').length === 0) {
                                     window.location.reload();
@@ -452,4 +453,4 @@
         }
     </script>
 </body>
-</html> 
+</html>

@@ -227,6 +227,8 @@
 
     </div>
 
+        {{-- Tambahkan baris ini --}}
+    @include('partials.chat')
     {{-- Include Footer --}}
     @include('partials.footer')
     <script src="{{ asset('assets/js/navbar.js') }}"></script>

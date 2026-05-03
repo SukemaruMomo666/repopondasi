@@ -405,6 +405,8 @@
         </main>
     </div>
 
+    {{-- Tambahkan baris ini --}}
+    @include('partials.chat')
     @include('partials.footer')
     <script src="{{ asset('assets/js/navbar.js') }}"></script>
 
