@@ -200,9 +200,16 @@ Route::get('/dana/sandbox/payment', function (\Illuminate\Http\Request $request)
 Route::post('/dana/sandbox/pay', function (\Illuminate\Http\Request $request) {
     $orderId = $request->input('orderId');
     if ($orderId) {
-        \Illuminate\Support\Facades\DB::table('tb_transaksi')
-            ->where('kode_invoice', $orderId)
-            ->update(['status_pembayaran' => 'Lunas', 'status_pesanan_global' => 'diproses']);
+        $transaksi = \Illuminate\Support\Facades\DB::table('tb_transaksi')->where('kode_invoice', $orderId)->first();
+        if ($transaksi) {
+            \Illuminate\Support\Facades\DB::table('tb_transaksi')
+                ->where('id', $transaksi->id)
+                ->update(['status_pembayaran' => 'paid', 'status_pesanan_global' => 'diproses']);
+                
+            \Illuminate\Support\Facades\DB::table('tb_detail_transaksi')
+                ->where('transaksi_id', $transaksi->id)
+                ->update(['status_pesanan_item' => 'diproses']);
+        }
     }
     return redirect('/pesanan')->with('success', 'Pembayaran Simulasi Berhasil!');
 });
