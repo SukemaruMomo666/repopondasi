@@ -46,7 +46,7 @@ class DanaApiService
 
     public function createOrder($orderId, $amount, $title, $returnUrl)
     {
-        $uri = '/v3/acquiring/order/create';
+        $uri = '/v3/acquiring/order/create.htm';
         $timestamp = date('c');
         
         $payload = json_encode([
