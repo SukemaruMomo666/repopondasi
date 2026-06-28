@@ -191,7 +191,7 @@
                         </li>
                     @elseif(Auth::user()->level === 'seller')
                         <li class="mt-6 pt-6 border-t border-zinc-800">
-                            <a href="{{ route('seller.dashboard') }}" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-black font-bold bg-gradient-to-r from-white to-zinc-200 hover:from-white hover:to-white transition-all shadow-[0_10px_20px_rgba(255,255,255,0.1)] group">
+                            <a href="https://seller.pondasikita.com/seller/dashboard" class="flex items-center gap-4 px-4 py-3.5 rounded-2xl text-black font-bold bg-gradient-to-r from-white to-zinc-200 hover:from-white hover:to-white transition-all shadow-[0_10px_20px_rgba(255,255,255,0.1)] group">
                                 <div class="w-9 h-9 rounded-xl bg-black text-white flex items-center justify-center">
                                     <i class="fas fa-store group-hover:scale-110 transition-transform"></i>
                                 </div>
