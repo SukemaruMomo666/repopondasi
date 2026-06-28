@@ -144,12 +144,13 @@ Route::middleware(['auth'])->group(function () {
 
 // Webhook Midtrans (Payment Gateway) - Pengecualian CSRF Token
 Route::post('/webhook/midtrans', [WebhookController::class, 'midtransHandler'])
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
-
-Route::post('/api/dana/webhook', [WebhookController::class, 'danaHandler'])
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
     ->name('webhook.midtrans');
+
+// Webhook DANA
+Route::post('/api/dana/webhook', [WebhookController::class, 'danaHandler'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('webhook.dana');
 
 // 7. EXTERNAL & UTILS
 Route::get('/auth/google', [\App\Http\Controllers\AuthController::class, 'redirectToGoogle'])->name('google.login');
