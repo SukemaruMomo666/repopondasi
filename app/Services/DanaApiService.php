@@ -26,7 +26,7 @@ class DanaApiService
         
         $this->baseUrl = $this->env === 'production' 
             ? 'https://api.dana.id' 
-            : 'https://api-sandbox.dana.id';
+            : 'https://api.sandbox.dana.id';
     }
 
     public function generateSignature($method, $uri, $timestamp, $body = '')
