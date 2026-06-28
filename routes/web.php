@@ -202,7 +202,7 @@ Route::post('/dana/sandbox/pay', function (\Illuminate\Http\Request $request) {
     if ($orderId) {
         \Illuminate\Support\Facades\DB::table('tb_transaksi')
             ->where('kode_invoice', $orderId)
-            ->update(['status_pembayaran' => 'Lunas', 'status' => 'Lunas']);
+            ->update(['status_pembayaran' => 'Lunas', 'status_pesanan_global' => 'diproses']);
     }
     return redirect('/pesanan')->with('success', 'Pembayaran Simulasi Berhasil!');
 });
