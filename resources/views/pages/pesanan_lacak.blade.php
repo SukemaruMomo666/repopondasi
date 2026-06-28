@@ -570,6 +570,7 @@
                 });
             };
         }
+    </script>
 
     {{-- FITUR DEWA: MODAL ULASAN PRODUK --}}
     <div id="modalReview" class="fixed inset-0 z-[100] hidden overflow-y-auto">
