@@ -806,26 +806,27 @@ class PageController extends Controller
                 DB::table('tb_keranjang')->where('user_id', $user->id)->whereIn('id', $selectedIds)->delete();
             }
 
-            // 7. MIDTRANS GATEWAY
-            $settings = DB::table('tb_pengaturan')->whereIn('setting_nama', ['midtrans_server_key', 'midtrans_is_production'])->pluck('setting_nilai', 'setting_nama');
-            \Midtrans\Config::$serverKey = $settings['midtrans_server_key'] ?? '';
-            \Midtrans\Config::$isProduction = ($settings['midtrans_is_production'] ?? '0') == '1';
-            \Midtrans\Config::$isSanitized = true; 
-            \Midtrans\Config::$is3ds = true;
+            // 7. DANA GATEWAY (NATIVE API)
+            $danaService = new \App\Services\DanaApiService();
+            $returnUrl = url('/checkout-success?order_id=' . $orderId); 
+            
+            $danaResult = $danaService->createOrder($orderId, $midtransGrossAmount, 'Pesanan ' . $orderId, $returnUrl);
 
-            $snapToken = \Midtrans\Snap::getSnapToken([
-                'transaction_details' => ['order_id' => $orderId, 'gross_amount' => (int) $midtransGrossAmount],
-                'customer_details' => [
-                    'first_name' => $request->input('shipping_nama_penerima') ?? $user->nama,
-                    'email'      => $user->email,
-                    'phone'      => $request->input('shipping_telepon_penerima') ?? $user->no_telepon,
-                ]
-            ]);
+            if (!$danaResult['success']) {
+                throw new \Exception($danaResult['message'] ?? 'Gagal menghubungi DANA API');
+            }
 
-            DB::table('tb_transaksi')->where('id', $transaksiId)->update(['snap_token' => $snapToken]);
+            $checkoutUrl = $danaResult['checkout_url'];
+
+            // Gunakan kolom snap_token untuk menyimpan URL pembayaran DANA sementara waktu
+            DB::table('tb_transaksi')->where('id', $transaksiId)->update(['snap_token' => $checkoutUrl]);
 
             DB::commit();
-            return response()->json(['status' => 'success', 'kode_invoice' => $orderId]);
+            return response()->json([
+                'status' => 'success', 
+                'kode_invoice' => $orderId,
+                'checkout_url' => $checkoutUrl
+            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();

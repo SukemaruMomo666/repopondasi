@@ -112,6 +112,104 @@ class WebhookController extends Controller
     }
 
 
+
+
+    /**
+     * Handler untuk DANA Native API
+     */
+    public function danaHandler(Request $request)
+    {
+        $danaService = new \App\Services\DanaApiService();
+        
+        $signature = $request->header('X-DANA-Signature');
+        $timestamp = $request->header('X-DANA-Timestamp');
+        $payload = $request->getContent();
+
+        if (!$danaService->verifySignature($payload, $signature, $timestamp)) {
+            Log::warning('DANA HACK ATTEMPT / INVALID SIGNATURE');
+            return response()->json(['success' => false, 'message' => 'Invalid Signature'], 403);
+        }
+
+        $data = json_decode($payload, true);
+        $orderId = $data['request']['body']['merchantTransId'] ?? null;
+        $status = $data['request']['body']['status'] ?? null;
+
+        if (!$orderId) {
+            return response()->json(['success' => false, 'message' => 'Invalid format'], 400);
+        }
+
+        $transaksi = DB::table('tb_transaksi')->where('kode_invoice', $orderId)->first();
+        if (!$transaksi) {
+            return response()->json(['success' => false, 'message' => 'Order not found'], 404);
+        }
+
+        if (in_array($transaksi->status_pembayaran, ['paid', 'failed'])) {
+            return response()->json(['success' => true, 'message' => 'Already processed']);
+        }
+
+        DB::beginTransaction();
+        try {
+            if ($status === 'SUCCESS' || $status === 'PAID') {
+                DB::table('tb_transaksi')->where('id', $transaksi->id)->update([
+                    'status_pembayaran' => 'paid',
+                    'status_pesanan_global' => 'diproses',
+                    'updated_at' => now()
+                ]);
+                
+                DB::table('tb_detail_transaksi')->where('transaksi_id', $transaksi->id)->update([
+                    'status_pesanan_item' => 'diproses'
+                ]);
+
+                $items = DB::table('tb_detail_transaksi')->where('transaksi_id', $transaksi->id)->get();
+                foreach ($items as $item) {
+                    DB::table('tb_barang')
+                        ->where('id', $item->barang_id)
+                        ->decrement('stok', $item->jumlah);
+                }
+
+                if ($transaksi->tipe_pengambilan === 'kurir') {
+                    $this->panggilKurirBiteshipOtomatis($transaksi, $items);
+                }
+            } else if (in_array($status, ['FAILED', 'CLOSED', 'EXPIRED'])) {
+                DB::table('tb_transaksi')->where('id', $transaksi->id)->update([
+                    'status_pembayaran' => 'failed',
+                    'status_pesanan_global' => 'dibatalkan',
+                    'updated_at' => now()
+                ]);
+                DB::table('tb_detail_transaksi')->where('transaksi_id', $transaksi->id)->update([
+                    'status_pesanan_item' => 'dibatalkan'
+                ]);
+            }
+
+            DB::commit();
+            Log::info('DANA PAYMENT SUCCESS: Invoice ' . $orderId);
+            
+            return response()->json([
+                'response' => [
+                    'head' => [
+                        'version' => '3.0',
+                        'function' => 'dana.acquiring.order.finish.notify',
+                        'clientId' => config('services.dana.client_id'),
+                        'respTime' => date('c'),
+                        'reqMsgId' => $data['request']['head']['reqMsgId'] ?? ''
+                    ],
+                    'body' => [
+                        'resultInfo' => [
+                            'resultStatus' => 'S',
+                            'resultCodeId' => '00000000',
+                            'resultMsg' => 'Success',
+                        ]
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('DANA WEBHOOK ERROR: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Internal error'], 500);
+        }
+    }
+
     /**
      * PRIVATE FUNCTION: Memanggil Kurir dari Biteship Secara Otomatis
      */

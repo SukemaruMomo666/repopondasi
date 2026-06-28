@@ -1068,11 +1068,11 @@
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    const invoiceUrl = "{{ url('/pesanan') }}/" + result.kode_invoice; 
+                    const redirectUrl = result.checkout_url ? result.checkout_url : "{{ url('/pesanan') }}/" + result.kode_invoice; 
                     Swal.fire({
                         icon: 'success', title: 'Pesanan Dibuat!', text: 'Mengarahkan ke pembayaran...',
                         showConfirmButton: false, timer: 1500
-                    }).then(() => { window.location.href = invoiceUrl; });
+                    }).then(() => { window.location.href = redirectUrl; });
                 } else {
                     Swal.fire({ icon: 'error', title: 'Gagal', text: result.message });
                     setCheckoutButtonsState(true);

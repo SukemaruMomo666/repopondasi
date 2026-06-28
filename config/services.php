@@ -42,4 +42,13 @@ return [
         ],
     ],
 
+    'dana' => [
+        'client_id'     => env('DANA_CLIENT_ID', ''),
+        'client_secret' => env('DANA_CLIENT_SECRET', ''),
+        'merchant_id'   => env('DANA_MERCHANT_ID', ''),
+        'private_key'   => env('DANA_PRIVATE_KEY', ''),
+        'public_key'    => env('DANA_PUBLIC_KEY', ''),
+        'env'           => env('DANA_ENV', 'sandbox'), // sandbox or production
+    ],
+
 ];
