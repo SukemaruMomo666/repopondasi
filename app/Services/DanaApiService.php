@@ -103,9 +103,16 @@ class DanaApiService
             'response' => $response->body()
         ]);
 
+        $errorDetail = 'Gagal membuat pesanan di DANA.';
+        if (isset($response['response']['body']['resultInfo']['resultMsg'])) {
+            $errorDetail .= ' (' . $response['response']['body']['resultInfo']['resultMsg'] . ')';
+        } else if (!$response->successful()) {
+            $errorDetail .= ' (HTTP ' . $response->status() . ')';
+        }
+
         return [
             'success' => false,
-            'message' => 'Gagal membuat pesanan di DANA.'
+            'message' => $errorDetail
         ];
     }
     
