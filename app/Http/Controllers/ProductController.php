@@ -173,11 +173,21 @@ class ProductController extends Controller
         $storeColor = $this->getStoreColor($product->nama_toko);
         $storeInitials = $this->getStoreInitials($product->nama_toko);
 
+        
+        // 6. Ambil Data Variasi
+        $variasi = DB::table('tb_barang_variasi')->where('barang_id', $product->id)->orderBy('urutan')->get();
+        foreach ($variasi as $v) {
+            $v->opsi = DB::table('tb_barang_variasi_opsi')->where('variasi_id', $v->id)->get();
+        }
+        
+        $skus = DB::table('tb_barang_sku')->where('barang_id', $product->id)->get();
+        
         return view('pages.produk.detail', compact(
             'product', 'gallery_images', 'related_products',
             'reviews', 'jumlah_ulasan', 'avg_rating',
-            'storeColor', 'storeInitials'
+            'storeColor', 'storeInitials', 'variasi', 'skus'
         ));
+
     }
 
 

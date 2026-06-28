@@ -143,6 +143,26 @@
                     </div>
                 </div>
 
+
+                    {{-- VARIASI PRODUK --}}
+                    @if(isset($variasi) && count($variasi) > 0)
+                        <div class="pt-6 border-t border-zinc-100 space-y-5" id="variasiSection">
+                            @foreach($variasi as $idx => $v)
+                                <div>
+                                    <h4 class="text-xs font-black text-zinc-900 uppercase tracking-widest mb-3">{{ $v->nama_variasi }}</h4>
+                                    <div class="flex flex-wrap gap-2 opsi-group" data-urutan="{{ $v->urutan }}">
+                                        @foreach($v->opsi as $opsi)
+                                            <button type="button" class="btn-opsi px-4 py-2 border-2 border-zinc-200 text-zinc-600 rounded-xl font-bold text-sm hover:border-brand-500 hover:text-brand-600 transition-all focus:outline-none" data-id="{{ $opsi->id }}" data-nama="{{ $opsi->nama_opsi }}">
+                                                {{ $opsi->nama_opsi }}
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                    <input type="hidden" id="selectedOpsi{{ $v->urutan }}" name="opsi_{{ $v->urutan }}_id" value="">
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
                 {{-- Specs Grid --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-white border border-zinc-100 p-6 rounded-[2rem] flex items-center gap-4 transition-all duration-300 hover:border-brand-200 hover:shadow-lg hover:shadow-brand-500/5 group">
@@ -268,7 +288,7 @@
                             </div>
                             <div class="text-right shrink-0">
                                 <p class="text-[8px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1">Sisa Stok</p>
-                                <p class="text-sm font-black text-zinc-900">{{ number_format($product->stok ?? 0) }} <span class="text-[9px] text-zinc-500">{{ $product->satuan_unit ?? 'Unit' }}</span></p>
+                                <p class="text-sm font-black text-zinc-900"><span id="stockDisplay">{{ number_format($product->stok ?? 0) }}</span> <span class="text-[9px] text-zinc-500">{{ $product->satuan_unit ?? 'Unit' }}</span></p>
                             </div>
                         </div>
 
@@ -361,9 +381,86 @@
         // 1. Variabel Core
         const basePrice = {{ $hargaFinal ?? $product->harga ?? 0 }};
         const maxStock = {{ $product->stok ?? 1 }};
+        window.currentPrice = basePrice;
+        window.currentStock = maxStock;
         const inputQty = document.getElementById('inputQty');
         const subtotalDisplay = document.getElementById('subtotalDisplay');
         const formKeranjang = document.getElementById('formTambahKeranjang');
+
+
+        const productSkus = {!! isset($skus) ? json_encode($skus) : '[]' !!};
+        let selectedSku = null;
+
+        // Variasi Logic
+        document.querySelectorAll('.opsi-group').forEach(group => {
+            const urutan = group.dataset.urutan;
+            const buttons = group.querySelectorAll('.btn-opsi');
+            
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all in this group
+                    buttons.forEach(b => {
+                        b.classList.remove('border-brand-600', 'bg-brand-50', 'text-brand-600', 'ring-2', 'ring-brand-200');
+                        b.classList.add('border-zinc-200', 'text-zinc-600');
+                    });
+                    
+                    // Add active class to clicked
+                    btn.classList.add('border-brand-600', 'bg-brand-50', 'text-brand-600', 'ring-2', 'ring-brand-200');
+                    btn.classList.remove('border-zinc-200', 'text-zinc-600');
+                    
+                    // Update hidden input
+                    document.getElementById('selectedOpsi' + urutan).value = btn.dataset.id;
+                    
+                    checkSku();
+                });
+            });
+        });
+
+        function checkSku() {
+            const inputOpsi1 = document.getElementById('selectedOpsi1');
+            const inputOpsi2 = document.getElementById('selectedOpsi2');
+            
+            let o1 = inputOpsi1 ? inputOpsi1.value : null;
+            let o2 = inputOpsi2 ? inputOpsi2.value : null;
+            
+            if(productSkus.length === 0) return;
+            
+            let foundSku = null;
+            if(inputOpsi1 && !inputOpsi2) {
+                if(!o1) return;
+                foundSku = productSkus.find(s => s.opsi_1_id == o1);
+            } else if(inputOpsi1 && inputOpsi2) {
+                if(!o1 || !o2) return;
+                foundSku = productSkus.find(s => s.opsi_1_id == o1 && s.opsi_2_id == o2);
+            }
+            
+            if(foundSku) {
+                selectedSku = foundSku;
+                
+                // Update Harga
+                document.getElementById('subtotalDisplay').innerText = formatRupiah(foundSku.harga);
+                
+                // Update basePrice if needed for Qty calculation
+                window.currentPrice = foundSku.harga;
+                document.getElementById('subtotalDisplay').innerText = formatRupiah(foundSku.harga * (parseInt(inputQty.value) || 1));
+                
+                // Update Max Stock
+                window.currentStock = foundSku.stok;
+                document.getElementById('stockDisplay').innerText = formatRupiah(foundSku.stok).replace('Rp', '');
+                
+                // Add sku_id to form
+                let inputSku = document.getElementById('selectedSkuId');
+                if(!inputSku) {
+                    inputSku = document.createElement('input');
+                    inputSku.type = 'hidden';
+                    inputSku.id = 'selectedSkuId';
+                    inputSku.name = 'sku_id';
+                    document.getElementById('formTambahKeranjang').appendChild(inputSku);
+                }
+                inputSku.value = foundSku.id;
+            }
+        }
+
 
         // 2. Format Rupiah
         function formatRupiah(angka) {
@@ -379,7 +476,7 @@
             subtotalDisplay.style.transform = 'scale(0.95)';
             
             setTimeout(() => {
-                subtotalDisplay.innerText = formatRupiah(basePrice * newVal);
+                subtotalDisplay.innerText = formatRupiah(window.currentPrice * newVal);
                 subtotalDisplay.style.opacity = '1';
                 subtotalDisplay.style.transform = 'scale(1)';
             }, 150);
@@ -391,9 +488,9 @@
             if (isNaN(currentVal)) currentVal = 1;
 
             let newVal = currentVal + change;
-            if (newVal >= 1 && newVal <= maxStock) {
+            if (newVal >= 1 && newVal <= window.currentStock) {
                 processSubtotalChange(newVal);
-            } else if (newVal > maxStock) {
+            } else if (newVal > window.currentStock) {
                 Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Stok tidak mencukupi!', showConfirmButton: false, timer: 2000 });
             }
         }
@@ -403,9 +500,9 @@
             let val = parseInt(this.value);
             if (isNaN(val) || val < 1) {
                 val = 1;
-            } else if (val > maxStock) {
+            } else if (val > window.currentStock) {
                 val = maxStock;
-                Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Maksimal stok ' + maxStock, showConfirmButton: false, timer: 2000 });
+                Swal.fire({ toast: true, position: 'top-end', icon: 'warning', title: 'Maksimal stok ' + window.currentStock, showConfirmButton: false, timer: 2000 });
             }
             processSubtotalChange(val);
         });
@@ -479,7 +576,13 @@
                     btnKeranjang.disabled = true;
 
                     try {
-                        const formData = new FormData(formKeranjang);
+                        
+                    if(productSkus.length > 0 && !selectedSku) {
+                        Swal.fire({ icon: 'warning', title: 'Pilih Variasi', text: 'Silakan pilih variasi produk terlebih dahulu.', customClass: { popup: 'rounded-3xl' } });
+                        return;
+                    }
+                    const formData = new FormData(formKeranjang);
+
                         const response = await fetch('{{ route('keranjang.tambah') }}', {
                             method: 'POST',
                             headers: {
@@ -517,7 +620,14 @@
                     @endguest
 
                     // Ambil value qty saat ini
+                    
+                    if(productSkus.length > 0 && !selectedSku) {
+                        Swal.fire({ icon: 'warning', title: 'Pilih Variasi', text: 'Silakan pilih variasi produk terlebih dahulu.', customClass: { popup: 'rounded-3xl' } });
+                        return;
+                    }
                     let qty = inputQty.value;
+                    let skuParam = selectedSku ? '&sku_id=' + selectedSku.id : '';
+
                     
                     // Redirect langsung ke URL Checkout dengan parameter
                     window.location.href = `{{ url('checkout') }}?product_id={{ $product->id }}&jumlah=${qty}`;

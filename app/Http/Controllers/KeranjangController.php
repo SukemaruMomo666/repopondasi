@@ -20,31 +20,47 @@ class KeranjangController extends Controller
 
         $request->validate([
             'barang_id' => 'required|integer',
-            'jumlah' => 'required|integer|min:1'
+            'jumlah' => 'required|integer|min:1',
+            'sku_id' => 'nullable|integer'
         ]);
 
         $userId = Auth::id();
         $barangId = $request->barang_id;
         $qtyBaru = $request->jumlah;
+        $skuId = $request->sku_id;
 
         // 1. Cek Stok Barang
         $barang = DB::table('tb_barang')->where('id', $barangId)->first();
+        $stokMax = $barang->stok;
+        
+        if ($skuId) {
+            $sku = DB::table('tb_barang_sku')->where('id', $skuId)->first();
+            if ($sku) {
+                $stokMax = $sku->stok;
+            }
+        }
 
-        if (!$barang || $barang->stok < $qtyBaru) {
+        if (!$barang || $stokMax < $qtyBaru) {
             return response()->json(['status' => 'error', 'message' => 'Stok tidak mencukupi.'], 400);
         }
 
         // 2. Cek apakah barang sudah ada di keranjang user ini
-        $keranjangLama = DB::table('tb_keranjang')
+        $query = DB::table('tb_keranjang')
             ->where('user_id', $userId)
-            ->where('barang_id', $barangId)
-            ->first();
+            ->where('barang_id', $barangId);
+        
+        if ($skuId) {
+            $query->where('sku_id', $skuId);
+        } else {
+            $query->whereNull('sku_id');
+        }
+        $keranjangLama = $query->first();
 
         if ($keranjangLama) {
             // Jika sudah ada, tambahkan jumlahnya (jangan melebihi stok)
             $totalQty = $keranjangLama->jumlah + $qtyBaru;
-            if ($totalQty > $barang->stok) {
-                $totalQty = $barang->stok;
+            if ($totalQty > $stokMax) {
+                $totalQty = $stokMax;
             }
 
             // HAPUS updated_at DISINI
@@ -56,6 +72,7 @@ class KeranjangController extends Controller
             DB::table('tb_keranjang')->insert([
                 'user_id' => $userId,
                 'barang_id' => $barangId,
+                'sku_id' => $skuId,
                 'jumlah' => $qtyBaru
             ]);
         }
