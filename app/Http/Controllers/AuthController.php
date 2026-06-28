@@ -161,9 +161,12 @@ class AuthController extends Controller
             RateLimiter::clear($throttleKey); 
 
             if ($user->level === 'admin') {
-                return redirect()->intended('/admin/dashboard');
+                return redirect()->intended('https://adminpro.pondasikita.com/admin/dashboard');
             } elseif ($user->level === 'seller') {
-                return redirect()->intended('/seller/dashboard');
+                // E-commerce raksasa biasanya melempar kembali ke '/' (halaman utama) 
+                // jika login dari web utama, tapi jika ingin melempar ke dashboard seller, 
+                // harus pakai URL absolute agar tidak nyasar di www.pondasikita.com/seller/dashboard
+                return redirect()->intended('https://seller.pondasikita.com/seller/dashboard');
             } else {
                 return redirect()->intended('/'); 
             }
