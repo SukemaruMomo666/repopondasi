@@ -14,28 +14,12 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\ChatController; // <-- CHAT UNTUK CUSTOMER DI FRONTEND
 
 // --- IMPORT CONTROLLER SELLER ---
+// (Hanya disisakan untuk kebutuhan banding akun jika user/seller menggunakan form dari depan)
 use App\Http\Controllers\SellerController;
-use App\Http\Controllers\Seller\DashboardController;
-use App\Http\Controllers\Seller\ProductController as SellerProductController;
-use App\Http\Controllers\Seller\ShopController;
-use App\Http\Controllers\Seller\ChatController as SellerChatController; // <-- CHAT DEWA UNTUK SELLER
-
-// --- IMPORT CONTROLLER ADMIN ---
-use App\Http\Controllers\Admin\AuthController as AdminAuthController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Admin\StoreController as AdminStoreController;
-use App\Http\Controllers\Admin\ProductModerationController as AdminProductModerationController;
-use App\Http\Controllers\Admin\OrderController as AdminOrderController;
-use App\Http\Controllers\Admin\DisputeController as AdminDisputeController;
-use App\Http\Controllers\Admin\ReportController as AdminReportController;
-use App\Http\Controllers\Admin\PayoutController as AdminPayoutController;
-use App\Http\Controllers\Admin\SettingController as AdminSettingController;
-use App\Http\Controllers\Admin\LogisticSettingController as AdminLogisticSettingController;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes - Pondasikita Enterprise Edition
+| Web Routes - Pondasikita Customer & Public
 |--------------------------------------------------------------------------
 */
 
@@ -121,178 +105,13 @@ Route::controller(AuthController::class)->group(function () {
     Route::get('/register', 'showRegister')->name('register');
     Route::post('/register', 'register')->name('register.process');
 
-    // Seller Auth
+    // Seller Auth (Dipertahankan agar user bisa mendaftar jadi seller dari web publik)
     Route::get('/seller/login', 'showLoginSeller')->name('seller.login');
     Route::post('/seller/login', 'loginSeller')->name('seller.login.process');
     Route::get('/seller/register', 'showRegisterSeller')->name('seller.register');
     Route::post('/seller/register', 'registerSeller')->name('seller.register.process');
 
     Route::post('/logout', 'logout')->name('logout');
-});
-
-// 4. SELLER CENTER (GOD LOGIC PROTECTED)
-Route::middleware(['auth', 'role:seller'])->prefix('seller')->name('seller.')->group(function () {
-
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    // Product Management
-    Route::get('/products/template', [SellerProductController::class, 'downloadTemplate'])->name('products.template');
-    Route::post('/products/import', [SellerProductController::class, 'importExcel'])->name('products.import');
-    Route::resource('products', SellerProductController::class)->except(['show']);
-    Route::post('/products/toggle-status', [SellerProductController::class, 'toggleStatus'])->name('products.toggle');
-
-    // Order & Logistics
-    Route::prefix('orders')->name('orders.')->group(function() {
-        Route::get('/', [SellerController::class, 'pesanan'])->name('index');
-        Route::post('/update-status', [SellerController::class, 'updateOrderStatus'])->name('updateStatus');
-        Route::post('/mass-update', [SellerController::class, 'massUpdateOrderStatus'])->name('massUpdate');
-        Route::post('/pelunasan-dp', [SellerController::class, 'pelunasanDp'])->name('pelunasan_dp');
-        Route::get('/return', [SellerController::class, 'pengembalian'])->name('return');
-        Route::post('/return/process', [SellerController::class, 'processPengembalian'])->name('return.process');
-        Route::get('/{invoice}/detail', [SellerController::class, 'detailPesanan'])->name('show');
-    });
-
-    // Shipping Settings
-    Route::prefix('pengaturan')->name('pengaturan.')->group(function() {
-        Route::get('/pengiriman', [SellerController::class, 'pengaturanPengiriman'])->name('pengiriman');
-        Route::post('/pengiriman/store', [SellerController::class, 'storePengiriman'])->name('pengiriman.store');
-        Route::post('/pengiriman/toggle', [SellerController::class, 'togglePengiriman'])->name('pengiriman.toggle');
-        Route::delete('/pengiriman/{id}', [SellerController::class, 'destroyPengiriman'])->name('pengiriman.destroy');
-    });
-
-    // Promotions & Marketing
-    Route::prefix('promotion')->name('promotion.')->group(function() {
-        Route::get('/discounts', [SellerController::class, 'promosi'])->name('discounts');
-        Route::post('/discounts/update', [SellerController::class, 'updateDiscount'])->name('discounts.update');
-        Route::get('/vouchers', [SellerController::class, 'voucher'])->name('vouchers');
-        Route::post('/vouchers/store', [SellerController::class, 'storeVoucher'])->name('vouchers.store');
-        Route::post('/vouchers/toggle', [SellerController::class, 'toggleVoucher'])->name('vouchers.toggle');
-        Route::delete('/vouchers/{id}', [SellerController::class, 'destroyVoucher'])->name('vouchers.destroy');
-    });
-
-    // Customer Service (Chat & Reviews)
-    Route::prefix('service')->name('service.')->group(function() {
-        Route::get('/chat', [SellerChatController::class, 'chat'])->name('chat');
-        Route::get('/chat/list', [SellerChatController::class, 'getChatList'])->name('chat.list');
-        Route::get('/chat/messages/{chatId}', [SellerChatController::class, 'getMessages'])->name('chat.messages');
-        Route::post('/chat/send', [SellerChatController::class, 'sendMessage'])->name('chat.send');
-
-        Route::get('/reviews', [SellerController::class, 'reviews'])->name('reviews');
-        Route::post('/reviews/reply', [SellerController::class, 'replyReview'])->name('reviews.reply');
-    });
-
-    // Finance & Wallet
-    Route::prefix('finance')->name('finance.')->group(function() {
-        Route::get('/income', [SellerController::class, 'income'])->name('income');
-        Route::post('/payout', [SellerController::class, 'requestPayout'])->name('payout');
-        Route::get('/bank', [SellerController::class, 'bank'])->name('bank');
-        Route::post('/bank/update', [SellerController::class, 'updateBank'])->name('bank.update');
-        Route::post('/bank/destroy', [SellerController::class, 'destroyBank'])->name('bank.destroy');
-    });
-
-    // Data Analytics
-    Route::prefix('data')->name('data.')->group(function() {
-        Route::get('/performance', [SellerController::class, 'performance'])->name('performance');
-        Route::get('/performance/export-pdf', [SellerController::class, 'exportPerformancePdf'])->name('performance.export');
-        Route::get('/health', [SellerController::class, 'health'])->name('health');
-        Route::post('/health/appeal', [SellerController::class, 'submitAppeal'])->name('health.appeal');
-        Route::get('/health/export-pdf', [SellerController::class, 'exportHealthPdf'])->name('health.export');
-    });
-
-    // Notifications
-    Route::prefix('notifications')->name('notifications.')->group(function() {
-        Route::get('/fetch', [SellerController::class, 'fetchNotifications'])->name('fetch');
-        Route::post('/read/{id}', [SellerController::class, 'markAsRead'])->name('read');
-        Route::post('/read-all', [SellerController::class, 'markAllAsRead'])->name('readAll');
-    });
-
-    // Shop Management
-    Route::prefix('shop')->name('shop.')->group(function() {
-        Route::get('/profile', [ShopController::class, 'profile'])->name('profile');
-        Route::put('/profile/update', [ShopController::class, 'updateProfile'])->name('profile.update');
-
-        Route::get('/tier', [ShopController::class, 'tier'])->name('tier');
-        Route::post('/tier/apply', [ShopController::class, 'applyTierUpgrade'])->name('tier.apply');
-
-        Route::get('/decoration', [ShopController::class, 'decoration'])->name('decoration');
-        Route::get('/decoration/editor', [ShopController::class, 'editor'])->name('decoration.editor');
-        Route::get('/decoration/editor-desktop', [ShopController::class, 'editorDesktop'])->name('decoration.editor.desktop');
-        Route::get('/decoration/template', [ShopController::class, 'templateSelection'])->name('decoration.template');
-        Route::post('/decoration/update', [ShopController::class, 'updateDecoration'])->name('decoration.update');
-        Route::post('/decoration/save', [ShopController::class, 'saveDecoration'])->name('decoration.save');
-
-        Route::get('/settings', [ShopController::class, 'settings'])->name('settings');
-        Route::put('/settings/update', [ShopController::class, 'updateSettings'])->name('settings.update');
-
-        Route::get('/security', [ShopController::class, 'securityIndex'])->name('security');
-        Route::post('/security/send-otp', [ShopController::class, 'sendSecurityOtp'])->name('security.sendOtp');
-        Route::post('/security/verify-otp', [ShopController::class, 'verifySecurityOtp'])->name('security.verifyOtp');
-        Route::put('/security/reset-password', [ShopController::class, 'resetPassword'])->name('security.resetPassword');
-    });
-
-    // Point of Sale (POS)
-    Route::prefix('pos')->name('pos.')->group(function() {
-        Route::get('/', [SellerController::class, 'pos'])->name('index');
-        Route::get('/api/products', [SellerController::class, 'getPosProducts'])->name('api.products');
-        Route::get('/api/categories', [SellerController::class, 'getPosCategories'])->name('api.categories');
-        Route::post('/api/checkout', [SellerController::class, 'processPosCheckout'])->name('api.checkout');
-        Route::get('/print/{invoice}', [SellerController::class, 'printStruk'])->name('print');
-    });
-});
-
-// 5. ADMIN PANEL (ENTRANCE)
-Route::get('/kunci-brankas-pks', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
-Route::post('/kunci-brankas-pks', [AdminAuthController::class, 'login'])->name('admin.login.submit');
-
-Route::prefix('portal-rahasia-pks')->name('admin.')->middleware(['admin'])->group(function () {
-
-    // Dashboard & Leaderboard
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])
-        ->name('dashboard')
-        ->middleware('admin.role:super,finance,cs');
-
-    Route::get('/dashboard/top-stores', [AdminDashboardController::class, 'topStores'])
-        ->name('dashboard.top_stores')
-        ->middleware('admin.role:super,finance,cs');
-
-    // Customer Service & Store Management
-    Route::middleware(['admin.role:super,cs'])->group(function () {
-        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
-        Route::get('/users/appeals', [AdminUserController::class, 'appeals'])->name('users.appeals');
-        Route::post('/users/appeals/{id}/process', [AdminUserController::class, 'processAppeal'])->name('users.processAppeal');
-        Route::get('/users/export', [AdminUserController::class, 'exportCsv'])->name('users.export');
-        Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
-        Route::post('/users/{id}/update', [AdminUserController::class, 'update'])->name('users.update');
-        Route::post('/users/{id}/toggle-ban', [AdminUserController::class, 'toggleBan'])->name('users.toggleBan');
-
-        Route::get('/stores', [AdminStoreController::class, 'index'])->name('stores.index');
-        Route::get('/stores/tier-applications', [AdminStoreController::class, 'tierApplications'])->name('stores.tierApplications');
-        Route::post('/stores/tier-applications/{id}/process', [AdminStoreController::class, 'processTierApplication'])->name('stores.processTierApplication');
-        Route::post('/stores/{id}/verify', [AdminStoreController::class, 'verify'])->name('stores.verify');
-        Route::post('/stores/{id}/tier', [AdminStoreController::class, 'updateTier'])->name('stores.updateTier');
-
-        Route::get('/products', [AdminProductModerationController::class, 'index'])->name('products.index');
-        Route::get('/products/{id}', [AdminProductModerationController::class, 'show'])->name('products.show');
-        Route::post('/products/{id}/process', [AdminProductModerationController::class, 'process'])->name('products.process');
-
-        Route::get('/orders', [AdminOrderController::class, 'index'])->name('orders.index');
-        Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->name('orders.show');
-        Route::get('/disputes', [AdminDisputeController::class, 'index'])->name('disputes.index');
-        Route::post('/disputes/{id}/resolve', [AdminDisputeController::class, 'resolve'])->name('disputes.resolve');
-    });
-
-    // Finance & Global Settings
-    Route::middleware(['admin.role:super,finance'])->group(function () {
-        Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
-        Route::get('/payouts', [AdminPayoutController::class, 'index'])->name('payouts.index');
-        Route::post('/payouts/{id}/process', [AdminPayoutController::class, 'process'])->name('payouts.process');
-        Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
-        Route::post('/settings/update', [AdminSettingController::class, 'update'])->name('settings.update');
-        Route::post('/settings/sync-komerce', [AdminSettingController::class, 'syncKomerce'])->name('settings.syncKomerce');
-        Route::get('/logistics', [AdminLogisticSettingController::class, 'index'])->name('logistics.index');
-        Route::post('/logistics/update', [AdminLogisticSettingController::class, 'update'])->name('logistics.update');
-    });
 });
 
 // 6. API, AJAX, & WEBHOOKS
