@@ -80,7 +80,7 @@ class DanaApiService
             Log::info('DANA Sandbox mode: Missing keys, returning mock URL.');
             return [
                 'success' => true,
-                'checkout_url' => 'https://m.sandbox.dana.id/m/portal/payment?orderId=' . $orderId . '&amount=' . $amount
+                'checkout_url' => url('/dana/sandbox/payment?orderId=' . $orderId . '&amount=' . $amount)
             ];
         }
 
@@ -108,7 +108,7 @@ class DanaApiService
             Log::info('DANA Sandbox returned empty body. Falling back to Mock URL.');
             return [
                 'success' => true,
-                'checkout_url' => 'https://m.sandbox.dana.id/m/portal/payment?orderId=' . $orderId . '&amount=' . $amount
+                'checkout_url' => url('/dana/sandbox/payment?orderId=' . $orderId . '&amount=' . $amount)
             ];
         }
 

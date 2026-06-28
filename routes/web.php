@@ -191,3 +191,18 @@ Route::get('/buat-tabel-token-vip', function() {
         return 'Waduh gagal: ' . $e->getMessage();
     }
 });
+
+// DANA MOCK SANDBOX ROUTES
+Route::get('/dana/sandbox/payment', function (\Illuminate\Http\Request $request) {
+    return view('pages.mock_dana');
+});
+
+Route::post('/dana/sandbox/pay', function (\Illuminate\Http\Request $request) {
+    $orderId = $request->input('orderId');
+    if ($orderId) {
+        \Illuminate\Support\Facades\DB::table('tb_transaksi')
+            ->where('kode_invoice', $orderId)
+            ->update(['status_pembayaran' => 'Lunas', 'status' => 'Lunas']);
+    }
+    return redirect('/pesanan')->with('success', 'Pembayaran Simulasi Berhasil!');
+});
