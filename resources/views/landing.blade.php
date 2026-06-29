@@ -78,7 +78,7 @@
         .progress-bar-striped { background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent); background-size: 1rem 1rem; }
     </style>
 </head>
-<body class="text-zinc-900 antialiased selection:bg-primary selection:text-white overflow-x-hidden pb-[68px] md:pb-0"
+<body class="text-zinc-900 antialiased selection:bg-primary selection:text-white overflow-x-hidden"
       x-data="landingPageData()"
       x-init="initPage()">
 
