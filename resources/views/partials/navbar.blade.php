@@ -221,23 +221,34 @@
      MOBILE BOTTOM NAVIGATION (APP-LIKE)
      ======================================================== --}}
 <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white/90 backdrop-blur-xl border-t border-zinc-200 z-40 flex items-center justify-around h-[68px] pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.03)] px-2">
-    <a href="{{ url('/') }}" class="flex flex-col items-center justify-center w-full h-full text-blue-600 group relative">
-        <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-blue-600 rounded-b-full"></div>
+    @php
+        $isHome = request()->is('/');
+        $isKatalog = request()->routeIs('produk.*') || request()->is('pages/produk*');
+        $isMitra = request()->routeIs('toko.*') || request()->is('pages/toko*');
+        $isKeranjang = request()->routeIs('keranjang.*');
+        $isProfil = request()->routeIs('profil.*') || request()->routeIs('login');
+    @endphp
+
+    <a href="{{ url('/') }}" class="flex flex-col items-center justify-center w-full h-full {{ $isHome ? 'text-blue-600' : 'text-zinc-400 hover:text-blue-600' }} group relative">
+        @if($isHome) <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-blue-600 rounded-b-full"></div> @endif
         <i class="fas fa-home text-lg mb-1 group-active:scale-90 transition-transform"></i>
         <span class="text-[9px] font-bold tracking-wide">Home</span>
     </a>
     
-    <a href="{{ route('produk.index') }}" class="flex flex-col items-center justify-center w-full h-full text-zinc-400 hover:text-blue-600 group">
+    <a href="{{ route('produk.index') }}" class="flex flex-col items-center justify-center w-full h-full {{ $isKatalog ? 'text-blue-600' : 'text-zinc-400 hover:text-blue-600' }} group relative">
+        @if($isKatalog) <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-blue-600 rounded-b-full"></div> @endif
         <i class="fas fa-layer-group text-lg mb-1 group-active:scale-90 transition-transform"></i>
         <span class="text-[9px] font-bold tracking-wide">Katalog</span>
     </a>
 
-    <a href="{{ route('toko.index') }}" class="flex flex-col items-center justify-center w-full h-full text-zinc-400 hover:text-blue-600 group">
+    <a href="{{ route('toko.index') }}" class="flex flex-col items-center justify-center w-full h-full {{ $isMitra ? 'text-blue-600' : 'text-zinc-400 hover:text-blue-600' }} group relative">
+        @if($isMitra) <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-blue-600 rounded-b-full"></div> @endif
         <i class="fas fa-store text-lg mb-1 group-active:scale-90 transition-transform"></i>
         <span class="text-[9px] font-bold tracking-wide">Mitra</span>
     </a>
 
-    <a href="{{ route('keranjang.index') }}" class="flex flex-col items-center justify-center w-full h-full text-zinc-400 hover:text-blue-600 group relative">
+    <a href="{{ route('keranjang.index') }}" class="flex flex-col items-center justify-center w-full h-full {{ $isKeranjang ? 'text-blue-600' : 'text-zinc-400 hover:text-blue-600' }} group relative">
+        @if($isKeranjang) <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-blue-600 rounded-b-full"></div> @endif
         <div class="relative">
             <i class="fas fa-shopping-cart text-lg mb-1 group-active:scale-90 transition-transform"></i>
             @if(isset($total_item_keranjang) && $total_item_keranjang > 0)
@@ -250,12 +261,14 @@
     </a>
 
     @auth
-    <a href="{{ route('profil.index') }}" class="flex flex-col items-center justify-center w-full h-full text-zinc-400 hover:text-blue-600 group">
+    <a href="{{ route('profil.index') }}" class="flex flex-col items-center justify-center w-full h-full {{ $isProfil ? 'text-blue-600' : 'text-zinc-400 hover:text-blue-600' }} group relative">
+        @if($isProfil) <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-blue-600 rounded-b-full"></div> @endif
         <i class="fas fa-user-circle text-lg mb-1 group-active:scale-90 transition-transform"></i>
         <span class="text-[9px] font-bold tracking-wide">Profil</span>
     </a>
     @else
-    <a href="{{ route('login') }}" class="flex flex-col items-center justify-center w-full h-full text-zinc-400 hover:text-blue-600 group">
+    <a href="{{ route('login') }}" class="flex flex-col items-center justify-center w-full h-full {{ $isProfil ? 'text-blue-600' : 'text-zinc-400 hover:text-blue-600' }} group relative">
+        @if($isProfil) <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-blue-600 rounded-b-full"></div> @endif
         <i class="fas fa-sign-in-alt text-lg mb-1 group-active:scale-90 transition-transform"></i>
         <span class="text-[9px] font-bold tracking-wide">Masuk</span>
     </a>

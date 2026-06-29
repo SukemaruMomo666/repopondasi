@@ -115,7 +115,7 @@
     {{-- ========================================================
          1. HERO SECTION : B&W + BLUE PREMIUM EDITION
          ======================================================== --}}
-    <section class="relative bg-zinc-950 pt-20 pb-16 sm:pt-24 sm:pb-20 lg:pt-36 lg:pb-32 overflow-hidden border-b border-zinc-800 w-full">
+    <section class="relative bg-zinc-950 pt-[84px] pb-16 sm:pt-24 sm:pb-20 lg:pt-36 lg:pb-32 overflow-hidden border-b border-zinc-800 w-full">
         {{-- Ambient Glow --}}
         <div class="absolute top-0 left-1/4 w-[300px] md:w-[600px] h-[300px] md:h-[500px] bg-blue-600/10 rounded-full mix-blend-screen filter blur-[80px] md:blur-[120px] animate-blob"></div>
         <div class="absolute bottom-0 right-1/4 w-[250px] md:w-[500px] h-[250px] md:h-[500px] bg-blue-800/10 rounded-full mix-blend-screen filter blur-[80px] md:blur-[120px] animate-blob" style="animation-delay: 2s;"></div>
@@ -123,7 +123,7 @@
         <div class="container mx-auto px-4 relative z-10 grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
 
             {{-- TEXT AREA --}}
-            <div class="lg:col-span-5 space-y-6 md:space-y-8 text-center lg:text-left pt-4 lg:pt-0">
+            <div class="lg:col-span-5 space-y-4 md:space-y-8 text-center lg:text-left pt-0 lg:pt-0">
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-blue-400 text-[9px] md:text-[10px] font-black tracking-widest uppercase">
                     <span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-blue-500 animate-pulse"></span> Sistem V2.0 Aktif
                 </div>
