@@ -103,10 +103,16 @@
     <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative overflow-y-auto bg-white z-10 shadow-[-20px_0_40px_rgba(0,0,0,0.05)]">
         <div class="w-full max-w-md animate-fade-in-up" style="animation-delay: 0.1s;">
 
-            {{-- Logo Mobile --}}
-            <div class="lg:hidden mb-8">
-                <img src="{{ asset('assets/image/Pondasikita.com.png') }}" alt="Logo" class="h-10 w-auto" onerror="this.outerHTML='<div class=\'text-black font-black text-3xl\'>Pondasikita<span class=\'text-blue-600\'>.</span></div>'">
-                <span class="inline-block mt-2 bg-black text-white text-[9px] font-black px-2 py-1 rounded uppercase tracking-widest">Seller Centre</span>
+            {{-- Header Mobile (Back + Logo) --}}
+            <div class="lg:hidden flex items-start justify-between mb-10 pt-2">
+                <a href="{{ url('/') }}" class="flex items-center justify-center w-10 h-10 bg-white border border-zinc-200 text-zinc-900 rounded-2xl hover:bg-zinc-50 active:scale-95 transition-all shadow-sm shrink-0">
+                    <i class="fas fa-arrow-left text-sm"></i>
+                </a>
+                
+                <div class="text-right">
+                    <img src="{{ asset('assets/image/Pondasikita.com.png') }}" alt="Logo" class="h-8 w-auto inline-block object-contain" onerror="this.outerHTML='<div class=\'text-black font-black text-2xl tracking-tight\'>Pondasikita<span class=\'text-blue-600\'>.</span></div>'">
+                    <span class="block mt-1.5 bg-black text-white text-[9px] font-black px-2 py-1 rounded-md uppercase tracking-widest w-fit ml-auto">Seller Centre</span>
+                </div>
             </div>
 
             <div class="mb-10">

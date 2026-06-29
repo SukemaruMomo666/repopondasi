@@ -83,15 +83,16 @@
     <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative overflow-y-auto h-screen custom-scrollbar">
         <div class="w-full max-w-md my-auto animate-fade-in-up pb-10">
 
-            {{-- Tombol Back Mobile --}}
-            <a href="{{ url('/') }}" class="lg:hidden absolute top-6 left-6 flex items-center justify-center w-10 h-10 bg-zinc-100 text-zinc-600 rounded-full hover:bg-zinc-200 transition-colors z-50">
-                <i class="fas fa-arrow-left"></i>
-            </a>
+            {{-- Header Mobile (Back + Logo) --}}
+            <div class="lg:hidden flex items-center justify-between mb-8 pt-2">
+                <a href="{{ url('/') }}" class="flex items-center justify-center w-10 h-10 bg-white border border-zinc-200 text-zinc-900 rounded-2xl hover:bg-zinc-50 active:scale-95 transition-all shadow-sm">
+                    <i class="fas fa-arrow-left text-sm"></i>
+                </a>
+                
+                <img src="{{ asset('assets/image/Pondasikita.com.png') }}" alt="Logo" class="h-8 w-auto object-contain" onerror="this.outerHTML='<div class=\'text-black font-black text-2xl tracking-tight\'>Pondasikita<span class=\'text-blue-600\'>.</span></div>'">
+            </div>
 
-            <div class="mb-8 mt-10 lg:mt-0">
-                <div class="inline-flex items-center justify-center p-2.5 bg-zinc-100 rounded-xl mb-6 shadow-sm lg:hidden">
-                    <img src="{{ asset('assets/image/Pondasikita.com.png') }}" alt="Logo" class="h-8 w-auto object-contain" onerror="this.outerHTML='<div class=\'text-black font-black text-xl px-2\'>P<span class=\'text-blue-500\'>.</span></div>'">
-                </div>
+            <div class="mb-8 mt-4 lg:mt-0">
                 <h2 class="text-3xl font-black text-black tracking-tight mb-2">Buat Akun Baru</h2>
                 <p class="text-zinc-500 font-medium text-sm">
                     Sudah tergabung? <a href="{{ route('login') }}" class="text-blue-600 font-bold hover:underline transition-all">Masuk di sini</a>
