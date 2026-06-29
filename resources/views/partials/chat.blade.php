@@ -445,10 +445,16 @@
     function toggleFullScreen() {
         chatWindow.classList.toggle('md:w-[800px]');
         chatWindow.classList.toggle('md:h-[600px]');
-        chatWindow.classList.toggle('w-[95vw]');
-        chatWindow.classList.toggle('h-[90dvh]');
+        chatWindow.classList.toggle('md:bottom-28');
+        chatWindow.classList.toggle('md:right-8');
+
+        chatWindow.classList.toggle('md:w-[96vw]');
+        chatWindow.classList.toggle('md:h-[85dvh]');
+        chatWindow.classList.toggle('md:bottom-[2vh]');
+        chatWindow.classList.toggle('md:right-[2vw]');
+
         const icon = document.getElementById('icon-resize');
-        if(icon) icon.className = chatWindow.classList.contains('w-[95vw]') ? 'fas fa-compress text-sm' : 'fas fa-expand text-sm';
+        if(icon) icon.className = chatWindow.classList.contains('md:w-[96vw]') ? 'fas fa-compress text-sm' : 'fas fa-expand text-sm';
     }
 
     function closeActiveChatMobile() {
