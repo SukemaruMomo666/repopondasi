@@ -716,6 +716,27 @@
                 }
             });
         }
+
+        // Menampilkan Notifikasi dari Session Backend
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: '{{ session("success") }}',
+                confirmButtonColor: '#10b981',
+                customClass: { popup: 'rounded-[2.5rem]', confirmButton: 'rounded-xl px-5 py-2.5' }
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops!',
+                text: '{{ session("error") }}',
+                confirmButtonColor: '#ef4444',
+                customClass: { popup: 'rounded-[2.5rem]', confirmButton: 'rounded-xl px-5 py-2.5' }
+            });
+        @endif
     </script>
 </body>
 </html>

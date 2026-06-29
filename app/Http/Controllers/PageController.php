@@ -1442,7 +1442,8 @@ class PageController extends Controller
             }
 
             // Batas waktu 14 hari
-            $diff = now()->diffInDays(\Carbon\Carbon::parse($order->updated_at));
+            $tanggalSelesai = $order->updated_at ?? $order->tanggal_transaksi;
+            $diff = now()->diffInDays(\Carbon\Carbon::parse($tanggalSelesai));
             if ($diff > 14) {
                 return back()->with('error', 'Maaf, batas waktu pemberian ulasan (14 hari) telah habis.');
             }
