@@ -137,7 +137,7 @@ Contoh gaya bicaramu: 'Dari data yang POTA punya, produk paling mahal saat ini a
         // Pesan Baru
         $parts = [];
         if ($imageBase64) {
-            $strictImgPrompt = "TUGAS: Modifikasi gambar ini sesuai permintaan. Usahakan pertahankan barang-barang asli di ruangan. WAJIB KELUARKAN GAMBAR HASILNYA!\nPermintaan: " . ($userMessage ?: 'Tolong modifikasi gambar ini.');
+            $strictImgPrompt = "User melampirkan gambar untuk direnovasi/didesain ulang. Berikan saran ramah sebagai Mandor sesuai permintaan user. Beritahu user bahwa POTA sedang merender visualisasinya di bawah pesan ini. (TAPI JANGAN PERNAH MENGHASILKAN JSON/GAMBAR SENDIRI, TUGASMU HANYA NGOBROL).\nPermintaan user: " . ($userMessage ?: 'Tolong desain ruangan ini.');
             $parts[] = ['text' => $strictImgPrompt];
         } else {
             $parts[] = ['text' => $userMessage ?: 'Halo'];
@@ -191,8 +191,13 @@ Contoh gaya bicaramu: 'Dari data yang POTA punya, produk paling mahal saat ini a
                             if (isset($part['text'])) {
                                 $replyText .= $part['text'];
                             }
-                            if (isset($part['inlineData']['data'])) {
-                                $replyImage = $part['inlineData']['data'];
+                        }
+                        
+                        // Fix jika text model hallucinate JSON object
+                        if (is_string($replyText) && str_starts_with(trim($replyText), '{')) {
+                            $decoded = json_decode(trim($replyText), true);
+                            if (json_last_error() === JSON_ERROR_NONE && isset($decoded['thought'])) {
+                                $replyText = $decoded['thought'];
                             }
                         }
                         
@@ -253,6 +258,19 @@ Contoh gaya bicaramu: 'Dari data yang POTA punya, produk paling mahal saat ini a
                                 $genImg = $dataImage['predictions'][0]['bytesBase64Encoded'] ?? null;
                             } else {
                                 $genImg = $dataImage['candidates'][0]['content']['parts'][0]['inlineData']['data'] ?? null;
+                                if (!$genImg) {
+                                    $fallbackText = $dataImage['candidates'][0]['content']['parts'][0]['text'] ?? null;
+                                    if ($fallbackText) {
+                                        // Cek apakah dia output murni base64
+                                        if (preg_match('/^[a-zA-Z0-9\+\/]+={0,2}$/', trim($fallbackText)) && strlen(trim($fallbackText)) > 1000) {
+                                            $genImg = trim($fallbackText);
+                                        } 
+                                        // Cek apakah dia output markdown html <img src="data:image/jpeg;base64,...">
+                                        elseif (preg_match('/data:image\/[a-zA-Z]+;base64,([a-zA-Z0-9\+\/]+={0,2})/', $fallbackText, $matches)) {
+                                            $genImg = $matches[1];
+                                        }
+                                    }
+                                }
                             }
                             
                             if ($genImg) {
