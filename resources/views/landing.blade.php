@@ -153,13 +153,9 @@
             </div>
 
             {{-- DYNAMIC BANNER --}}
-            <div class="lg:col-span-7 relative w-[calc(100%+2rem)] -mx-4 sm:w-full sm:mx-0 mt-6 lg:mt-0 order-1 lg:order-2 mb-8 lg:mb-0">
-                {{-- Fade effect for smooth blending on mobile --}}
-                <div class="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-zinc-950 via-zinc-950/80 to-transparent z-40 sm:hidden pointer-events-none"></div>
-                <div class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-zinc-950 to-transparent z-40 sm:hidden pointer-events-none"></div>
-
-                <div class="absolute top-8 left-6 md:top-8 md:left-12 flex gap-2 z-50" id="slider-dots"></div>
-                <div class="relative w-full aspect-[4/3] sm:aspect-video lg:aspect-[16/10] rounded-none sm:rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] md:shadow-[0_30px_70px_rgba(0,0,0,0.7)] border-y-0 sm:border border-white/10 group bg-zinc-900 cursor-pointer">
+            <div class="lg:col-span-7 relative w-full mt-4 lg:mt-0 order-1 lg:order-2 mb-10 lg:mb-0">
+                <div class="absolute top-4 left-6 md:top-8 md:left-12 flex gap-2 z-50" id="slider-dots"></div>
+                <div class="relative w-full aspect-[4/3] sm:aspect-video lg:aspect-[16/10] rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] md:shadow-[0_30px_70px_rgba(0,0,0,0.7)] border border-white/10 group bg-zinc-900 cursor-pointer ring-1 ring-white/5">
 
                     {{-- Invisibile Click Zones --}}
                     <div class="absolute inset-y-0 left-0 w-1/2 z-30" onclick="moveSlider(-1)"></div>
