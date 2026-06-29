@@ -93,6 +93,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const sidebar = document.getElementById('sidebar');
             const toggleBtn = document.getElementById('sidebarToggle'); // Tombol di navbar
+            const closeBtn = document.getElementById('sidebarClose'); // Tombol X di sidebar
             const overlay = document.getElementById('sidebarOverlay');
 
             // Fungsi untuk membuka/menutup sidebar di layar HP
@@ -114,6 +115,11 @@
             // Jalankan fungsi jika tombol hamburger diklik
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', toggleMobileSidebar);
+            }
+
+            // Tutup sidebar jika tombol X diklik
+            if (closeBtn) {
+                closeBtn.addEventListener('click', toggleMobileSidebar);
             }
 
             // Tutup sidebar jika user mengklik area gelap (overlay)
