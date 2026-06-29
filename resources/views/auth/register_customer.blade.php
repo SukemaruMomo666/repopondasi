@@ -83,7 +83,12 @@
     <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative overflow-y-auto h-screen custom-scrollbar">
         <div class="w-full max-w-md my-auto animate-fade-in-up pb-10">
 
-            <div class="mb-8 mt-4 lg:mt-0">
+            {{-- Tombol Back Mobile --}}
+            <a href="{{ url('/') }}" class="lg:hidden absolute top-6 left-6 flex items-center justify-center w-10 h-10 bg-zinc-100 text-zinc-600 rounded-full hover:bg-zinc-200 transition-colors z-50">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+
+            <div class="mb-8 mt-10 lg:mt-0">
                 <div class="inline-flex items-center justify-center p-2.5 bg-zinc-100 rounded-xl mb-6 shadow-sm lg:hidden">
                     <img src="{{ asset('assets/image/Pondasikita.com.png') }}" alt="Logo" class="h-8 w-auto object-contain" onerror="this.outerHTML='<div class=\'text-black font-black text-xl px-2\'>P<span class=\'text-blue-500\'>.</span></div>'">
                 </div>

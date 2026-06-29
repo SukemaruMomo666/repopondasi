@@ -127,8 +127,13 @@
     <div class="w-full lg:w-7/12 overflow-y-auto h-screen custom-scrollbar relative bg-white z-10 shadow-[-20px_0_40px_rgba(0,0,0,0.05)]">
         <div class="p-6 sm:p-12 lg:p-16 max-w-2xl mx-auto animate-fade-in-up">
 
+            {{-- Tombol Back Mobile --}}
+            <a href="{{ url('/') }}" class="lg:hidden absolute top-6 left-6 flex items-center justify-center w-10 h-10 bg-zinc-100 text-zinc-600 rounded-full hover:bg-zinc-200 transition-colors z-50">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+
             {{-- Logo Mobile --}}
-            <div class="lg:hidden mb-8">
+            <div class="lg:hidden mb-8 mt-10">
                 <img src="{{ asset('assets/image/Pondasikita.com.png') }}" alt="Logo" class="h-8 w-auto" onerror="this.outerHTML='<div class=\'text-black font-black text-2xl\'>Pondasikita<span class=\'text-blue-600\'>.</span></div>'">
             </div>
 
