@@ -157,22 +157,22 @@ Contoh gaya bicaramu: 'Dari data yang POTA punya, produk paling mahal saat ini a
             'parts' => $parts
         ];
 
-        // Model Rotation
-        if ($imageBase64) {
-            // Prioritaskan model image jika ada gambar
-            $models = ['gemini-3.1-flash-image', 'gemini-2.5-flash-image', 'gemini-3.5-flash', 'gemini-2.5-flash'];
-        } else {
-            $models = ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash'];
-        }
+        // Model Rotation (hanya text models untuk chat)
+        $models = ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash'];
         
         $response = null;
         $berhasil = false;
         $pesanError = '';
+        
+        $replyText = '';
+        $replyImage = null;
 
+        // 1. Ambil Teks Chat dari Gemini Flash
         foreach ($apiKeys as $key) {
             foreach ($models as $model) {
                 try {
                     $response = Http::withoutVerifying()
+                        ->timeout(30)
                         ->withHeaders([
                             'Content-Type' => 'application/json',
                         ])->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$key}", [
@@ -184,41 +184,97 @@ Contoh gaya bicaramu: 'Dari data yang POTA punya, produk paling mahal saat ini a
 
                     if ($response->successful()) {
                         $berhasil = true;
-                        break 2; // Berhasil! Keluar dari kedua loop (Model dan API Key)
+                        $data = $response->json();
+                        
+                        $parts = $data['candidates'][0]['content']['parts'] ?? [];
+                        foreach ($parts as $part) {
+                            if (isset($part['text'])) {
+                                $replyText .= $part['text'];
+                            }
+                            if (isset($part['inlineData']['data'])) {
+                                $replyImage = $part['inlineData']['data'];
+                            }
+                        }
+                        
+                        break 2;
                     } else {
                         $pesanError = $response->body();
-                        continue; // Coba model selanjutnya
+                        continue;
                     }
-
                 } catch (\Exception $e) {
                     $pesanError = $e->getMessage();
-                    continue; // Coba model selanjutnya jika terjadi error jaringan
+                    continue;
                 }
             }
         }
 
-        if ($berhasil) {
-            $data = $response->json();
-            $replyText = '';
-            $replyImage = null;
+        // 2. Jika ada Gambar, panggil Imagen untuk generate visualisasi
+        if ($imageBase64 && $berhasil) {
+            $imagenModels = ['imagen-4.0-generate-001', 'gemini-3.1-flash-image']; // Fallback
+            foreach ($apiKeys as $key) {
+                foreach ($imagenModels as $model) {
+                    try {
+                        $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:predict?key={$key}";
+                        if (str_contains($model, 'gemini')) {
+                            // Untuk gemini fallback
+                            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$key}";
+                            $payload = [
+                                'contents' => [
+                                    ['parts' => [
+                                        ['text' => "TUGAS: Modifikasi gambar ini sesuai permintaan user: " . $userMessage],
+                                        ['inlineData' => ['mimeType' => 'image/jpeg', 'data' => $imageBase64]]
+                                    ]]
+                                ]
+                            ];
+                        } else {
+                            $payload = [
+                                'instances' => [
+                                    [
+                                        'prompt' => $userMessage ?: 'Renovasi ruangan ini',
+                                        'image' => [
+                                            'bytesBase64Encoded' => $imageBase64
+                                        ]
+                                    ]
+                                ],
+                                'parameters' => [
+                                    'sampleCount' => 1
+                                ]
+                            ];
+                        }
 
-            $parts = $data['candidates'][0]['content']['parts'] ?? [];
-            foreach ($parts as $part) {
-                if (isset($part['text'])) {
-                    $replyText .= $part['text'];
-                }
-                if (isset($part['inlineData']['data'])) {
-                    $replyImage = $part['inlineData']['data'];
+                        $resImage = Http::withoutVerifying()
+                            ->timeout(60)
+                            ->withHeaders(['Content-Type' => 'application/json'])
+                            ->post($url, $payload);
+
+                        if ($resImage->successful()) {
+                            $dataImage = $resImage->json();
+                            if (str_contains($model, 'imagen')) {
+                                $genImg = $dataImage['predictions'][0]['bytesBase64Encoded'] ?? null;
+                            } else {
+                                $genImg = $dataImage['candidates'][0]['content']['parts'][0]['inlineData']['data'] ?? null;
+                            }
+                            
+                            if ($genImg) {
+                                $replyImage = $genImg;
+                                break 2;
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        continue;
+                    }
                 }
             }
-
+        }
+        
+        if ($berhasil) {
             if ($replyImage) {
                 $imgHtml = '<img src="data:image/jpeg;base64,' . $replyImage . '" class="w-full mt-2 rounded-lg shadow-md border border-zinc-200 cursor-pointer" onclick="window.open(this.src, \'_blank\')">';
                 return response()->json(['reply' => ($replyText ? $replyText . '<br>' : 'Berikut gambarnya Bos!<br>') . $imgHtml]);
             }
             
             if ($replyText) {
-                // Cek jika balasan berupa murni base64 string
+                // Cek jika balasan berupa murni base64 string (fallback)
                 if (preg_match('/^[a-zA-Z0-9\+\/]+={0,2}$/', trim($replyText)) && strlen(trim($replyText)) > 1000) {
                     $imgHtml = '<img src="data:image/jpeg;base64,' . trim($replyText) . '" class="w-full mt-2 rounded-lg shadow-md border border-zinc-200 cursor-pointer" onclick="window.open(this.src, \'_blank\')">';
                     return response()->json(['reply' => 'Ini hasil editan untuk ruanganmu, Bos!<br>' . $imgHtml]);
