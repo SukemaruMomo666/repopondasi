@@ -613,7 +613,7 @@
                      // PENYEMPURNAAN POSISI "BELUM ADA PESAN"
                      msgContainer.innerHTML = `<div class="text-center text-[10px] font-bold text-zinc-400 m-auto bg-white p-2 px-4 rounded-full border border-zinc-200 max-w-[200px] shadow-sm">Belum ada obrolan. Mulai sapa penjual!</div>`;
                 } else {
-                     data.forEach(msg => appendSellerMessage(msg.content, msg.sender, msg.time, msg.type, msg.fileName, msg.is_read, isInitialLoad));
+                     data.forEach(msg => appendSellerMessage(msg.content, msg.sender, msg.time, msg.type, msg.fileName, msg.is_read, !isInitialLoad));
                 }
                 
                 if(isInitialLoad || (msgContainer.scrollHeight - msgContainer.scrollTop - msgContainer.clientHeight < 150)) {
