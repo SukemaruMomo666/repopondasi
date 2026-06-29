@@ -199,8 +199,18 @@ Contoh gaya bicaramu: 'Dari data yang POTA punya, produk paling mahal saat ini a
 
         if ($berhasil) {
             $data = $response->json();
-            $replyText = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
-            $replyImage = $data['candidates'][0]['content']['parts'][0]['inlineData']['data'] ?? null;
+            $replyText = '';
+            $replyImage = null;
+
+            $parts = $data['candidates'][0]['content']['parts'] ?? [];
+            foreach ($parts as $part) {
+                if (isset($part['text'])) {
+                    $replyText .= $part['text'];
+                }
+                if (isset($part['inlineData']['data'])) {
+                    $replyImage = $part['inlineData']['data'];
+                }
+            }
 
             if ($replyImage) {
                 $imgHtml = '<img src="data:image/jpeg;base64,' . $replyImage . '" class="w-full mt-2 rounded-lg shadow-md border border-zinc-200 cursor-pointer" onclick="window.open(this.src, \'_blank\')">';
