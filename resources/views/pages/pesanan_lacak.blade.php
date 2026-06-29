@@ -207,7 +207,8 @@
                                 {{-- FITUR DEWA: Tombol Ulasan --}}
                                 @if($order->status_pesanan_global == 'selesai')
                                     @php
-                                        $diffDays = now()->diffInDays(\Carbon\Carbon::parse($order->updated_at));
+                                        $tanggalSelesai = $order->updated_at ?? $order->tanggal_transaksi;
+                                        $diffDays = now()->diffInDays(\Carbon\Carbon::parse($tanggalSelesai));
                                         $isReviewed = in_array($item->id, $reviewed_items ?? []);
                                     @endphp
 
