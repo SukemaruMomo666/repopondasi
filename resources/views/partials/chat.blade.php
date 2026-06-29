@@ -528,7 +528,7 @@
                     ${initial}
                     ${unreadBadge}
                 </div>
-                <div class="flex-1 min-w-0 hidden md:block">
+                <div class="flex-1 min-w-0 block">
                     <div class="flex justify-between items-center mb-1">
                         <h4 class="text-xs font-black text-zinc-900 truncate group-hover:text-blue-600 transition-colors">${toko.nama_toko}</h4>
                         <span class="text-[9px] font-bold text-zinc-400 shrink-0 ml-2">${toko.last_time || ''}</span>
