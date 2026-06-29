@@ -123,10 +123,8 @@
         <div class="container mx-auto px-4 relative z-10 grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
 
             {{-- TEXT AREA --}}
-            <div class="lg:col-span-5 space-y-4 md:space-y-8 text-center lg:text-left pt-0 lg:pt-0">
-                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-blue-400 text-[9px] md:text-[10px] font-black tracking-widest uppercase">
-                    <span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-blue-500 animate-pulse"></span> Sistem V2.0 Aktif
-                </div>
+            <div class="lg:col-span-5 space-y-4 md:space-y-8 text-center lg:text-left pt-0 lg:pt-0 order-2 lg:order-1">
+                <!-- Removed Sistem V2 badge -->
 
                 <div class="space-y-1 md:space-y-2 px-2 lg:px-0">
                     <h1 class="text-4xl sm:text-4xl lg:text-6xl font-black text-white leading-tight tracking-tight">
@@ -155,7 +153,7 @@
             </div>
 
             {{-- DYNAMIC BANNER --}}
-            <div class="lg:col-span-7 relative w-[calc(100%+2rem)] -mx-4 sm:w-full sm:mx-0 mt-6 lg:mt-0">
+            <div class="lg:col-span-7 relative w-[calc(100%+2rem)] -mx-4 sm:w-full sm:mx-0 mt-6 lg:mt-0 order-1 lg:order-2 mb-8 lg:mb-0">
                 {{-- Fade effect for smooth blending on mobile --}}
                 <div class="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-zinc-950 via-zinc-950/80 to-transparent z-40 sm:hidden pointer-events-none"></div>
                 <div class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-zinc-950 to-transparent z-40 sm:hidden pointer-events-none"></div>
