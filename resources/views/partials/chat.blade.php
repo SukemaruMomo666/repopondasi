@@ -617,7 +617,7 @@
                 }
                 
                 if(isInitialLoad || (msgContainer.scrollHeight - msgContainer.scrollTop - msgContainer.clientHeight < 150)) {
-                    scrollToBottom();
+                    scrollToBottom(!isInitialLoad);
                 }
             } else if (data.length === currentMessageCount) {
                 updateReadTicks(data);
@@ -697,9 +697,9 @@
         sessionStorage.setItem('pota_seller_dom', container.innerHTML);
     }
 
-    function scrollToBottom() {
+    function scrollToBottom(smooth = true) {
         const msgContainer = document.getElementById('seller-chat-messages');
-        msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'smooth' });
+        msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
     }
 
     window.handleFileUpload = function(inputElement, type) {
