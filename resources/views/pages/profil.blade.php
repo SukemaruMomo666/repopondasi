@@ -169,9 +169,9 @@
                             <p class="text-zinc-400 text-sm font-medium max-w-md">Tingkatkan skala bisnis Anda. Daftar sebagai Mitra Toko dan raih ribuan kontraktor B2B di seluruh Indonesia.</p>
                         </div>
 
-                        {{-- Tombol Buka Toko --}}
+                        {{-- Tombol Buka Toko (Upgrade Akun) --}}
                         <div class="relative z-10 shrink-0 w-full sm:w-auto">
-                            <a href="{{ route('seller.register') }}" class="block w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-black px-6 py-4 rounded-xl transition-all duration-300 shadow-glow hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(37,99,235,0.6)]">
+                            <a href="{{ route('profil.buka_toko') }}" class="block w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-black px-6 py-4 rounded-xl transition-all duration-300 shadow-glow hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(37,99,235,0.6)]">
                                 Buka Toko Sekarang <i class="fas fa-arrow-right ml-1"></i>
                             </a>
                         </div>

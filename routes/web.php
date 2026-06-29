@@ -82,6 +82,10 @@ Route::controller(PageController::class)->group(function () {
     Route::post('/profil-saya/ganti-password/verify-otp', 'verifyOtpPassword')->name('profil.password.verify_otp');
     Route::post('/profil-saya/ganti-password', 'updatePassword')->name('profil.password.update');
 
+    // Upgrade Akun (Customer ke Seller)
+    Route::get('/profil-saya/buka-toko', 'bukaToko')->name('profil.buka_toko');
+    Route::post('/profil-saya/buka-toko', 'prosesBukaToko')->name('profil.buka_toko.process');
+
     // =========================================================================
     // FITUR ENTERPRISE: Status Pesanan, Lacak, & Siklus Aksi Transaksi
     // =========================================================================

@@ -1568,4 +1568,84 @@ class PageController extends Controller
             'total_followers' => $totalFollowers
         ]);
     }
+
+    // =================================================================
+    // 13. UPGRADE AKUN: BUKA TOKO (DARI CUSTOMER KE SELLER)
+    // =================================================================
+    public function bukaToko()
+    {
+        if (!Auth::check()) return redirect()->route('login');
+        
+        $user = Auth::user();
+        if ($user->level === 'seller' || $user->level === 'admin') {
+            return redirect()->route('profil.index')->with('info', 'Anda sudah memiliki akses khusus.');
+        }
+
+        return view('pages.buka_toko');
+    }
+
+    public function prosesBukaToko(Request $request)
+    {
+        if (!Auth::check()) return redirect()->route('login');
+
+        $user = Auth::user();
+        if ($user->level === 'seller') {
+            return redirect()->intended('https://seller.pondasikita.com/seller/dashboard');
+        }
+
+        $request->validate([
+            'nama_toko'    => 'required|string|max:100|unique:tb_toko,nama_toko',
+            'telepon_toko' => 'required|numeric', 
+            'alamat_toko'  => 'required|string',
+            'area_id'      => 'required|string',
+            'latitude'     => 'nullable|string',
+            'longitude'    => 'nullable|string', 
+            'logo_toko'    => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
+        ], [
+            'area_id.required' => 'Wilayah kecamatan/kelurahan wajib diisi melalui pilihan otomatis.'
+        ]);
+
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            $logoPath = null;
+            if ($request->hasFile('logo_toko')) {
+                $file = $request->file('logo_toko');
+                $filename = time() . '_' . \Illuminate\Support\Str::slug($request->nama_toko) . '.' . $file->getClientOriginalExtension();
+                $file->move(public_path('uploads/toko'), $filename); 
+                $logoPath = $filename;
+            }
+
+            $slug = \Illuminate\Support\Str::slug($request->nama_toko);
+            if (\App\Models\Toko::where('slug', $slug)->exists()) {
+                $slug .= '-' . time();
+            }
+
+            \App\Models\Toko::create([
+                'user_id'            => $user->id,
+                'nama_toko'          => $request->nama_toko,
+                'slug'               => $slug,
+                'telepon_toko'       => $request->telepon_toko,
+                'alamat_toko'        => $request->alamat_toko,
+                'area_id'            => $request->area_id,
+                'latitude'           => $request->latitude,
+                'longitude'          => $request->longitude,
+                'logo_toko'          => $logoPath,
+                'status'             => 'active', 
+                'status_operasional' => 'Buka'
+            ]);
+
+            // Upgrade User Level
+            \App\Models\User::where('id', $user->id)->update([
+                'level' => 'seller'
+            ]);
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            return redirect()->intended('https://seller.pondasikita.com/seller/dashboard')->with('success', 'Selamat! Akun Anda telah di-upgrade menjadi Mitra Toko.');
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollback();
+            return back()->with('error', 'Gagal membuka toko: ' . $e->getMessage())->withInput();
+        }
+    }
 }
