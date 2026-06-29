@@ -132,33 +132,37 @@ CONTEKAN DATA:
             'parts' => [['text' => $userMessage]]
         ];
 
+        $models = ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+        
         $response = null;
         $berhasil = false;
         $pesanError = '';
 
         foreach ($apiKeys as $key) {
-            try {
-                $response = Http::withoutVerifying()
-                    ->withHeaders([
-                        'Content-Type' => 'application/json',
-                    ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$key}", [
-                    'system_instruction' => [
-                        'parts' => [['text' => $systemInstruction]]
-                    ],
-                    'contents' => $formattedContents
-                ]);
+            foreach ($models as $model) {
+                try {
+                    $response = Http::withoutVerifying()
+                        ->withHeaders([
+                            'Content-Type' => 'application/json',
+                        ])->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$key}", [
+                        'system_instruction' => [
+                            'parts' => [['text' => $systemInstruction]]
+                        ],
+                        'contents' => $formattedContents
+                    ]);
 
-                if ($response->successful()) {
-                    $berhasil = true;
-                    break;
-                } else {
-                    $pesanError = $response->body();
-                    continue;
+                    if ($response->successful()) {
+                        $berhasil = true;
+                        break 2; // Berhasil! Keluar dari kedua loop (Model dan API Key)
+                    } else {
+                        $pesanError = $response->body();
+                        continue; // Coba model selanjutnya
+                    }
+
+                } catch (\Exception $e) {
+                    $pesanError = $e->getMessage();
+                    continue; // Coba model selanjutnya jika terjadi error jaringan
                 }
-
-            } catch (\Exception $e) {
-                $pesanError = $e->getMessage();
-                continue;
             }
         }
 
