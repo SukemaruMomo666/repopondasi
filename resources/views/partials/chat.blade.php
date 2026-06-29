@@ -53,7 +53,7 @@
         <div id="view-seller" class="absolute inset-0 flex flex-row transition-all duration-500 ease-out opacity-100 translate-x-0 z-20">
 
             {{-- Kiri: Contact List --}}
-            <div class="w-20 md:w-[280px] border-r border-zinc-200 bg-white flex flex-col shrink-0 z-10">
+            <div id="seller-contact-list-container" class="w-full md:w-[280px] border-r border-zinc-200 bg-white flex flex-col shrink-0 z-10 transition-all duration-300">
                 <div class="p-3 border-b border-zinc-100 hidden md:block">
                     <div class="relative">
                         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 text-xs"></i>
@@ -461,6 +461,13 @@
         document.getElementById('seller-active-chat').classList.replace('flex', 'hidden');
         document.getElementById('seller-empty-state').classList.replace('hidden', 'flex');
         document.getElementById('seller-empty-state').classList.remove('opacity-0', 'pointer-events-none');
+        
+        const contactListContainer = document.getElementById('seller-contact-list-container');
+        if (contactListContainer) {
+            contactListContainer.classList.remove('hidden', 'md:flex');
+            contactListContainer.classList.add('flex');
+        }
+
         currentStoreId = null;
         sessionStorage.removeItem('pota_active_store');
         fetchSellerContacts(false);
@@ -567,6 +574,13 @@
             activeChat.classList.replace('hidden', 'flex');
             activeChat.classList.remove('opacity-0');
         }
+        
+        // Sembunyikan sidebar contact list di mobile
+        const contactListContainer = document.getElementById('seller-contact-list-container');
+        if (contactListContainer && window.innerWidth < 768) {
+            contactListContainer.classList.add('hidden', 'md:flex');
+            contactListContainer.classList.remove('flex');
+        }
 
         document.getElementById('active-store-name').innerText = storeName;
         document.getElementById('active-store-avatar').innerText = initials;
@@ -650,7 +664,7 @@
 
         let innerHTML = '';
         if(type === 'image') {
-            innerHTML = `<div class="p-1"><img src="${content}" onclick="openLightbox('${content}')" class="max-w-[200px] md:max-w-[250px] rounded-xl object-cover cursor-pointer hover:opacity-90 border border-black/5 transition-all" alt="Uploaded Image"></div>`;
+            innerHTML = `<div class="p-1"><img src="${content}" onclick="openLightbox('${content}')" class="max-w-[200px] md:max-w-[250px] rounded-xl object-cover cursor-pointer hover:opacity-90 border border-black/5 transition-all bg-white text-xs flex items-center justify-center text-center text-zinc-400 min-h-[100px]" alt="Gambar tidak tersedia"></div>`;
         }
         else if (type === 'file') {
             innerHTML = `
