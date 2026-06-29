@@ -90,7 +90,7 @@
     <main class="max-w-[1250px] mx-auto px-4 sm:px-6">
 
         {{-- TOP HEADER: B2B STATUS BAR --}}
-        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-12 animate-fade-in">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 sm:gap-8 mb-8 sm:mb-12 animate-fade-in">
             <div class="space-y-3">
                 <a href="{{ route('pesanan.index') }}" class="group inline-flex items-center text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] hover:text-blue-600 transition-all">
                     <i class="fas fa-chevron-left mr-2 group-hover:-translate-x-1 transition-transform text-[8px]"></i> Back to Dashboard
@@ -101,7 +101,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-6 bg-white p-4 rounded-[2rem] shadow-premium border border-zinc-100">
+            <div class="flex items-center gap-4 sm:gap-6 bg-white p-4 rounded-[2rem] shadow-premium border border-zinc-100">
                 <div class="text-right">
                     <span class="block text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Financial Status</span>
                     <span class="text-sm font-black {{ $order->status_pembayaran == 'paid' ? 'text-emerald-600' : ($order->status_pembayaran == 'failed' ? 'text-red-500' : 'text-amber-500') }} uppercase flex items-center gap-2 justify-end">
@@ -129,7 +129,7 @@
             <div class="lg:col-span-8 space-y-10">
 
                 {{-- 1. LOGISTICS TIMELINE --}}
-                <div class="bg-white rounded-[3rem] shadow-premium border border-zinc-200/50 p-8 lg:p-12 relative overflow-hidden">
+                <div class="bg-white rounded-[2rem] sm:rounded-[3rem] shadow-premium border border-zinc-200/50 p-6 sm:p-8 lg:p-12 relative overflow-hidden">
                     <div class="flex items-center justify-between mb-12">
                         <h2 class="text-xl font-black text-zinc-900 flex items-center gap-4">
                             <i class="fas fa-map-location-dot text-blue-600"></i>
@@ -166,7 +166,7 @@
                 </div>
 
                 {{-- 2. INVENTORY LIST --}}
-                <div class="bg-white rounded-[3rem] shadow-premium border border-zinc-200/50 p-8 lg:p-12">
+                <div class="bg-white rounded-[2rem] sm:rounded-[3rem] shadow-premium border border-zinc-200/50 p-6 sm:p-8 lg:p-12">
                     <div class="flex items-center gap-4 mb-10 pb-6 border-b border-zinc-100">
                         <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
                             <i class="fas fa-boxes-stacked"></i>
@@ -176,29 +176,32 @@
 
                     <div class="space-y-4">
                         @foreach($items as $item)
-                        <div class="flex items-center gap-6 p-5 rounded-[2rem] hover:bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all duration-300 group">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 p-4 sm:p-5 rounded-[2rem] hover:bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all duration-300 group">
 
-                            {{-- FOTO PRODUK DINAMIS --}}
-                            <div class="w-24 h-24 rounded-3xl bg-zinc-100 overflow-hidden border border-zinc-200 flex-shrink-0 relative">
-                                @php
-                                    $fotoProduk = !empty($item->gambar_utama) ? $item->gambar_utama : ($item->gambar_saat_transaksi ?? 'default.jpg');
-                                @endphp
-                                <img src="{{ asset('assets/uploads/products/' . $fotoProduk) }}"
-                                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-multiply"
-                                     onerror="this.onerror=null; this.src='{{ asset('assets/uploads/products/default.jpg') }}';">
+                            <div class="flex items-center gap-4 sm:gap-6 w-full sm:w-auto flex-1">
+                                {{-- FOTO PRODUK DINAMIS --}}
+                                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl bg-zinc-100 overflow-hidden border border-zinc-200 flex-shrink-0 relative">
+                                    @php
+                                        $fotoProduk = !empty($item->gambar_utama) ? $item->gambar_utama : ($item->gambar_saat_transaksi ?? 'default.jpg');
+                                    @endphp
+                                    <img src="{{ asset('assets/uploads/products/' . $fotoProduk) }}"
+                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 mix-blend-multiply"
+                                         onerror="this.onerror=null; this.src='{{ asset('assets/uploads/products/default.jpg') }}';">
 
-                                <div class="absolute bottom-2 right-2 bg-black text-white text-[10px] font-black px-2 py-1 rounded-lg">x{{ $item->jumlah }}</div>
+                                    <div class="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 bg-black text-white text-[10px] font-black px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md sm:rounded-lg">x{{ $item->jumlah }}</div>
+                                </div>
+
+                                <div class="flex-1 min-w-0">
+                                    <span class="text-[8px] sm:text-[9px] font-black text-blue-500 uppercase tracking-[0.1em] mb-1 block">SKU Terverifikasi</span>
+                                    <h3 class="text-sm sm:text-base font-black text-zinc-900 truncate mb-1 group-hover:text-blue-600 transition-colors">{{ $item->nama_barang_saat_transaksi }}</h3>
+                                    <p class="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-widest">Harga: Rp{{ number_format($item->harga_saat_transaksi, 0, ',', '.') }}</p>
+                                </div>
                             </div>
 
-                            <div class="flex-1 min-w-0">
-                                <span class="text-[9px] font-black text-blue-500 uppercase tracking-[0.1em] mb-1 block">SKU Terverifikasi</span>
-                                <h3 class="text-base font-black text-zinc-900 truncate mb-1 group-hover:text-blue-600 transition-colors">{{ $item->nama_barang_saat_transaksi }}</h3>
-                                <p class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Harga Satuan: Rp{{ number_format($item->harga_saat_transaksi, 0, ',', '.') }}</p>
-                            </div>
-                            <div class="text-right flex flex-col items-end gap-2">
-                                <div class="hidden sm:block">
-                                    <span class="block text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Subtotal</span>
-                                    <span class="text-lg font-black text-zinc-950 tracking-tighter leading-none">Rp{{ number_format($item->subtotal, 0, ',', '.') }}</span>
+                            <div class="w-full sm:w-auto mt-2 sm:mt-0 pt-3 sm:pt-0 border-t border-zinc-100 sm:border-0 flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-end gap-2">
+                                <div class="text-left sm:text-right">
+                                    <span class="block text-[8px] sm:text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Subtotal</span>
+                                    <span class="text-base sm:text-lg font-black text-zinc-950 tracking-tighter leading-none">Rp{{ number_format($item->subtotal, 0, ',', '.') }}</span>
                                 </div>
 
                                 {{-- FITUR DEWA: Tombol Ulasan --}}
@@ -228,7 +231,7 @@
 
                 {{-- FITUR BARU: MODAL / KOTAK PENGAJUAN KOMPLAIN JIKA LUNAS --}}
                 @if($order->status_pembayaran == 'paid' && !in_array($order->status_pesanan_global, ['selesai', 'komplain']))
-                <div class="bg-white rounded-[3rem] shadow-premium border border-zinc-200/50 p-8 lg:p-12">
+                <div class="bg-white rounded-[2rem] sm:rounded-[3rem] shadow-premium border border-zinc-200/50 p-6 sm:p-8 lg:p-12">
                     <details class="group">
                         <summary class="flex items-center justify-between font-black text-zinc-700 cursor-pointer list-none outline-none">
                             <span class="flex items-center gap-3 text-base text-zinc-900"><i class="fas fa-shield-alert text-amber-500"></i> Ajukan Masalah / Retur Material</span>
@@ -264,7 +267,7 @@
             <div class="lg:col-span-4 space-y-8 lg:sticky lg:top-24">
 
                 {{-- 3. PREMIUM INVOICE CARD (DARK MODE) --}}
-                <div class="bg-zinc-950 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden text-white border border-white/5">
+                <div class="bg-zinc-950 rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-8 lg:p-10 shadow-2xl relative overflow-hidden text-white border border-white/5">
                     {{-- Blue Light Flare --}}
                     <div class="absolute -top-20 -right-20 w-64 h-64 bg-blue-600/30 rounded-full blur-[80px]"></div>
                     <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-600/20 rounded-full blur-[60px]"></div>
@@ -414,7 +417,7 @@
                 </div>
 
                 {{-- 4. DELIVERY INFORMATION (RIGHT ALIGNED) --}}
-                <div class="bg-white rounded-[3rem] p-10 shadow-premium border border-zinc-200/60 transition-all hover:border-blue-500/30">
+                <div class="bg-white rounded-[2rem] sm:rounded-[3rem] p-6 sm:p-8 lg:p-10 shadow-premium border border-zinc-200/60 transition-all hover:border-blue-500/30">
                     <h3 class="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
                         <i class="fas fa-user-gear text-blue-600"></i> Informasi Pengiriman
                     </h3>
