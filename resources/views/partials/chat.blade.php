@@ -967,11 +967,9 @@
         window.speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(text);
         u.lang = 'id-ID';
-        u.rate = 0.9;
-        u.pitch = 0.1;
+        u.rate = 1.05;
 
-        let indoVoice = aiVoices.find(v => v.lang === 'id-ID' && v.name.toLowerCase().includes('male'));
-        if (!indoVoice) indoVoice = aiVoices.find(v => v.lang === 'id-ID' && (v.name.includes('Google') || v.name.includes('Online')));
+        const indoVoice = aiVoices.find(v => v.lang === 'id-ID' && (v.name.includes('Google') || v.name.includes('Online')));
         if (indoVoice) u.voice = indoVoice;
 
         u.onstart = () => {
