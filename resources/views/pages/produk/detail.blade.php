@@ -52,7 +52,7 @@
     @include('partials.navbar')
 
     <main class="max-w-[1440px] mx-auto px-4 lg:px-10 py-8 lg:py-12">
-        <div class="flex flex-col lg:grid lg:grid-cols-12 gap-12 items-start">
+        <div class="flex flex-col lg:grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
 
             {{-- ========================================== --}}
             {{-- KOLOM 1: VISUAL (Sticky Gambar Produk) --}}
@@ -99,7 +99,7 @@
                         {{ $product->nama_barang }}
                     </h1>
 
-                    <div class="flex items-center gap-6">
+                    <div class="flex items-center gap-4 sm:gap-6 flex-wrap">
                         <div class="flex items-center gap-2.5 bg-yellow-50 px-3 py-1.5 rounded-xl border border-yellow-100">
                             <div class="flex text-yellow-500 text-sm"><i class="fas fa-star"></i></div>
                             <span class="text-sm font-black text-yellow-700">{{ number_format($avg_rating, 1) }}</span>
@@ -164,25 +164,25 @@
                     @endif
 
                 {{-- Specs Grid --}}
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-white border border-zinc-100 p-6 rounded-[2rem] flex items-center gap-4 transition-all duration-300 hover:border-brand-200 hover:shadow-lg hover:shadow-brand-500/5 group">
-                        <div class="w-12 h-12 rounded-2xl bg-brand-50 flex items-center justify-center text-brand-600 transition-transform group-hover:scale-110 group-hover:rotate-6"><i class="fas fa-weight-hanging text-lg"></i></div>
+                <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                    <div class="bg-white border border-zinc-100 p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 transition-all duration-300 hover:border-brand-200 hover:shadow-lg hover:shadow-brand-500/5 group">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-2xl bg-brand-50 flex items-center justify-center text-brand-600 transition-transform group-hover:scale-110 group-hover:rotate-6"><i class="fas fa-weight-hanging text-base sm:text-lg"></i></div>
                         <div>
-                            <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Berat</p>
-                            <p class="text-base font-black text-zinc-900">{{ number_format($product->berat_kg ?? 1, 2) }} Kg</p>
+                            <p class="text-[9px] sm:text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Berat</p>
+                            <p class="text-sm sm:text-base font-black text-zinc-900">{{ number_format($product->berat_kg ?? 1, 2) }} Kg</p>
                         </div>
                     </div>
-                    <div class="bg-white border border-zinc-100 p-6 rounded-[2rem] flex items-center gap-4 transition-all duration-300 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-500/5 group">
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500 transition-transform group-hover:scale-110 group-hover:-rotate-6"><i class="fas fa-shield-check text-lg"></i></div>
+                    <div class="bg-white border border-zinc-100 p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 transition-all duration-300 hover:border-emerald-200 hover:shadow-lg hover:shadow-emerald-500/5 group">
+                        <div class="w-10 h-10 sm:w-12 sm:h-12 shrink-0 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-500 transition-transform group-hover:scale-110 group-hover:-rotate-6"><i class="fas fa-shield-check text-base sm:text-lg"></i></div>
                         <div>
-                            <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Garansi</p>
-                            <p class="text-base font-black text-zinc-900">Tersedia</p>
+                            <p class="text-[9px] sm:text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Garansi</p>
+                            <p class="text-sm sm:text-base font-black text-zinc-900">Tersedia</p>
                         </div>
                     </div>
                 </div>
 
                 {{-- Deskripsi --}}
-                <div class="bg-white rounded-[2.5rem] border border-zinc-100 p-8 lg:p-10 space-y-8 shadow-sm relative overflow-hidden">
+                <div class="bg-white rounded-[2rem] lg:rounded-[2.5rem] border border-zinc-100 p-6 sm:p-8 lg:p-10 space-y-6 sm:space-y-8 shadow-sm relative overflow-hidden">
                     <div class="absolute top-0 right-0 p-8 opacity-[0.02]">
                         <i class="fas fa-align-left text-9xl"></i>
                     </div>
@@ -196,7 +196,7 @@
                 </div>
 
                 {{-- REVIEWS --}}
-                <div id="reviews" class="bg-white rounded-[2.5rem] border border-zinc-100 p-8 lg:p-10 space-y-10 shadow-sm">
+                <div id="reviews" class="bg-white rounded-[2rem] lg:rounded-[2.5rem] border border-zinc-100 p-6 sm:p-8 lg:p-10 space-y-8 sm:space-y-10 shadow-sm">
                     <div class="grid md:grid-cols-12 gap-8 items-center border-b border-zinc-100 pb-10">
                         <div class="md:col-span-5 flex flex-col items-center md:items-start">
                             <span class="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4">Total Kepuasan</span>
@@ -271,7 +271,7 @@
             <div class="w-full lg:col-span-3 space-y-6 lg:sticky lg:top-28">
 
                 {{-- Checkout Card (Kalkulator) --}}
-                <div class="bg-white rounded-[2.5rem] border border-zinc-100 p-8 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.05)] relative overflow-hidden">
+                <div class="bg-white rounded-[2rem] sm:rounded-[2.5rem] border border-zinc-100 p-6 sm:p-8 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.05)] relative overflow-hidden">
                     <h3 class="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em] mb-6 border-b border-zinc-100 pb-4">Konfirmasi Pembelian</h3>
 
                     {{-- FIX: Hapus Action URL dari Form, biarkan JS yang urus AJAX-nya --}}

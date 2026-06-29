@@ -168,14 +168,14 @@
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-[13px] text-gray-700 max-w-2xl mx-auto md:mx-0 border-t border-gray-100 pt-4">
-                            <div class="flex items-center gap-2"><i class="fas fa-store text-gray-400 w-5 text-center"></i> <span class="text-gray-500">Produk:</span> <span class="font-bold text-toko-600">{{ formatAngkaK($totalProduk) }}</span></div>
-                            <div class="flex items-center gap-2"><i class="fas fa-user-group text-gray-400 w-5 text-center"></i> <span class="text-gray-500">Pengikut:</span> <span class="font-bold text-toko-600" id="follower-text">{{ formatAngkaK($jmlFollower) }}</span></div>
+                            <div class="flex items-center justify-center md:justify-start gap-2"><i class="fas fa-store text-gray-400 w-5 text-center"></i> <span class="text-gray-500">Produk:</span> <span class="font-bold text-toko-600">{{ formatAngkaK($totalProduk) }}</span></div>
+                            <div class="flex items-center justify-center md:justify-start gap-2"><i class="fas fa-user-group text-gray-400 w-5 text-center"></i> <span class="text-gray-500">Pengikut:</span> <span class="font-bold text-toko-600" id="follower-text">{{ formatAngkaK($jmlFollower) }}</span></div>
                             
-                            <div class="flex items-center gap-2"><i class="fas fa-user-plus text-gray-400 w-5 text-center"></i> <span class="text-gray-500">Mengikuti:</span> <span class="font-bold text-toko-600">{{ formatAngkaK($mengikuti) }}</span></div>
-                            <div class="flex items-center gap-2"><i class="far fa-star text-gray-400 w-5 text-center"></i> <span class="text-gray-500">Penilaian:</span> <span class="font-bold text-toko-600">{{ number_format($avgRating, 1) }} ({{ formatAngkaK($totalReview) }} Penilaian)</span></div>
+                            <div class="flex items-center justify-center md:justify-start gap-2"><i class="fas fa-user-plus text-gray-400 w-5 text-center"></i> <span class="text-gray-500">Mengikuti:</span> <span class="font-bold text-toko-600">{{ formatAngkaK($mengikuti) }}</span></div>
+                            <div class="flex items-center justify-center md:justify-start gap-2"><i class="far fa-star text-gray-400 w-5 text-center"></i> <span class="text-gray-500">Penilaian:</span> <span class="font-bold text-toko-600">{{ number_format($avgRating, 1) }} ({{ formatAngkaK($totalReview) }} Penilaian)</span></div>
                             
-                            <div class="flex items-center gap-2"><i class="far fa-comment-dots text-gray-400 w-5 text-center"></i> <span class="text-gray-500">Performa Chat:</span> <span class="font-bold text-toko-600">98% (Hitungan Menit)</span></div>
-                            <div class="flex items-center gap-2"><i class="far fa-user text-gray-400 w-5 text-center"></i> <span class="text-gray-500">Bergabung:</span> <span class="font-bold text-toko-600">{{ $bergabung }}</span></div>
+                            <div class="flex items-center justify-center md:justify-start gap-2"><i class="far fa-comment-dots text-gray-400 w-5 text-center"></i> <span class="text-gray-500">Performa Chat:</span> <span class="font-bold text-toko-600">98% (Hitungan Menit)</span></div>
+                            <div class="flex items-center justify-center md:justify-start gap-2"><i class="far fa-user text-gray-400 w-5 text-center"></i> <span class="text-gray-500">Bergabung:</span> <span class="font-bold text-toko-600">{{ $bergabung }}</span></div>
                         </div>
                     </div>
 
@@ -218,7 +218,7 @@
             <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2"><i class="fas fa-ticket text-toko-600"></i> Voucher Toko</h3>
             <div class="flex overflow-x-auto gap-4 pb-4 no-scrollbar snap-x">
                 @foreach($vouchers as $v)
-                    <div class="voucher-ticket snap-start min-w-[280px] w-[280px] flex items-center justify-between p-4 flex-shrink-0 shadow-sm">
+                    <div class="voucher-ticket snap-start min-w-[260px] sm:min-w-[280px] flex items-center justify-between p-4 flex-shrink-0 shadow-sm">
                         <div class="border-r border-dashed border-red-200 pr-3 w-full">
                             <h4 class="text-toko-600 font-bold text-[15px] leading-tight">
                                 Diskon {{ $v->tipe_diskon == 'PERSEN' ? round($v->nilai_diskon).'%' : 'Rp'.number_format($v->nilai_diskon/1000, 0, ',', '').'RB' }}
@@ -339,7 +339,7 @@
 
                     {{-- Kategori Icon --}}
                     @elseif($item->type === 'kategori')
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
                             @if(!empty($config->title))
                                 <h4 class="text-lg font-black mb-6 border-l-4 border-toko-500 pl-3 uppercase tracking-tight" style="color: {{ $config->textColor ?? '#1e293b' }}">{{ $config->title }}</h4>
                             @endif
@@ -357,7 +357,7 @@
 
                     {{-- Produk Showcase Horizontal --}}
                     @elseif($item->type === 'produk')
-                        <div class="bg-white py-6 px-5 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="bg-white py-4 px-4 sm:py-6 sm:px-5 rounded-2xl shadow-sm border border-gray-100">
                             <div class="flex justify-between items-center mb-6">
                                 <h4 class="text-lg font-black border-l-4 border-toko-500 pl-3 uppercase tracking-tight" style="color: {{ $config->textColor ?? '#1e293b' }}">{{ $config->title ?? 'Etalase' }}</h4>
                                 <a href="#area-produk" class="text-xs font-black text-toko-600 hover:text-toko-800 uppercase tracking-widest bg-toko-50 px-4 py-2 rounded-lg">Lihat Semua</a>
@@ -453,19 +453,19 @@
 
                 {{-- GRID PRODUK UTAMA --}}
                 @if($products->count() > 0)
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
                         @foreach($products as $p)
                             @php $img = !empty($p->gambar_utama) ? 'assets/uploads/products/'.$p->gambar_utama : 'assets/uploads/products/default.jpg'; @endphp
                             <a href="{{ route('produk.detail', $p->slug) }}" class="bg-white rounded-lg shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden flex flex-col group border border-transparent hover:border-toko-500 relative hover:-translate-y-1">
                                 <div class="w-full pt-[100%] relative bg-white border-b border-gray-100 overflow-hidden">
                                     <img src="{{ asset($img) }}" onerror="this.src='https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400'" class="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
                                 </div>
-                                <div class="p-3.5 flex flex-col flex-1">
-                                    <h3 class="text-[13px] sm:text-sm font-medium text-gray-800 line-clamp-2 leading-[1.4] mb-2 group-hover:text-toko-600">{{ $p->nama_barang }}</h3>
+                                <div class="p-2.5 sm:p-3.5 flex flex-col flex-1">
+                                    <h3 class="text-[12px] sm:text-sm font-medium text-gray-800 line-clamp-2 leading-[1.4] mb-1 sm:mb-2 group-hover:text-toko-600">{{ $p->nama_barang }}</h3>
                                     <div class="mt-auto pt-1">
-                                        <div class="text-[16px] sm:text-[18px] font-black text-gray-900 leading-none mb-2">Rp{{ number_format($p->harga, 0, ',', '.') }}</div>
-                                        <div class="flex items-center text-[11px] text-emerald-600 mt-1 font-bold bg-emerald-50 px-2 py-1 rounded-md w-max">
-                                            <i class="fas fa-truck-fast mr-1.5"></i> Bisa Dikirim
+                                        <div class="text-[14px] sm:text-[18px] font-black text-gray-900 leading-none mb-1 sm:mb-2">Rp{{ number_format($p->harga, 0, ',', '.') }}</div>
+                                        <div class="flex items-center text-[9px] sm:text-[11px] text-emerald-600 mt-1 font-bold bg-emerald-50 px-1.5 sm:px-2 py-1 rounded-md w-max">
+                                            <i class="fas fa-truck-fast mr-1 sm:mr-1.5"></i> Bisa Dikirim
                                         </div>
                                     </div>
                                 </div>
