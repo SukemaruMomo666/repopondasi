@@ -12,6 +12,7 @@ use App\Http\Controllers\ChatAiController;
 use App\Http\Controllers\KeranjangController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\ChatController; // <-- CHAT UNTUK CUSTOMER DI FRONTEND
+use App\Http\Controllers\AiDesignController;
 
 // --- IMPORT CONTROLLER SELLER ---
 // (Hanya disisakan untuk kebutuhan banding akun jika user/seller menggunakan form dari depan)
@@ -26,6 +27,10 @@ use App\Http\Controllers\SellerController;
 // 1. LANDING PAGE & FRONTEND DETAIL
 Route::get('/', [LandingController::class, 'index'])->name('home');
 Route::get('/produk/{slug}', [FrontProductController::class, 'detail'])->name('produk.detail');
+
+// AI Interior Design Feature
+Route::get('/ai-design', [AiDesignController::class, 'index'])->name('ai_design.index');
+Route::post('/api/ai-design/generate', [AiDesignController::class, 'generate'])->name('ai_design.generate');
 
 // 2. CUSTOMER JOURNEY (GROUPED)
 Route::controller(PageController::class)->group(function () {
