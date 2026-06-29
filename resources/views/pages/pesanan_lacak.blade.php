@@ -592,7 +592,7 @@
                     </button>
                 </div>
 
-                <form action="{{ route('pesanan.review') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+                <form action="{{ route('pesanan.review') }}" method="POST" enctype="multipart/form-data" class="space-y-8" onsubmit="return validateReview(event)">
                     @csrf
                     <input type="hidden" name="detail_id" id="review_detail_id">
                     
@@ -606,7 +606,7 @@
                                 </button>
                             @endfor
                         </div>
-                        <input type="hidden" name="rating" id="input_rating" required>
+                        <input type="hidden" name="rating" id="input_rating">
                     </div>
 
                     {{-- Text Review --}}
@@ -659,6 +659,22 @@
                     s.classList.add('text-zinc-200');
                 }
             });
+        }
+
+        function validateReview(e) {
+            const rating = document.getElementById('input_rating').value;
+            if (!rating) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tunggu Dulu!',
+                    text: 'Silakan pilih bintang penilaian terlebih dahulu ya!',
+                    confirmButtonColor: '#3b82f6',
+                    customClass: { popup: 'rounded-[2.5rem]', confirmButton: 'rounded-xl px-5 py-2.5' }
+                });
+                return false;
+            }
+            return true;
         }
 
         // Logika Batalkan Pesanan
