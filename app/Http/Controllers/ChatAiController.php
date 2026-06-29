@@ -115,7 +115,7 @@ Contoh gaya bicaramu: 'Dari data yang POTA punya, produk paling mahal saat ini a
 ";
 
         if ($imageBase64) {
-            $systemInstruction .= "\n\nATURAN KHUSUS GAMBAR: User melampirkan sebuah gambar. TUGAS UTAMAMU SAAT INI ADALAH SEBAGAI AI INTERIOR DESIGNER. JIKA user bertanya tentang desain, warna, renovasi, atau apapun yang berkaitan dengan pengubahan gambar, KAMU WAJIB MEMBUAT DAN MENGEMBALIKAN GAMBAR HASIL EDITAN. Pastikan outputmu berisi data gambar (bukan hanya teks)! Jangan hanya memberi saran teks.";
+            $systemInstruction .= "\n\nATURAN KHUSUS GAMBAR: User melampirkan sebuah gambar. TUGAS UTAMAMU SAAT INI ADALAH SEBAGAI AI INTERIOR DESIGNER (IMAGE-TO-IMAGE). JIKA user bertanya tentang desain, warna, renovasi, atau apapun yang berkaitan dengan pengubahan gambar, KAMU WAJIB MEMBUAT DAN MENGEMBALIKAN GAMBAR HASIL EDITAN BERDASARKAN GAMBAR ASLI. PERTAHANKAN 100% STRUKTUR GAMBAR ASLI, HANYA UBAH WARNA/ELEMEN YANG DIMINTA. Pastikan outputmu berisi data gambar (bukan hanya teks)! Jangan hanya memberi saran teks.";
         }
 
         $systemInstruction .= "\n\nCONTEKAN DATA:\n" . $infoToko . $infoPencarian;
@@ -136,10 +136,11 @@ Contoh gaya bicaramu: 'Dari data yang POTA punya, produk paling mahal saat ini a
 
         // Pesan Baru
         $parts = [];
-        if ($userMessage) {
-            $parts[] = ['text' => $userMessage];
+        if ($imageBase64) {
+            $strictImgPrompt = "TUGAS: IMAGE-TO-IMAGE EDITING. PERTAHANKAN STRUKTUR ASLI GAMBAR SEPENUHNYA (letak barang, sudut, pencahayaan). HANYA edit bagian yang diminta.\nPermintaan: " . ($userMessage ?: 'Tolong modifikasi gambar ini.');
+            $parts[] = ['text' => $strictImgPrompt];
         } else {
-            $parts[] = ['text' => 'Tolong analisis atau modifikasi gambar ini.'];
+            $parts[] = ['text' => $userMessage ?: 'Halo'];
         }
 
         if ($imageBase64) {
