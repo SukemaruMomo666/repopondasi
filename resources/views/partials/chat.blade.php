@@ -938,7 +938,15 @@
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                 body: JSON.stringify({message: text, history: aiChatHistory.slice(-6)})
             });
-            if (!res.ok) throw new Error("Gagal terhubung.");
+            if (!res.ok) {
+                let errMsg = "Mohon maaf, server AI POTA sedang sibuk.";
+                try {
+                    const errData = await res.json();
+                    if(errData && errData.reply) errMsg = errData.reply;
+                } catch(err) {}
+                throw new Error(errMsg);
+            }
+            
             const data = await res.json();
 
             if(document.getElementById('ai-loading')) document.getElementById('ai-loading').remove();
@@ -949,7 +957,7 @@
 
         } catch(e) {
             if(document.getElementById('ai-loading')) document.getElementById('ai-loading').remove();
-            appendAIMessage("Mohon maaf, server AI POTA sedang sibuk.", 'bot');
+            appendAIMessage(e.message || "Mohon maaf, server AI POTA sedang sibuk.", 'bot');
         }
     }
 
