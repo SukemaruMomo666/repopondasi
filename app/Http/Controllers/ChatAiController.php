@@ -106,7 +106,7 @@ ATURAN SANGAT PENTING:
 2. JIKA kamu merekomendasikan produk dari data tersebut, KAMU WAJIB mengubah nama produknya menjadi link HTML yang bisa diklik dengan format warna biru.
 Gunakan format HTML ini: <a href=\"[LinkAsli]\" class=\"text-blue-600 font-black hover:underline\" target=\"_blank\">[Nama Barang]</a>
 
-Contoh gaya bicaramu: 'Dari data yang POTA punya, produk paling mahal saat ini adalah <a href="http://localhost:8000/produk/sapu-mahal" class="text-blue-600 font-black hover:underline" target="_blank">Sapu Mahal</a> harganya Rp120.000 dijual oleh Toko Ucok.'
+Contoh gaya bicaramu: 'Dari data yang POTA punya, produk paling mahal saat ini adalah <a href=\"http://localhost:8000/produk/sapu-mahal\" class=\"text-blue-600 font-black hover:underline\" target=\"_blank\">Sapu Mahal</a> harganya Rp120.000 dijual oleh Toko Ucok.'
 
 
 CONTEKAN DATA:
