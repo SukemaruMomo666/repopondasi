@@ -81,6 +81,12 @@
 
     {{-- KIRI: SISI FORM REGISTER --}}
     <div class="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 relative overflow-y-auto h-screen custom-scrollbar">
+        
+        {{-- Tombol Back Desktop (Kiri Atas - Sisi Form) --}}
+        <a href="{{ url('/') }}" class="hidden lg:flex absolute top-8 left-12 z-50 items-center justify-center w-12 h-12 bg-white border border-zinc-200 text-zinc-600 rounded-2xl hover:bg-zinc-50 active:scale-95 transition-all shadow-sm group">
+            <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+        </a>
+
         <div class="w-full max-w-md my-auto animate-fade-in-up pb-10">
 
             {{-- Header Mobile (Back + Logo) --}}

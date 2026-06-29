@@ -49,6 +49,11 @@
     {{-- KIRI: SISI VISUAL (DARK MODE - BLUE NEBULA) --}}
     {{-- ======================================================= --}}
     <div class="hidden lg:flex w-1/2 bg-zinc-950 relative items-center justify-center overflow-hidden p-12 z-0">
+        
+        {{-- Tombol Back Desktop --}}
+        <a href="{{ url('/') }}" class="absolute top-8 left-12 z-50 flex items-center justify-center w-12 h-12 bg-white/5 border border-white/10 text-white rounded-2xl hover:bg-white/10 active:scale-95 transition-all shadow-lg backdrop-blur-md group">
+            <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+        </a>
 
         {{-- Animated Abstract Glow (Konsisten Biru & Indigo) --}}
         <div class="absolute inset-0 overflow-hidden pointer-events-none z-0 mix-blend-screen">

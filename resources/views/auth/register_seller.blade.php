@@ -74,6 +74,11 @@
     {{-- ======================================================= --}}
     <div class="hidden lg:flex w-5/12 bg-zinc-950 relative flex-col justify-between p-12 z-0">
 
+        {{-- Tombol Back Desktop --}}
+        <a href="{{ url('/') }}" class="absolute top-8 left-12 z-50 flex items-center justify-center w-12 h-12 bg-white/5 border border-white/10 text-white rounded-2xl hover:bg-white/10 active:scale-95 transition-all shadow-lg backdrop-blur-md group">
+            <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+        </a>
+
         {{-- Ambient Light FX --}}
         <div class="absolute inset-0 overflow-hidden pointer-events-none z-0 mix-blend-screen">
             <div class="absolute top-0 left-0 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"></div>
