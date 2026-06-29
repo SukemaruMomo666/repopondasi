@@ -60,10 +60,10 @@
         /* ========================================================
            ✨ CSS LEAFLET MAP & POPUP TINGKAT DEWA ✨
            ======================================================== */
-        #store-map-wrapper { height: 75vh; min-height: 600px; position: relative; width: 100%; z-index: 10;}
+        #store-map-wrapper { height: calc(100vh - 80px); max-height: 75vh; min-height: 480px; position: relative; width: 100%; z-index: 10;}
         #store-map { position: absolute; inset: 0; z-index: 10; }
         
-        .leaflet-control-zoom { border: none !important; box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important; border-radius: 12px !important; overflow: hidden; margin-right: 15px !important; margin-bottom: 25px !important;}
+        .leaflet-control-zoom { border: none !important; box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important; border-radius: 12px !important; overflow: hidden; margin-right: 15px !important; margin-bottom: 140px !important;}
         .leaflet-control-zoom a { background-color: rgba(255,255,255,0.95) !important; backdrop-filter: blur(10px); color: #18181b !important; border-bottom: 1px solid #e4e4e7 !important; transition: all 0.2s; width: 40px !important; height: 40px !important; line-height: 40px !important; font-weight: bold; }
         .leaflet-control-zoom a:hover { background-color: #2563eb !important; color: white !important; }
         .leaflet-control-attribution { display: none !important; }
@@ -78,7 +78,7 @@
         .pin-bounce:hover { transform: scale(1.15) translateY(-5px); z-index: 1000 !important; }
     </style>
 </head>
-<body class="text-zinc-800 antialiased pt-[80px]">
+<body class="text-zinc-800 antialiased pt-[80px] pb-24 lg:pb-0">
 
     @include('partials.navbar')
 
