@@ -112,10 +112,13 @@ ATURAN SANGAT PENTING:
 Gunakan format HTML ini: <a href=\"[LinkAsli]\" class=\"text-blue-600 font-black hover:underline\" target=\"_blank\">[Nama Barang]</a>
 
 Contoh gaya bicaramu: 'Dari data yang POTA punya, produk paling mahal saat ini adalah <a href=\"http://localhost:8000/produk/sapu-mahal\" class=\"text-blue-600 font-black hover:underline\" target=\"_blank\">Sapu Mahal</a> harganya Rp120.000 dijual oleh Toko Ucok.'
+";
 
+        if ($imageBase64) {
+            $systemInstruction .= "\n\nATURAN KHUSUS GAMBAR: User melampirkan sebuah gambar. TUGAS UTAMAMU SAAT INI ADALAH SEBAGAI AI INTERIOR DESIGNER. JIKA user bertanya tentang desain, warna, renovasi, atau apapun yang berkaitan dengan pengubahan gambar, KAMU WAJIB MEMBUAT DAN MENGEMBALIKAN GAMBAR HASIL EDITAN. Pastikan outputmu berisi data gambar (bukan hanya teks)! Jangan hanya memberi saran teks.";
+        }
 
-CONTEKAN DATA:
-" . $infoToko . $infoPencarian;
+        $systemInstruction .= "\n\nCONTEKAN DATA:\n" . $infoToko . $infoPencarian;
 
         // Format History
         $formattedContents = [];
