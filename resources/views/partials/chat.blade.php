@@ -419,6 +419,10 @@
                 viewAI.classList.replace('translate-x-10', 'translate-x-0');
                 viewAI.classList.replace('pointer-events-none', 'pointer-events-auto');
                 document.getElementById('ai-chat-input').focus();
+                
+                // Jump to the latest AI chat message instantly
+                const aiMsgContainer = document.getElementById('ai-chat-messages');
+                if (aiMsgContainer) aiMsgContainer.scrollTop = aiMsgContainer.scrollHeight;
             }, instant ? 10 : 300);
         } else {
             tabSlider.style.transform = 'translateX(0)';
