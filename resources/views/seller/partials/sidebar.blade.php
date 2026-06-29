@@ -17,7 +17,7 @@
     {{-- 2. USER PROFILE CARD --}}
     <div class="px-6 py-4 border-b border-slate-800 flex-shrink-0">
         <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer border border-transparent hover:border-slate-700">
-            <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-white shadow-sm">
+            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-md shadow-blue-900/50">
                 {{ strtoupper(substr(Auth::user()->nama ?? 'S', 0, 1)) }}
             </div>
             <div class="flex-1 min-w-0">
