@@ -1,4 +1,4 @@
-<aside class="w-[260px] h-screen bg-slate-900 border-r border-slate-800 flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300" id="sidebar">
+<aside class="w-[260px] h-screen bg-slate-900 border-r border-slate-800 flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0" id="sidebar">
 
     {{-- 1. BRAND LOGO --}}
     <div class="px-6 py-5 border-b border-slate-800 flex-shrink-0">
