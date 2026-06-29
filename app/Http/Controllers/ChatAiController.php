@@ -12,9 +12,14 @@ class ChatAiController extends Controller
     {
         $userMessage = $request->input('message');
         $chatHistory = $request->input('history', []); 
+        $imageBase64 = $request->input('image');
 
-        if (!$userMessage) {
-            return response()->json(['reply' => 'Pesan tidak boleh kosong, Bos!'], 400);
+        if (!$userMessage && !$imageBase64) {
+            return response()->json(['reply' => 'Pesan atau gambar tidak boleh kosong, Bos!'], 400);
+        }
+
+        if ($imageBase64 && strpos($imageBase64, ',') !== false) {
+            $imageBase64 = explode(',', $imageBase64)[1];
         }
 
         // Ambil string keys dari config, lalu pisahkan berdasarkan koma
@@ -127,12 +132,34 @@ CONTEKAN DATA:
         }
 
         // Pesan Baru
+        $parts = [];
+        if ($userMessage) {
+            $parts[] = ['text' => $userMessage];
+        } else {
+            $parts[] = ['text' => 'Tolong analisis atau modifikasi gambar ini.'];
+        }
+
+        if ($imageBase64) {
+            $parts[] = [
+                'inlineData' => [
+                    'mimeType' => 'image/jpeg',
+                    'data' => $imageBase64
+                ]
+            ];
+        }
+
         $formattedContents[] = [
             'role' => 'user',
-            'parts' => [['text' => $userMessage]]
+            'parts' => $parts
         ];
 
-        $models = ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+        // Model Rotation
+        if ($imageBase64) {
+            // Prioritaskan model image jika ada gambar
+            $models = ['gemini-3.1-flash-image', 'gemini-2.5-flash-image', 'gemini-3.5-flash', 'gemini-2.5-flash'];
+        } else {
+            $models = ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+        }
         
         $response = null;
         $berhasil = false;
@@ -167,8 +194,25 @@ CONTEKAN DATA:
         }
 
         if ($berhasil) {
-            $reply = $response->json('candidates.0.content.parts.0.text');
-            return response()->json(['reply' => $reply]);
+            $data = $response->json();
+            $replyText = $data['candidates'][0]['content']['parts'][0]['text'] ?? null;
+            $replyImage = $data['candidates'][0]['content']['parts'][0]['inlineData']['data'] ?? null;
+
+            if ($replyImage) {
+                $imgHtml = '<img src="data:image/jpeg;base64,' . $replyImage . '" class="w-full mt-2 rounded-lg shadow-md border border-zinc-200 cursor-pointer" onclick="window.open(this.src, \'_blank\')">';
+                return response()->json(['reply' => ($replyText ? $replyText . '<br>' : 'Berikut gambarnya Bos!<br>') . $imgHtml]);
+            }
+            
+            if ($replyText) {
+                // Cek jika balasan berupa murni base64 string
+                if (preg_match('/^[a-zA-Z0-9\+\/]+={0,2}$/', trim($replyText)) && strlen(trim($replyText)) > 1000) {
+                    $imgHtml = '<img src="data:image/jpeg;base64,' . trim($replyText) . '" class="w-full mt-2 rounded-lg shadow-md border border-zinc-200 cursor-pointer" onclick="window.open(this.src, \'_blank\')">';
+                    return response()->json(['reply' => 'Ini hasil editan untuk ruanganmu, Bos!<br>' . $imgHtml]);
+                }
+                return response()->json(['reply' => $replyText]);
+            }
+
+            return response()->json(['reply' => 'AI berhasil memproses tapi tidak ada respon teks/gambar.']);
         } else {
             return response()->json([
                 'reply' => "Waduh Bos, otak Mandor lagi pusing (semua kuota API habis atau gagal). Coba lagi nanti ya! Error detail: {$pesanError}"

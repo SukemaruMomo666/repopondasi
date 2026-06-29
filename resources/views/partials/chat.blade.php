@@ -197,8 +197,20 @@
             </div>
 
             {{-- Input Area AI --}}
-            <div class="p-3 md:p-4 bg-white border-t border-zinc-200 shrink-0 relative z-20">
+            <div class="p-3 md:p-4 bg-white border-t border-zinc-200 shrink-0 relative z-20 flex flex-col gap-2">
+                {{-- Preview Image Container --}}
+                <div id="ai-image-preview-container" class="hidden relative self-start mb-1">
+                    <img id="ai-image-preview" src="" class="h-16 w-16 object-cover rounded-lg border border-zinc-300 shadow-sm">
+                    <button onclick="removeAIImage()" class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] hover:bg-red-600 shadow-md outline-none">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
                 <div class="flex items-center gap-2 relative bg-zinc-50 border border-zinc-200 rounded-full p-1.5 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                    <input type="file" id="ai-image-upload" accept="image/jpeg, image/png" class="hidden" onchange="handleAIImageUpload(event)">
+                    <button onclick="document.getElementById('ai-image-upload').click()" class="w-10 h-10 rounded-full text-zinc-500 hover:bg-blue-100 hover:text-blue-600 flex items-center justify-center transition-all shrink-0 outline-none" title="Lampirkan Gambar">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
                     <button id="ai-voice-btn" onclick="toggleAIVoice()" class="w-10 h-10 rounded-full text-zinc-500 hover:bg-blue-100 hover:text-blue-600 flex items-center justify-center transition-all shrink-0 outline-none">
                         <i class="fas fa-microphone"></i>
                     </button>
@@ -886,6 +898,28 @@
         }
     }
 
+    let aiUploadedImageBase64 = null;
+
+    function handleAIImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            aiUploadedImageBase64 = e.target.result;
+            document.getElementById('ai-image-preview').src = aiUploadedImageBase64;
+            document.getElementById('ai-image-preview-container').classList.remove('hidden');
+            document.getElementById('ai-image-preview-container').classList.add('flex');
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeAIImage() {
+        aiUploadedImageBase64 = null;
+        document.getElementById('ai-image-upload').value = '';
+        document.getElementById('ai-image-preview-container').classList.add('hidden');
+        document.getElementById('ai-image-preview-container').classList.remove('flex');
+    }
+
     function appendAIMessage(text, sender) {
         if(!aiMessagesContainer) return;
         const clean = text.replace(/"/g, "'").replace(/\n/g, " ").replace(/<[^>]*>?/gm, '');
@@ -916,10 +950,27 @@
     async function sendAIMessage(textOverride = null) {
         if(!aiInput) return;
         const text = textOverride || aiInput.value.trim();
-        if(!text) return;
+        if(!text && !aiUploadedImageBase64) return;
 
-        if(!textOverride) { appendAIMessage(text, 'user'); aiInput.value = ''; }
-        aiChatHistory.push({sender:'user', text:text});
+        if(!textOverride) { 
+            let userHtml = text;
+            if(aiUploadedImageBase64) {
+                userHtml = `<img src="${aiUploadedImageBase64}" class="w-32 rounded-lg shadow-sm border border-zinc-200 mb-2 object-contain bg-white">` + text;
+            }
+            appendAIMessage(userHtml, 'user'); 
+            aiInput.value = ''; 
+        }
+        
+        let payload = {message: text, history: aiChatHistory.slice(-6)};
+        if (aiUploadedImageBase64) {
+            payload.image = aiUploadedImageBase64;
+        }
+
+        // Simpan state image sebelum dihapus untuk history
+        const sentImageBase64 = aiUploadedImageBase64;
+        removeAIImage();
+        
+        aiChatHistory.push({sender:'user', text: text || "[Mengirim Gambar]"});
 
         if(!isAiCallMode) {
             const loadHtml = `
@@ -936,7 +987,7 @@
             const res = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                body: JSON.stringify({message: text, history: aiChatHistory.slice(-6)})
+                body: JSON.stringify(payload)
             });
             if (!res.ok) {
                 let errMsg = "Mohon maaf, server AI POTA sedang sibuk.";
