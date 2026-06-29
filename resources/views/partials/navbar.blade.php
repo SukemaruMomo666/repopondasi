@@ -43,7 +43,7 @@
 
             <div class="w-[2px] h-6 bg-zinc-200 hidden lg:block rounded-full"></div>
 
-            <button class="md:hidden w-10 h-10 flex items-center justify-center rounded-2xl bg-zinc-50 text-zinc-600">
+            <button id="btn-mobile-search" class="md:hidden w-10 h-10 flex items-center justify-center rounded-2xl bg-zinc-50 text-zinc-600 active:scale-95 transition-transform border border-zinc-200 hover:bg-zinc-100">
                 <i class="fas fa-search"></i>
             </button>
 
@@ -78,6 +78,16 @@
             </a>
             @endauth
         </nav>
+    </div>
+
+    {{-- MOBILE SEARCH DROPDOWN --}}
+    <div id="mobile-search-dropdown" class="absolute top-full left-0 w-full bg-white border-b border-zinc-200 p-4 hidden md:hidden shadow-lg transition-all duration-300">
+        <form action="{{ route('search') }}" method="GET" class="relative w-full">
+            <input type="text" name="query" placeholder="Cari semen, baja ringan..." class="w-full bg-zinc-100 border-2 border-transparent text-zinc-800 text-sm font-medium rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 block pl-5 pr-14 py-3.5 transition-all outline-none placeholder:text-zinc-400">
+            <button type="submit" class="absolute right-1.5 top-1/2 transform -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-xl shadow-sm hover:bg-blue-700 active:scale-95 transition-all">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
     </div>
 </header>
 
@@ -286,5 +296,19 @@
                 if(searchInput) searchInput.focus();
             }
         });
+
+        // Toggle Mobile Search
+        const btnMobileSearch = document.getElementById('btn-mobile-search');
+        const mobileSearchDropdown = document.getElementById('mobile-search-dropdown');
+        if (btnMobileSearch && mobileSearchDropdown) {
+            btnMobileSearch.addEventListener('click', function(e) {
+                e.preventDefault();
+                mobileSearchDropdown.classList.toggle('hidden');
+                if (!mobileSearchDropdown.classList.contains('hidden')) {
+                    const input = mobileSearchDropdown.querySelector('input');
+                    if(input) input.focus();
+                }
+            });
+        }
     });
 </script>
