@@ -17,7 +17,13 @@ class ChatAiController extends Controller
             return response()->json(['reply' => 'Pesan tidak boleh kosong, Bos!'], 400);
         }
 
-        $apiKey = "AIzaSyCc4Es67EjRU5u68nWMEZiOfb9a6CiXb-A";
+        // Ambil string keys dari config, lalu pisahkan berdasarkan koma
+        $apiKeysString = config('services.gemini.api_keys');
+        $apiKeys = array_filter(array_map('trim', explode(',', $apiKeysString)));
+
+        if (empty($apiKeys)) {
+            return response()->json(['reply' => 'Sistem POTA belum dikonfigurasi (API Key kosong).'], 500);
+        }
 
         // ====================================================================
         // 1. CEK TOKO POPULER
@@ -126,26 +132,43 @@ CONTEKAN DATA:
             'parts' => [['text' => $userMessage]]
         ];
 
-        try {
-            $response = Http::withoutVerifying()
-                ->withHeaders([
-                    'Content-Type' => 'application/json',
-                ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
-                'system_instruction' => [
-                    'parts' => [['text' => $systemInstruction]]
-                ],
-                'contents' => $formattedContents
-            ]);
+        $response = null;
+        $berhasil = false;
+        $pesanError = '';
 
-            if ($response->successful()) {
-                $reply = $response->json('candidates.0.content.parts.0.text');
-                return response()->json(['reply' => $reply]);
-            } else {
-                return response()->json(['reply' => 'POTA Error dari Google: ' . $response->body()], 500);
+        foreach ($apiKeys as $key) {
+            try {
+                $response = Http::withoutVerifying()
+                    ->withHeaders([
+                        'Content-Type' => 'application/json',
+                    ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$key}", [
+                    'system_instruction' => [
+                        'parts' => [['text' => $systemInstruction]]
+                    ],
+                    'contents' => $formattedContents
+                ]);
+
+                if ($response->successful()) {
+                    $berhasil = true;
+                    break;
+                } else {
+                    $pesanError = $response->body();
+                    continue;
+                }
+
+            } catch (\Exception $e) {
+                $pesanError = $e->getMessage();
+                continue;
             }
+        }
 
-        } catch (\Exception $e) {
-            return response()->json(['reply' => 'Koneksi ke otak Mandor terputus: ' . $e->getMessage()], 500);
+        if ($berhasil) {
+            $reply = $response->json('candidates.0.content.parts.0.text');
+            return response()->json(['reply' => $reply]);
+        } else {
+            return response()->json([
+                'reply' => "Waduh Bos, otak Mandor lagi pusing (semua kuota API habis atau gagal). Coba lagi nanti ya! Error detail: {$pesanError}"
+            ], 500);
         }
     }
 }

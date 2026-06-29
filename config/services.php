@@ -51,4 +51,8 @@ return [
         'env'           => env('DANA_ENV', 'sandbox'), // sandbox or production
     ],
 
+    'gemini' => [
+        'api_keys' => env('GEMINI_API_KEYS', ''),
+    ],
+
 ];
