@@ -78,7 +78,7 @@
         .progress-bar-striped { background-image: linear-gradient(45deg,rgba(255,255,255,.15) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.15) 50%,rgba(255,255,255,.15) 75%,transparent 75%,transparent); background-size: 1rem 1rem; }
     </style>
 </head>
-<body class="text-zinc-900 antialiased selection:bg-primary selection:text-white overflow-x-hidden pb-[68px] md:pb-0"
+<body class="text-zinc-900 antialiased selection:bg-primary selection:text-white overflow-x-hidden"
       x-data="landingPageData()"
       x-init="initPage()">
 
@@ -128,13 +128,13 @@
                     <span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-blue-500 animate-pulse"></span> Sistem V2.0 Aktif
                 </div>
 
-                <div class="space-y-1 md:space-y-2 px-2 lg:px-0">
-                    <h1 class="text-4xl sm:text-4xl lg:text-6xl font-black text-white leading-tight tracking-tight">
+                <div class="space-y-1 md:space-y-2">
+                    <h1 class="text-3xl sm:text-4xl lg:text-6xl font-black text-white leading-tight tracking-tight">
                         {{ $settings['hero_title'] ?? 'Ekosistem Material,' }}
                     </h1>
                     {{-- AREA TEKS MENGETIK --}}
                     <div class="h-[60px] sm:h-[80px] md:h-[100px] lg:h-[120px] flex items-start justify-center lg:justify-start">
-                        <span class="text-3xl sm:text-3xl lg:text-5xl font-black">
+                        <span class="text-2xl sm:text-3xl lg:text-5xl font-black">
                             <span class="typing-text text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600"></span><span class="typing-cursor animate-blink text-blue-500">&nbsp;</span>
                         </span>
                     </div>
@@ -145,19 +145,19 @@
                 </p>
 
                 <div class="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center lg:justify-start w-full px-4 lg:px-0">
-                    <a href="{{ url('pages/produk') }}" class="w-full sm:w-auto group bg-white text-zinc-900 font-black py-3.5 px-6 md:py-4 md:px-8 rounded-xl transition-all hover:shadow-[0_0_30px_rgba(37,99,235,0.3)] active:scale-95 flex items-center justify-center gap-3 text-sm md:text-base">
+                    <a href="{{ url('pages/produk') }}" class="w-full sm:w-auto group bg-white text-zinc-900 font-black py-3.5 px-6 md:py-4 md:px-8 rounded-xl transition-all hover:shadow-[0_0_30px_rgba(37,99,235,0.3)] flex items-center justify-center gap-3 text-sm md:text-base">
                         <i class="fas fa-layer-group text-blue-600"></i> Eksplorasi Katalog
                     </a>
-                    <a href="#toko" class="w-full sm:w-auto bg-transparent hover:bg-white/5 text-white font-semibold py-3.5 px-6 md:py-4 md:px-8 rounded-xl transition-all active:scale-95 flex items-center justify-center gap-3 border border-zinc-700 hover:border-blue-500 text-sm md:text-base">
+                    <a href="#toko" class="w-full sm:w-auto bg-transparent hover:bg-white/5 text-white font-semibold py-3.5 px-6 md:py-4 md:px-8 rounded-xl transition-all flex items-center justify-center gap-3 border border-zinc-700 hover:border-blue-500 text-sm md:text-base">
                         <i class="fas fa-store text-blue-400"></i> Direktori Mitra
                     </a>
                 </div>
             </div>
 
             {{-- DYNAMIC BANNER --}}
-            <div class="lg:col-span-7 relative w-[calc(100%+2rem)] -mx-4 sm:w-full sm:mx-0">
+            <div class="lg:col-span-7 relative w-full px-2 sm:px-0">
                 <div class="absolute top-4 left-6 md:top-8 md:left-12 flex gap-2 z-40" id="slider-dots"></div>
-                <div class="relative w-full aspect-[4/3] sm:aspect-video lg:aspect-[16/10] rounded-none sm:rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] md:shadow-[0_30px_70px_rgba(0,0,0,0.7)] border-y sm:border border-white/10 group bg-zinc-900 cursor-pointer">
+                <div class="relative w-full aspect-[4/3] sm:aspect-video lg:aspect-[16/10] rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] md:shadow-[0_30px_70px_rgba(0,0,0,0.7)] border border-white/10 group bg-zinc-900 cursor-pointer">
 
                     {{-- Invisibile Click Zones --}}
                     <div class="absolute inset-y-0 left-0 w-1/2 z-30" onclick="moveSlider(-1)"></div>
@@ -241,10 +241,10 @@
             </div>
 
             {{-- Grid Kategori --}}
-            <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide md:grid md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-6 lg:gap-8 relative pb-6 -mx-4 px-4 md:mx-0 md:px-0">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 md:gap-6 lg:gap-8 relative pb-6">
 
                 @forelse($categories ?? [] as $index => $cat)
-                    <div class="relative group/card h-full hover:z-50 shrink-0 w-[42vw] sm:w-[28vw] md:w-auto snap-center"
+                    <div class="relative group/card h-full hover:z-50"
                          @if($index >= 6)
                              x-show="showAll"
                              x-transition:enter="transition ease-out duration-500"
@@ -269,7 +269,7 @@
                         @endif
 
                         <a href="{{ url('pages/produk?kategori=' . $cat->id) }}"
-                           class="block relative w-full h-full bg-white p-4 md:p-5 lg:p-6 rounded-2xl md:rounded-[1.5rem] shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 ease-out z-30 lg:group-hover/card:shadow-2xl lg:group-hover/card:-translate-y-3 lg:group-hover/card:-translate-x-3 lg:group-hover/card:-rotate-[5deg] border border-zinc-100/80 lg:group-hover/card:border-blue-300 flex flex-col items-center justify-center gap-3 md:gap-4 bg-clip-padding active:scale-95">
+                           class="block relative w-full h-full bg-white p-4 md:p-5 lg:p-6 rounded-2xl md:rounded-[1.5rem] shadow-[0_2px_10px_rgb(0,0,0,0.02)] transition-all duration-300 ease-out z-30 lg:group-hover/card:shadow-2xl lg:group-hover/card:-translate-y-3 lg:group-hover/card:-translate-x-3 lg:group-hover/card:-rotate-[5deg] border border-zinc-100/80 lg:group-hover/card:border-blue-300 flex flex-col items-center justify-center gap-3 md:gap-4 bg-clip-padding">
 
                             <div class="relative w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-zinc-50 text-zinc-600 flex items-center justify-center text-lg md:text-2xl lg:group-hover/card:bg-blue-600 lg:group-hover/card:text-white transition-colors duration-300 shadow-inner">
                                 <i class="{{ $cat->icon_class ?? 'fas fa-tools' }}"></i>
@@ -322,9 +322,9 @@
         <section class="relative py-0 overflow-hidden rounded-3xl md:rounded-[3rem] bg-zinc-50/50 border border-zinc-100">
             <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#2563eb 0.5px, transparent 0.5px); background-size: 24px 24px;"></div>
             <div class="container mx-auto p-4 md:p-8 relative z-10 w-full">
-                <div class="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide md:grid md:grid-cols-3 gap-4 sm:gap-6 md:gap-8 -mx-4 px-4 md:mx-0 md:px-0 pb-4 md:pb-0">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
                     {{-- Card 1 --}}
-                    <div class="group relative p-6 md:p-8 rounded-2xl md:rounded-[2rem] bg-white/50 backdrop-blur-sm border border-white hover:border-blue-200 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(37,99,235,0.05)] hover:-translate-y-1 md:hover:-translate-y-2 lg:animate-float shrink-0 w-[85vw] sm:w-[60vw] md:w-auto snap-center active:scale-95">
+                    <div class="group relative p-6 md:p-8 rounded-2xl md:rounded-[2rem] bg-white/50 backdrop-blur-sm border border-white hover:border-blue-200 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(37,99,235,0.05)] hover:-translate-y-1 md:hover:-translate-y-2 lg:animate-float">
                         <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center text-xl md:text-2xl mb-4 md:mb-6 shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform duration-500">
                             <i class="fas fa-microchip"></i>
                         </div>
@@ -333,7 +333,7 @@
                         <div class="absolute bottom-0 left-6 right-6 md:left-8 md:right-8 h-1 bg-gradient-to-r from-transparent via-blue-500/20 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700"></div>
                     </div>
                     {{-- Card 2 --}}
-                    <div class="group relative p-6 md:p-8 rounded-2xl md:rounded-[2rem] bg-white/50 backdrop-blur-sm border border-white hover:border-blue-200 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(37,99,235,0.05)] hover:-translate-y-1 md:hover:-translate-y-2 lg:animate-float shrink-0 w-[85vw] sm:w-[60vw] md:w-auto snap-center active:scale-95" style="animation-delay: 1.5s;">
+                    <div class="group relative p-6 md:p-8 rounded-2xl md:rounded-[2rem] bg-white/50 backdrop-blur-sm border border-white hover:border-blue-200 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(37,99,235,0.05)] hover:-translate-y-1 md:hover:-translate-y-2 lg:animate-float" style="animation-delay: 1.5s;">
                         <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-zinc-900 text-white flex items-center justify-center text-xl md:text-2xl mb-4 md:mb-6 shadow-lg shadow-zinc-900/20 group-hover:bg-blue-600 transition-colors duration-500">
                             <i class="fas fa-handshake-angle"></i>
                         </div>
@@ -342,7 +342,7 @@
                         <div class="absolute bottom-0 left-6 right-6 md:left-8 md:right-8 h-1 bg-gradient-to-r from-transparent via-blue-500/20 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700"></div>
                     </div>
                     {{-- Card 3 --}}
-                    <div class="group relative p-6 md:p-8 rounded-2xl md:rounded-[2rem] bg-white/50 backdrop-blur-sm border border-white hover:border-blue-200 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(37,99,235,0.05)] hover:-translate-y-1 md:hover:-translate-y-2 lg:animate-float shrink-0 w-[85vw] sm:w-[60vw] md:w-auto snap-center active:scale-95" style="animation-delay: 3s;">
+                    <div class="group relative p-6 md:p-8 rounded-2xl md:rounded-[2rem] bg-white/50 backdrop-blur-sm border border-white hover:border-blue-200 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(37,99,235,0.05)] hover:-translate-y-1 md:hover:-translate-y-2 lg:animate-float" style="animation-delay: 3s;">
                         <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-zinc-100 text-zinc-400 flex items-center justify-center text-xl md:text-2xl mb-4 md:mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
                             <i class="fas fa-route"></i>
                         </div>
@@ -389,7 +389,7 @@
                 </div>
 
                 <div class="relative z-10 mt-6 md:mt-10">
-                    <button class="w-full sm:w-auto group/btn inline-flex items-center justify-center gap-3 bg-white text-zinc-900 font-black px-6 py-3.5 rounded-xl transition-all hover:bg-blue-50 hover:text-blue-600 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:-translate-y-1 active:scale-95 text-sm md:text-base">
+                    <button class="w-full sm:w-auto group/btn inline-flex items-center justify-center gap-3 bg-white text-zinc-900 font-black px-6 py-3.5 rounded-xl transition-all hover:bg-blue-50 hover:text-blue-600 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:-translate-y-1 text-sm md:text-base">
                         Ngobrol Sekarang
                         <i class="fas fa-arrow-right text-xs transition-transform group-hover/btn:translate-x-1"></i>
                     </button>
