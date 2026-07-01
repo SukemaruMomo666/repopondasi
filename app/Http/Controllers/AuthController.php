@@ -19,6 +19,14 @@ class AuthController extends Controller
     // ==========================================================
     public function showLogin()
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->level === 'admin') {
+                return redirect()->intended('https://adminpro.pondasikita.com/admin/dashboard');
+            }
+            return redirect()->intended('/');
+        }
+
         $throttleKey = request()->ip();
         $sisaDetik = 0;
 
@@ -34,6 +42,14 @@ class AuthController extends Controller
     // ==========================================================
     public function showLoginSeller()
     {
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->level === 'admin') {
+                return redirect()->intended('https://adminpro.pondasikita.com/admin/dashboard');
+            }
+            return redirect()->intended('/');
+        }
+
         $throttleKey = request()->ip();
         $sisaDetik = 0;
 
@@ -162,11 +178,6 @@ class AuthController extends Controller
 
             if ($user->level === 'admin') {
                 return redirect()->intended('https://adminpro.pondasikita.com/admin/dashboard');
-            } elseif ($user->level === 'seller') {
-                // E-commerce raksasa biasanya melempar kembali ke '/' (halaman utama) 
-                // jika login dari web utama, tapi jika ingin melempar ke dashboard seller, 
-                // harus pakai URL absolute agar tidak nyasar di www.pondasikita.com/seller/dashboard
-                return redirect()->intended('https://seller.pondasikita.com/seller/dashboard');
             } else {
                 return redirect()->intended('/'); 
             }
