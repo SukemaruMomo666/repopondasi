@@ -14,6 +14,7 @@ class ChatAiController extends Controller
         $chatHistory = $request->input('history', []); 
         $imageBase64 = $request->input('image');
         $userId = auth()->id();
+        \Log::info("POTA Chat Request. UserID: " . ($userId ?: 'NULL'));
 
         if (!$userMessage && !$imageBase64) {
             return response()->json(['reply' => 'Pesan atau gambar tidak boleh kosong, Bos!'], 400);
@@ -107,14 +108,14 @@ class ChatAiController extends Controller
             $infoPencarian = "\n\nINFO: Maaf, barang yang dicari user saat ini sedang kosong di database.";
         }
 
-        // Cek Status Pesanan Jika Ditanya
+        // Cek Status Pesanan
         $infoPesanan = "";
-        if ($userId && (str_contains(strtolower($userMessage), 'pesanan') || str_contains(strtolower($userMessage), 'order'))) {
+        if ($userId) {
             try {
                 $pesanan = DB::table('tb_transaksi')
                     ->where('user_id', $userId)
-                    ->orderBy('created_at', 'desc')
-                    ->limit(2)
+                    ->orderBy('tanggal_transaksi', 'desc')
+                    ->limit(3)
                     ->get();
                 if ($pesanan->count() > 0) {
                     $infoPesanan = "\n\nINFO PESANAN USER SAAT INI:\n";
