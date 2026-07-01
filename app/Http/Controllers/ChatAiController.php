@@ -118,9 +118,12 @@ class ChatAiController extends Controller
                     ->limit(3)
                     ->get();
                 if ($pesanan->count() > 0) {
-                    $infoPesanan = "\n\nINFO PESANAN USER SAAT INI:\n";
+                    $infoPesanan = "\n\nINFO PESANAN USER SAAT INI (JIKA USER BERTANYA PESANANNYA, WAJIB TAMPILKAN KOTAK HTML INI DI BAWAH JAWABANMU. PASTIKAN TIDAK ADA BACKTICKS/CODE BLOCK): \n";
                     foreach($pesanan as $p) {
-                        $infoPesanan .= "- Invoice: {$p->kode_invoice} | Status: {$p->status_pesanan_global} | Total: Rp" . number_format($p->total_final, 0, ',', '.') . "\n";
+                        $link = route('pesanan.lacak', $p->kode_invoice);
+                        $statusColor = $p->status_pesanan_global == 'selesai' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700';
+                        $card = "<a href=\"{$link}\" class=\"block mt-3 mb-2 p-4 border border-indigo-100 rounded-xl bg-white hover:border-indigo-300 hover:shadow-md transition-all no-underline group\"><div class=\"flex justify-between items-center mb-1\"><div class=\"text-xs text-indigo-500 font-bold uppercase tracking-wider\">Invoice</div><div class=\"px-2 py-1 {$statusColor} text-[10px] font-bold rounded-md uppercase\">{$p->status_pesanan_global}</div></div><div class=\"font-black text-slate-800 text-base mb-2 group-hover:text-indigo-600 transition-colors\">{$p->kode_invoice}</div><div class=\"flex justify-between items-center pt-2 border-t border-slate-100\"><div class=\"text-xs text-slate-500 font-medium\">Total Belanja</div><div class=\"text-sm font-bold text-emerald-600\">Rp" . number_format($p->total_final, 0, ',', '.') . "</div></div></a>";
+                        $infoPesanan .= "- Pesanan {$p->kode_invoice}. Kode HTML: {$card}\n";
                     }
                 } else {
                     $infoPesanan = "\n\nINFO PESANAN: Saat ini user belum memiliki pesanan aktif.";
@@ -137,7 +140,7 @@ class ChatAiController extends Controller
 ATURAN SANGAT PENTING:
 1. JAWABAN HARUS SANGAT SINGKAT, PADAT, DAN TO-THE-POINT! Jangan bertele-tele. Maksimal 3 kalimat.
 2. JANGAN PERNAH MENGGUNAKAN FORMAT MATEMATIKA / LATEX (seperti $2 \\times 3$, \text{}, dll). Tulis angka biasa saja (contoh: 2 x 3 meter = 6 meter persegi).
-3. Jika ditanya soal pesanan/order, JIKA ADA DATA di CONTEKAN DATA, KAMU WAJIB menyebutkan Invoice, Status, dan Totalnya ke user! Jangan suruh user ngecek menu sendiri!
+3. Jika ditanya soal pesanan/order, JIKA ADA DATA di CONTEKAN DATA, KAMU WAJIB mencetak Kode HTML yang disediakan! Jangan suruh user ngecek menu sendiri! CETAK KODE HTML TERSEBUT APA ADANYA TANPA DIBUNGKUS MARKDOWN/BACKTICKS!
 4. JANGAN MENGARANG DATA. Gunakan CONTEKAN DATA di bawah ini jika relevan.
 5. JIKA merekomendasikan produk dari data contekan, ubah namanya jadi link HTML: <a href=\"[LinkAsli]\" class=\"text-blue-600 font-black hover:underline\" target=\"_blank\">[Nama Barang]</a>
 
