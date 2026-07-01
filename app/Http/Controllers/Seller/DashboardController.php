@@ -21,9 +21,9 @@ class DashboardController extends Controller
         $tokoId = $toko->id;
 
         // 2. STATISTIK UTAMA (Real-time dari tb_detail_transaksi)
-        $total_penjualan = DB::table('tb_detail_transaksi')->where('toko_id', $tokoId)->whereNotIn('status_pesanan_item', ['dibatalkan'])->sum('subtotal');
+        $total_penjualan = DB::table('tb_detail_transaksi')->where('toko_id', $tokoId)->whereNotIn('status_pesanan_item', ['dibatalkan'])->where('subtotal', '>=', 0)->sum('subtotal');
         $total_pesanan   = DB::table('tb_detail_transaksi')->where('toko_id', $tokoId)->distinct('transaksi_id')->count('transaksi_id');
-        $total_item_terjual = DB::table('tb_detail_transaksi')->where('toko_id', $tokoId)->whereNotIn('status_pesanan_item', ['dibatalkan'])->sum('jumlah');
+        $total_item_terjual = DB::table('tb_detail_transaksi')->where('toko_id', $tokoId)->whereNotIn('status_pesanan_item', ['dibatalkan'])->where('jumlah', '>=', 0)->sum('jumlah');
         $total_produk_aktif = DB::table('tb_barang')->where('toko_id', $tokoId)->where('is_active', 1)->count();
 
         // 3. OPERASIONAL CARDS
@@ -42,6 +42,7 @@ class DashboardController extends Controller
             ->where('d.toko_id', $tokoId)
             ->whereYear('t.tanggal_transaksi', $now->year)
             ->whereIn('d.status_pesanan_item', ['dikirim', 'sampai_tujuan', 'selesai'])
+            ->where('d.subtotal', '>=', 0)
             ->groupBy('bulan')->pluck('total', 'bulan')->toArray();
 
         $penjualan_tahunan = [];
@@ -54,6 +55,7 @@ class DashboardController extends Controller
             ->where('d.toko_id', $tokoId)
             ->whereMonth('t.tanggal_transaksi', $now->month)
             ->whereYear('t.tanggal_transaksi', $now->year)
+            ->where('d.subtotal', '>=', 0)
             ->groupBy('minggu')->pluck('total', 'minggu')->toArray();
 
         $penjualan_mingguan = [];
@@ -64,6 +66,8 @@ class DashboardController extends Controller
             ->join('tb_barang as b', 'd.barang_id', '=', 'b.id')
             ->select('b.nama_barang', DB::raw('SUM(d.jumlah) as total_terjual'))
             ->where('d.toko_id', $tokoId)
+            ->whereNotIn('d.status_pesanan_item', ['dibatalkan'])
+            ->where('d.jumlah', '>', 0)
             ->groupBy('d.barang_id', 'b.nama_barang')->orderByDesc('total_terjual')->limit(5)->get();
 
         $konversi = $total_item_terjual > 0 ? round(($total_pesanan / $total_item_terjual) * 100, 2) : 0;
