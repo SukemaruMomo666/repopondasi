@@ -60,7 +60,8 @@
         /* ========================================================
            ✨ CSS LEAFLET MAP & POPUP TINGKAT DEWA ✨
            ======================================================== */
-        #store-map-wrapper { height: calc(100vh - 80px); max-height: 75vh; min-height: 480px; position: relative; width: 100%; z-index: 10;}
+        #store-map-wrapper { height: 55vh; min-height: 350px; max-height: 500px; position: relative; width: 100%; z-index: 10; }
+        @media (min-width: 768px) { #store-map-wrapper { height: calc(100vh - 80px); max-height: 75vh; min-height: 480px; } }
         #store-map { position: absolute; inset: 0; z-index: 10; }
         
         .leaflet-control-zoom { border: none !important; box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important; border-radius: 12px !important; overflow: hidden; margin-right: 15px !important; margin-bottom: 25px !important;}
