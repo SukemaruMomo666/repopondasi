@@ -1149,15 +1149,29 @@ class PageController extends Controller
         }
 
         if (in_array($order->status_pesanan_global, ['diproses', 'siap_kirim', 'dikirim', 'sampai_tujuan', 'selesai'])) {
-            $trackingLogs[] = ['status' => 'Pesanan Dikemas', 'desc' => 'Pesanan Anda sedang dikemas dan disiapkan oleh Penjual.', 'time' => $order->tanggal_transaksi];
+            if ($order->tipe_pengambilan == 'ambil_di_toko') {
+                $trackingLogs[] = ['status' => 'Disiapkan di Toko', 'desc' => 'Pesanan Anda sedang disiapkan dan dikemas oleh Penjual.', 'time' => $order->tanggal_transaksi];
+            } else {
+                $trackingLogs[] = ['status' => 'Pesanan Dikemas', 'desc' => 'Pesanan Anda sedang dikemas dan disiapkan oleh Penjual.', 'time' => $order->tanggal_transaksi];
+            }
         }
 
         if (in_array($order->status_pesanan_global, ['dikirim', 'sampai_tujuan', 'selesai'])) {
-            $trackingLogs[] = ['status' => 'Dalam Pengiriman', 'desc' => 'Paket telah diserahkan ke pihak logistik.', 'time' => $order->tanggal_transaksi];
+            if ($order->tipe_pengambilan == 'ambil_di_toko') {
+                $trackingLogs[] = ['status' => 'Siap Diambil', 'desc' => 'Pesanan telah siap untuk Anda ambil di lokasi toko.', 'time' => $order->tanggal_transaksi];
+            } elseif ($order->tipe_pengambilan == 'armada') {
+                $trackingLogs[] = ['status' => 'Dalam Perjalanan', 'desc' => 'Paket sedang diantar ke lokasi Anda menggunakan armada internal toko.', 'time' => $order->tanggal_transaksi];
+            } else {
+                $trackingLogs[] = ['status' => 'Dalam Pengiriman', 'desc' => 'Paket telah diserahkan ke pihak logistik / ekspedisi.', 'time' => $order->tanggal_transaksi];
+            }
         }
 
         if (in_array($order->status_pesanan_global, ['selesai', 'sampai_tujuan'])) {
-            $trackingLogs[] = ['status' => 'Pesanan Selesai', 'desc' => 'Pesanan telah diterima dengan baik.', 'time' => $order->tanggal_transaksi];
+            if ($order->tipe_pengambilan == 'ambil_di_toko') {
+                $trackingLogs[] = ['status' => 'Selesai Diambil', 'desc' => 'Pesanan telah berhasil diambil dari toko.', 'time' => $order->tanggal_transaksi];
+            } else {
+                $trackingLogs[] = ['status' => 'Pesanan Selesai', 'desc' => 'Pesanan telah diterima dengan baik.', 'time' => $order->tanggal_transaksi];
+            }
         }
 
         // Urutkan dari yang terbaru (Desc) untuk UI Timeline

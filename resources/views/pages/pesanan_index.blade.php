@@ -153,6 +153,38 @@
                             'default' => ['color' => 'bg-zinc-50 text-zinc-600 border-zinc-200', 'icon' => 'fa-circle-info'],
                         ];
                         $cfg = $statusCfg[$row->status_pesanan_global] ?? $statusCfg['default'];
+                        $statusText = strtoupper(str_replace('_', ' ', $row->status_pesanan_global));
+
+                        // EXPERT LOGIC: Penamaan Dinamis Berdasarkan Tipe Pengambilan
+                        if ($row->tipe_pengambilan == 'ambil_di_toko') {
+                            if ($row->status_pesanan_global == 'diproses') {
+                                $statusText = 'DISIAPKAN DI TOKO';
+                                $cfg['icon'] = 'fa-store';
+                            } elseif ($row->status_pesanan_global == 'siap_kirim') {
+                                $statusText = 'SIAP DIAMBIL';
+                                $cfg['icon'] = 'fa-hand-holding-box';
+                            } elseif ($row->status_pesanan_global == 'dikirim') {
+                                $statusText = 'SUDAH DIAMBIL'; 
+                                $cfg['icon'] = 'fa-check-double';
+                            }
+                        } elseif ($row->tipe_pengambilan == 'armada') {
+                            if ($row->status_pesanan_global == 'diproses') {
+                                $statusText = 'MENUNGGU ARMADA';
+                                $cfg['icon'] = 'fa-truck-loading';
+                            } elseif ($row->status_pesanan_global == 'siap_kirim') {
+                                $statusText = 'ARMADA SIAP JALAN';
+                                $cfg['icon'] = 'fa-truck-arrow-right';
+                            } elseif ($row->status_pesanan_global == 'dikirim') {
+                                $statusText = 'DALAM PERJALANAN (ARMADA TOKO)';
+                                $cfg['icon'] = 'fa-truck-fast';
+                            }
+                        } else {
+                            if ($row->status_pesanan_global == 'siap_kirim') {
+                                $statusText = 'MENUNGGU KURIR PICKUP';
+                            } elseif ($row->status_pesanan_global == 'dikirim') {
+                                $statusText = 'SEDANG DIKIRIM (EKSPEDISI)';
+                            }
+                        }
 
                         // Hitung Waktu Sisa Detik (Untuk Validasi Real-time Auto-Cancel 20 Menit)
                         $waktuTransaksi = \Carbon\Carbon::parse($row->tanggal_transaksi);
@@ -191,7 +223,7 @@
 
                                 <div class="px-3 py-1.5 rounded-lg border {{ $cfg['color'] }} text-[10px] font-black tracking-widest uppercase flex items-center gap-2 shadow-sm">
                                     <i class="fas {{ $cfg['icon'] }}"></i>
-                                    {{ str_replace('_', ' ', $row->status_pesanan_global) }}
+                                    {{ $statusText }}
                                 </div>
                             </div>
                         </div>
