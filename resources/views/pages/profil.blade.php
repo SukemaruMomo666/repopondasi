@@ -133,6 +133,9 @@
                             <a href="{{ route('profil.edit') }}" class="w-full bg-white border-2 border-zinc-200 text-zinc-700 hover:border-black hover:text-black hover:bg-zinc-50 font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-sm shadow-sm">
                                 <i class="fas fa-user-edit"></i> Edit Profil
                             </a>
+                            <a href="{{ route('pesanan.index') }}" class="w-full bg-blue-50 border-2 border-blue-100 text-blue-700 hover:bg-blue-600 hover:border-blue-600 hover:text-white font-black py-3 rounded-xl transition-all flex items-center justify-center gap-2 text-sm shadow-sm">
+                                <i class="fas fa-clipboard-list"></i> Riwayat Pesanan
+                            </a>
                             @auth
                             <form action="{{ route('logout') }}" method="POST" class="m-0">
                                 @csrf
