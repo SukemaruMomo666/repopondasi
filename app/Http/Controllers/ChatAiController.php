@@ -119,8 +119,10 @@ class ChatAiController extends Controller
                 if ($pesanan->count() > 0) {
                     $infoPesanan = "\n\nINFO PESANAN USER SAAT INI:\n";
                     foreach($pesanan as $p) {
-                        $infoPesanan .= "- Order ID: {$p->id} | Status: {$p->status} | Total: Rp" . number_format($p->total_harga, 0, ',', '.') . "\n";
+                        $infoPesanan .= "- Invoice: {$p->kode_invoice} | Status: {$p->status_pesanan_global} | Total: Rp" . number_format($p->total_final, 0, ',', '.') . "\n";
                     }
+                } else {
+                    $infoPesanan = "\n\nINFO PESANAN: Saat ini user belum memiliki pesanan aktif.";
                 }
             } catch(\Exception $e) {}
         }
@@ -134,11 +136,11 @@ class ChatAiController extends Controller
 ATURAN SANGAT PENTING:
 1. JAWABAN HARUS SANGAT SINGKAT, PADAT, DAN TO-THE-POINT! Jangan bertele-tele. Maksimal 3 kalimat.
 2. JANGAN PERNAH MENGGUNAKAN FORMAT MATEMATIKA / LATEX (seperti $2 \\times 3$, \text{}, dll). Tulis angka biasa saja (contoh: 2 x 3 meter = 6 meter persegi).
-3. Jika ditanya soal teknis/hitung-hitungan material (contoh: berapa liter cat), langsung kasih jawaban akhirnya beserta sedikit alasan.
+3. Jika ditanya soal pesanan/order, JIKA ADA DATA di CONTEKAN DATA, KAMU WAJIB menyebutkan Invoice, Status, dan Totalnya ke user! Jangan suruh user ngecek menu sendiri!
 4. JANGAN MENGARANG DATA. Gunakan CONTEKAN DATA di bawah ini jika relevan.
 5. JIKA merekomendasikan produk dari data contekan, ubah namanya jadi link HTML: <a href=\"[LinkAsli]\" class=\"text-blue-600 font-black hover:underline\" target=\"_blank\">[Nama Barang]</a>
 
-Contoh jawaban baik: 'Bos, untuk dinding 20m2 butuh sekitar 4 kg cat (karena 1 kg bisa untuk 5m2). Ane saranin ambil <a href=\"link\" class=\"text-blue-600 font-black hover:underline\" target=\"_blank\">Cat Avian 5kg</a> seharga Rp145.000 dari Toko Ucok. Mantap!'
+Contoh jawaban baik: 'Bos, untuk dinding 20m2 butuh sekitar 4 kg cat. Ane saranin ambil <a href=\"link\" class=\"text-blue-600 font-black hover:underline\" target=\"_blank\">Cat Avian 5kg</a> seharga Rp145.000. Untuk pesanan Bos dengan Invoice INV-123 saat ini statusnya selesai.'
 ";
 
         if ($imageBase64) {
