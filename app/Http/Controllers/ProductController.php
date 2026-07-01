@@ -155,6 +155,7 @@ class ProductController extends Controller
             ->where('toko_id', $product->toko_id)
             ->where('id', '!=', $product->id)
             ->where('is_active', 1)
+            ->where('status_moderasi', 'approved')
             ->limit(5)
             ->get();
 
