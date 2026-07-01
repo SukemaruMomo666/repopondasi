@@ -1240,8 +1240,7 @@ class PageController extends Controller
             \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\OtpSecurityMail($otp, $user->nama));
             return response()->json(['success' => true, 'message' => 'OTP telah dikirim ke email Anda (' . $user->email . ')']);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("SMTP Error: " . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Gagal mengirim email: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Gagal mengirim email. Silakan coba lagi nanti.'], 500);
         }
     }
 
