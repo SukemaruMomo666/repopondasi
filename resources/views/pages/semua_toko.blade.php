@@ -466,8 +466,13 @@
                                     <p class="text-[10px] text-zinc-300 font-bold flex items-center gap-1"><i class="fas fa-map-marker-alt text-red-500"></i> ${cityStr}</p>
                                 </div>
                             </div>
-                            <div class="p-3 bg-white">
-                                <a href="${slugUrl}" class="flex items-center justify-center gap-2 w-full text-center bg-zinc-950 text-white text-[10px] font-black py-3 rounded-xl hover:bg-blue-600 transition-colors uppercase tracking-widest shadow-lg">Lihat Etalase <i class="fas fa-arrow-right"></i></a>
+                            <div class="p-3 bg-white flex gap-2">
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=${store.latitude},${store.longitude}" target="_blank" class="flex-[0.8] flex flex-col items-center justify-center bg-blue-50 text-blue-600 text-[9px] font-black py-2 rounded-xl hover:bg-blue-600 hover:text-white transition-colors uppercase tracking-widest">
+                                    <i class="fas fa-directions text-sm mb-0.5"></i> Rute
+                                </a>
+                                <a href="${slugUrl}" class="flex-[1.2] flex items-center justify-center gap-2 bg-zinc-950 text-white text-[10px] font-black py-2 rounded-xl hover:bg-blue-600 transition-colors uppercase tracking-widest shadow-lg">
+                                    Etalase <i class="fas fa-arrow-right"></i>
+                                </a>
                             </div>
                         </div>
                     `;
