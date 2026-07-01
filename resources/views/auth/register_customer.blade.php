@@ -123,10 +123,25 @@
                 {{-- Row 2: Email --}}
                 <div class="relative group">
                     <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1.5 ml-1">Email Profesional</label>
-                    <div class="relative">
+                    <div class="relative flex">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-envelope text-zinc-400 group-focus-within:text-blue-600 transition-colors"></i></div>
-                        <input type="email" name="email" class="w-full bg-zinc-50 border border-zinc-200 text-black text-sm font-semibold rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 block pl-11 pr-4 py-3.5 transition-all outline-none placeholder:text-zinc-400" placeholder="john@perusahaan.com" value="{{ old('email') }}" required>
+                        <input type="email" id="emailInput" name="email" class="w-full bg-zinc-50 border border-zinc-200 text-black text-sm font-semibold rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 block pl-11 pr-[100px] py-3.5 transition-all outline-none placeholder:text-zinc-400" placeholder="john@perusahaan.com" value="{{ old('email') }}" required>
+                        
+                        <button type="button" id="btnSendOtp" onclick="sendOtp()" class="absolute right-1 top-1 bottom-1 px-4 bg-zinc-900 text-white rounded-xl font-bold text-xs hover:bg-blue-600 transition-colors flex items-center justify-center min-w-[90px]">
+                            <span id="otpBtnText">Kirim OTP</span>
+                            <i id="otpSpinner" class="fas fa-spinner fa-spin hidden"></i>
+                        </button>
                     </div>
+                </div>
+
+                {{-- Kolom OTP (Hidden by default) --}}
+                <div id="otpContainer" class="relative group hidden mt-4">
+                    <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1.5 ml-1">Kode OTP</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-shield-alt text-zinc-400 group-focus-within:text-blue-600 transition-colors"></i></div>
+                        <input type="text" name="otp" id="otpInput" class="w-full bg-zinc-50 border border-zinc-200 text-black text-sm font-semibold rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 block pl-11 py-3.5 transition-all outline-none placeholder:text-zinc-400" placeholder="Masukkan 6 digit angka" maxlength="6" {{ old('otp') ? 'required' : '' }} value="{{ old('otp') }}">
+                    </div>
+                    <p class="text-[10px] text-emerald-600 font-bold ml-1 mt-1"><i class="fas fa-check-circle"></i> OTP telah dikirim ke email Anda.</p>
                 </div>
 
                {{-- KATA SANDI --}}
@@ -391,6 +406,10 @@
             @endif
 
             @if($errors->any())
+                @if(old('otp'))
+                    document.getElementById('otpContainer').classList.remove('hidden');
+                    document.getElementById('otpInput').required = true;
+                @endif
                 Swal.fire({
                     icon: 'error', title: 'Validasi Gagal',
                     html: `<div style="text-align: left; font-size: 0.85rem; color: #dc2626; background: #fef2f2; padding: 15px; border-radius: 12px; border: 1px solid #fecaca; margin-top: 10px;"><ul style="padding-left: 20px; margin: 0; font-weight: 500; line-height: 1.5;">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>`,
@@ -399,6 +418,73 @@
                 });
             @endif
         });
+
+        // FUNGSI SEND OTP
+        function sendOtp() {
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value;
+            if (!email) {
+                Swal.fire({ icon: 'warning', title: 'Oops', text: 'Silakan isi alamat email terlebih dahulu.', customClass: { popup: 'rounded-3xl' } });
+                return;
+            }
+
+            const btn = document.getElementById('btnSendOtp');
+            const btnText = document.getElementById('otpBtnText');
+            const spinner = document.getElementById('otpSpinner');
+
+            btn.disabled = true;
+            btnText.classList.add('hidden');
+            spinner.classList.remove('hidden');
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            fetch("{{ route('register.send_otp') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({ email: email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: 'OTP Terkirim', text: data.message, customClass: { popup: 'rounded-3xl' } });
+                    document.getElementById('otpContainer').classList.remove('hidden');
+                    document.getElementById('otpInput').required = true;
+                    emailInput.readOnly = true;
+                    emailInput.classList.add('bg-zinc-100');
+                    
+                    // Countdown
+                    let timeLeft = 60;
+                    btnText.classList.remove('hidden');
+                    spinner.classList.add('hidden');
+                    const timer = setInterval(() => {
+                        if (timeLeft <= 0) {
+                            clearInterval(timer);
+                            btnText.innerText = "Kirim Ulang";
+                            btn.disabled = false;
+                            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        } else {
+                            btnText.innerText = timeLeft + "s";
+                            timeLeft -= 1;
+                        }
+                    }, 1000);
+                } else {
+                    btnText.classList.remove('hidden');
+                    spinner.classList.add('hidden');
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    Swal.fire({ icon: 'error', title: 'Gagal', text: data.message, customClass: { popup: 'rounded-3xl' } });
+                }
+            })
+            .catch(error => {
+                btnText.classList.remove('hidden');
+                spinner.classList.add('hidden');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Terjadi kesalahan sistem.', customClass: { popup: 'rounded-3xl' } });
+            });
+        }
     </script>
 </body>
 </html>

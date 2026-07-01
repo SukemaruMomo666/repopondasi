@@ -289,12 +289,24 @@ class AuthController extends Controller
             'email'    => 'required|email|unique:tb_user,email', 
             'username' => 'required|string|unique:tb_user,username',
             'password' => 'required|min:8|confirmed',
+            'otp'      => 'required|numeric',
         ], [
             'username.unique'    => 'Nama pengguna ini sudah dipakai.',
             'email.unique'       => 'Email ini sudah terdaftar, silakan login.',
             'password.min'       => 'Kata sandi minimal harus 8 karakter.',
-            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.'
+            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+            'otp.required'       => 'Kode OTP wajib diisi.'
         ]);
+
+        if ($request->otp != session('register_otp') || $request->email != session('register_otp_email')) {
+            return back()->with('error', 'Kode OTP tidak valid atau email tidak sesuai.')->withInput();
+        }
+
+        if (now()->diffInMinutes(session('register_otp_time')) > 5) {
+            return back()->with('error', 'Kode OTP telah kedaluwarsa. Silakan kirim ulang.')->withInput();
+        }
+
+        session()->forget(['register_otp', 'register_otp_email', 'register_otp_time']);
 
         User::create([
             'nama'        => $request->nama,
@@ -308,6 +320,27 @@ class AuthController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Akun Anda berhasil dibuat. Silakan login untuk mulai berbelanja.');
+    }
+
+    public function sendOtpRegister(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|unique:tb_user,email'
+        ]);
+
+        $otp = rand(100000, 999999);
+        session([
+            'register_otp' => $otp,
+            'register_otp_email' => $request->email,
+            'register_otp_time' => now()
+        ]);
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($request->email)->send(new \App\Mail\OtpRegistrationMail($otp));
+            return response()->json(['success' => true, 'message' => 'OTP telah dikirim ke ' . $request->email]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal mengirim email: ' . $e->getMessage()], 500);
+        }
     }
 
     // ==========================================================

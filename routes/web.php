@@ -113,6 +113,7 @@ Route::controller(AuthController::class)->group(function () {
     Route::post('/login', 'login')->name('login.process');
     Route::get('/register', 'showRegister')->name('register');
     Route::post('/register', 'register')->name('register.process');
+    Route::post('/register/send-otp', 'sendOtpRegister')->name('register.send_otp');
 
     // Seller Auth (Dipertahankan agar user bisa mendaftar jadi seller dari web publik)
     Route::get('/seller/login', 'showLoginSeller')->name('seller.login');
