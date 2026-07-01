@@ -20,6 +20,6 @@ class OtpRegistrationMail extends Mailable
     public function build()
     {
         return $this->subject('Kode Verifikasi Pendaftaran - Pondasikita')
-                    ->view('emails.otp_register');
+                    ->view('mails.otp_Register');
     }
 }
