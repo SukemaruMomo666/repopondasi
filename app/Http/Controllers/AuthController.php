@@ -288,13 +288,17 @@ class AuthController extends Controller
             'nama'     => 'required|string|max:255',
             'email'    => 'required|email|unique:tb_user,email', 
             'username' => 'required|string|unique:tb_user,username',
-            'password' => 'required|min:8|confirmed',
+            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::min(8)->letters()->mixedCase()->numbers()->symbols()],
             'otp'      => 'required|numeric',
         ], [
             'username.unique'    => 'Nama pengguna ini sudah dipakai.',
             'email.unique'       => 'Email ini sudah terdaftar, silakan login.',
             'password.min'       => 'Kata sandi minimal harus 8 karakter.',
             'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
+            'password.letters'   => 'Kata sandi harus mengandung huruf.',
+            'password.mixed'     => 'Kata sandi harus mengandung huruf besar dan kecil.',
+            'password.numbers'   => 'Kata sandi harus mengandung angka.',
+            'password.symbols'   => 'Kata sandi harus mengandung simbol.',
             'otp.required'       => 'Kode OTP wajib diisi.'
         ]);
 

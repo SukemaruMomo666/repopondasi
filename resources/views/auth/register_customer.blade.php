@@ -143,16 +143,29 @@
                     </div>
                     <p class="text-[10px] text-emerald-600 font-bold ml-1 mt-1"><i class="fas fa-check-circle"></i> OTP telah dikirim ke email Anda.</p>
                 </div>
-
-               {{-- KATA SANDI --}}
+                {{-- KATA SANDI --}}
                 <div class="relative group">
                     <label class="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1.5 ml-1">Kata Sandi</label>
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <i class="fas fa-lock text-zinc-400 group-focus-within:text-blue-600 transition-colors"></i>
                         </div>
-                        <input type="password" name="password" id="reg-password" oninput="cekKecocokanSandi()" class="w-full bg-zinc-50 border border-zinc-200 text-black text-sm font-semibold rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 block pl-11 pr-12 py-3.5 transition-all outline-none placeholder:text-zinc-400" placeholder="Minimal 8 karakter" required>
+                        <input type="password" name="password" id="reg-password" oninput="cekKekuatanSandi(); cekKecocokanSandi()" class="w-full bg-zinc-50 border border-zinc-200 text-black text-sm font-semibold rounded-2xl focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 block pl-11 pr-12 py-3.5 transition-all outline-none placeholder:text-zinc-400" placeholder="Minimal 8 karakter" required>
                         <button type="button" onclick="toggleRegPassword('reg-password', 'eyeReg')" class="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-400 hover:text-black transition-colors focus:outline-none"><i class="fas fa-eye" id="eyeReg"></i></button>
+                    </div>
+                    
+                    {{-- Indikator Kekuatan Sandi --}}
+                    <div class="mt-2 hidden" id="password-strength-container">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold text-zinc-500" id="password-strength-text">Kekuatan Sandi: Lemah</span>
+                        </div>
+                        <div class="w-full bg-zinc-200 rounded-full h-1.5 flex overflow-hidden">
+                            <div id="strength-bar-1" class="h-1.5 w-1/4 bg-zinc-200 transition-colors duration-300"></div>
+                            <div id="strength-bar-2" class="h-1.5 w-1/4 bg-zinc-200 transition-colors duration-300 ml-0.5"></div>
+                            <div id="strength-bar-3" class="h-1.5 w-1/4 bg-zinc-200 transition-colors duration-300 ml-0.5"></div>
+                            <div id="strength-bar-4" class="h-1.5 w-1/4 bg-zinc-200 transition-colors duration-300 ml-0.5"></div>
+                        </div>
+                        <p class="text-[9px] text-zinc-400 mt-1 ml-1" id="password-hint">Gunakan kombinasi huruf besar, kecil, angka, & simbol.</p>
                     </div>
                 </div>
 
@@ -276,6 +289,60 @@
     {{-- SWEETALERT & LOGIC --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // LOGIKA KEKUATAN SANDI
+        function cekKekuatanSandi() {
+            const pass = document.getElementById('reg-password').value;
+            const container = document.getElementById('password-strength-container');
+            const text = document.getElementById('password-strength-text');
+            const bars = [
+                document.getElementById('strength-bar-1'),
+                document.getElementById('strength-bar-2'),
+                document.getElementById('strength-bar-3'),
+                document.getElementById('strength-bar-4')
+            ];
+
+            if (pass.length > 0) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+                return;
+            }
+
+            let strength = 0;
+            if (pass.length >= 8) strength += 1;
+            if (pass.match(/[a-z]+/)) strength += 1;
+            if (pass.match(/[A-Z]+/)) strength += 1;
+            if (pass.match(/[0-9]+/)) strength += 1;
+            if (pass.match(/[\W_]+/)) strength += 1;
+
+            if (strength > 4) strength = 4;
+            if (pass.length < 8) strength = 1; // Maksimal merah kalau kurang dari 8
+
+            bars.forEach(bar => bar.className = 'h-1.5 w-1/4 bg-zinc-200 transition-colors duration-300 ml-0.5');
+            bars[0].classList.remove('ml-0.5');
+
+            if (strength === 1) {
+                text.textContent = 'Kekuatan Sandi: Sangat Lemah';
+                text.className = 'text-[10px] font-bold text-red-500';
+                bars[0].classList.replace('bg-zinc-200', 'bg-red-500');
+            } else if (strength === 2) {
+                text.textContent = 'Kekuatan Sandi: Lemah';
+                text.className = 'text-[10px] font-bold text-orange-500';
+                bars[0].classList.replace('bg-zinc-200', 'bg-orange-500');
+                bars[1].classList.replace('bg-zinc-200', 'bg-orange-500');
+            } else if (strength === 3) {
+                text.textContent = 'Kekuatan Sandi: Cukup Kuat';
+                text.className = 'text-[10px] font-bold text-blue-500';
+                bars[0].classList.replace('bg-zinc-200', 'bg-blue-500');
+                bars[1].classList.replace('bg-zinc-200', 'bg-blue-500');
+                bars[2].classList.replace('bg-zinc-200', 'bg-blue-500');
+            } else if (strength >= 4) {
+                text.textContent = 'Kekuatan Sandi: Sangat Kuat';
+                text.className = 'text-[10px] font-bold text-emerald-500';
+                bars.forEach(bar => bar.classList.replace('bg-zinc-200', 'bg-emerald-500'));
+            }
+        }
+
         // LOGIKA KECOCOKAN PASSWORD
         function cekKecocokanSandi() {
             const pass = document.getElementById('reg-password').value;
