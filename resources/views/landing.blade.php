@@ -510,11 +510,27 @@
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-8 w-full">
                 @foreach($listToko as $toko)
                     @php
-                        $bannerPath = 'assets/uploads/banners/' . ($toko->banner_toko ?? '');
-                        $hasBanner = !empty($toko->banner_toko) && file_exists(public_path($bannerPath));
+                        $bannerPath = ''; $hasBanner = false;
+                        if (!empty($toko->banner_toko)) {
+                            if (file_exists(public_path('assets/uploads/banners/' . $toko->banner_toko))) {
+                                $bannerPath = asset('assets/uploads/banners/' . $toko->banner_toko); $hasBanner = true;
+                            } elseif (file_exists(public_path('uploads/toko/' . $toko->banner_toko))) {
+                                $bannerPath = asset('uploads/toko/' . $toko->banner_toko); $hasBanner = true;
+                            } elseif (filter_var($toko->banner_toko, FILTER_VALIDATE_URL)) {
+                                $bannerPath = $toko->banner_toko; $hasBanner = true;
+                            }
+                        }
                         $initials = strtoupper(substr($toko->nama_toko ?? 'TK', 0, 2));
-                        $logoPath = 'assets/uploads/logos/' . ($toko->logo_toko ?? '');
-                        $hasLogo = !empty($toko->logo_toko) && file_exists(public_path($logoPath));
+                        $logoPath = ''; $hasLogo = false;
+                        if (!empty($toko->logo_toko)) {
+                            if (file_exists(public_path('assets/uploads/logos/' . $toko->logo_toko))) {
+                                $logoPath = asset('assets/uploads/logos/' . $toko->logo_toko); $hasLogo = true;
+                            } elseif (file_exists(public_path('uploads/toko/' . $toko->logo_toko))) {
+                                $logoPath = asset('uploads/toko/' . $toko->logo_toko); $hasLogo = true;
+                            } elseif (filter_var($toko->logo_toko, FILTER_VALIDATE_URL)) {
+                                $logoPath = $toko->logo_toko; $hasLogo = true;
+                            }
+                        }
 
                         $tier = $toko->tier_toko ?? 'regular';
 
@@ -567,7 +583,7 @@
                        class="group relative bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-[0_2px_15px_rgba(0,0,0,0.02)] overflow-hidden transition-all duration-500 hover:-translate-y-2 flex flex-col border w-full {{ $cardBorder }}">
 
                         {{-- Banner Area --}}
-                        <div class="h-24 md:h-36 bg-cover bg-center relative transition-all duration-700 scale-100 group-hover:scale-105 {{ $tier == 'regular' ? 'grayscale group-hover:grayscale-0' : '' }} {{ !$hasBanner ? $fallbackBg : '' }}" style="{{ $hasBanner ? "background-image: url(" . asset($bannerPath) . ");" : "" }}">
+                        <div class="h-24 md:h-36 bg-cover bg-center relative transition-all duration-700 scale-100 group-hover:scale-105 {{ $tier == 'regular' ? 'grayscale group-hover:grayscale-0' : '' }} {{ !$hasBanner ? $fallbackBg : '' }}" style="{{ $hasBanner ? 'background-image: url(' . $bannerPath . ');' : '' }}">
                             <div class="absolute inset-0 bg-gradient-to-t {{ $bannerOverlay }} transition-opacity group-hover:opacity-80"></div>
 
                             {{-- Tier Badge yang Dinamis --}}
@@ -587,7 +603,7 @@
                             <div class="absolute -top-6 left-4 md:-top-12 md:left-8">
                                 <div class="relative">
                                     @if($hasLogo)
-                                        <img src="{{ asset($logoPath) }}" class="w-12 h-12 md:w-20 md:h-20 rounded-xl md:rounded-2xl object-cover border-[3px] md:border-[6px] border-white shadow-xl transition-transform duration-500 group-hover:scale-105 bg-white" alt="Logo">
+                                        <img src="{{ $logoPath }}" class="w-12 h-12 md:w-20 md:h-20 rounded-xl md:rounded-2xl object-cover border-[3px] md:border-[6px] border-white shadow-xl transition-transform duration-500 group-hover:scale-105 bg-white" alt="Logo">
                                     @else
                                         <div class="w-12 h-12 md:w-20 md:h-20 rounded-xl md:rounded-2xl text-white flex items-center justify-center font-black text-sm md:text-2xl border-[3px] md:border-[6px] border-white shadow-xl transition-all duration-500 {{ $logoFallbackBg }}">
                                             {{ $initials }}
@@ -649,14 +665,30 @@
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 w-full">
                 @foreach($listTokoTerdekat as $toko)
                     @php
-                        $bannerPath = 'assets/uploads/banners/' . ($toko->banner_toko ?? '');
-                        $hasBanner = !empty($toko->banner_toko) && file_exists(public_path($bannerPath));
+                        $bannerPath = ''; $hasBanner = false;
+                        if (!empty($toko->banner_toko)) {
+                            if (file_exists(public_path('assets/uploads/banners/' . $toko->banner_toko))) {
+                                $bannerPath = asset('assets/uploads/banners/' . $toko->banner_toko); $hasBanner = true;
+                            } elseif (file_exists(public_path('uploads/toko/' . $toko->banner_toko))) {
+                                $bannerPath = asset('uploads/toko/' . $toko->banner_toko); $hasBanner = true;
+                            } elseif (filter_var($toko->banner_toko, FILTER_VALIDATE_URL)) {
+                                $bannerPath = $toko->banner_toko; $hasBanner = true;
+                            }
+                        }
                         $initials = strtoupper(substr($toko->nama_toko ?? 'TK', 0, 2));
-                        $logoPath = 'assets/uploads/logos/' . ($toko->logo_toko ?? '');
-                        $hasLogo = !empty($toko->logo_toko) && file_exists(public_path($logoPath));
+                        $logoPath = ''; $hasLogo = false;
+                        if (!empty($toko->logo_toko)) {
+                            if (file_exists(public_path('assets/uploads/logos/' . $toko->logo_toko))) {
+                                $logoPath = asset('assets/uploads/logos/' . $toko->logo_toko); $hasLogo = true;
+                            } elseif (file_exists(public_path('uploads/toko/' . $toko->logo_toko))) {
+                                $logoPath = asset('uploads/toko/' . $toko->logo_toko); $hasLogo = true;
+                            } elseif (filter_var($toko->logo_toko, FILTER_VALIDATE_URL)) {
+                                $logoPath = $toko->logo_toko; $hasLogo = true;
+                            }
+                        }
                     @endphp
                     <a href="{{ url('pages/toko?slug=' . ($toko->slug ?? '#')) }}" class="group bg-white rounded-3xl md:rounded-[2rem] shadow-sm hover:-translate-y-2 flex flex-col border border-blue-100 hover:border-blue-400 transition-all overflow-hidden">
-                        <div class="h-24 md:h-32 bg-cover bg-center relative {{ !$hasBanner ? 'bg-gradient-to-br from-blue-600 to-blue-900' : '' }}" style="{{ $hasBanner ? "background-image: url(" . asset($bannerPath) . ");" : "" }}">
+                        <div class="h-24 md:h-32 bg-cover bg-center relative {{ !$hasBanner ? 'bg-gradient-to-br from-blue-600 to-blue-900' : '' }}" style="{{ $hasBanner ? 'background-image: url(' . $bannerPath . ');' : '' }}">
                             <div class="absolute inset-0 bg-gradient-to-t from-zinc-900/90 to-transparent"></div>
                             <div class="absolute top-3 right-3 px-2 py-1 rounded-full flex items-center gap-1 border bg-blue-500/80 text-white backdrop-blur">
                                 <i class="fas fa-map-marker-alt text-[8px]"></i><span class="text-[8px] font-black uppercase">{{ number_format($toko->jarak_km ?? 0, 1) }} KM</span>
@@ -665,7 +697,7 @@
                         <div class="pt-8 md:pt-12 pb-4 px-4 md:pb-6 md:px-6 flex-1 bg-white relative rounded-t-3xl md:rounded-t-[2rem] -mt-4 md:-mt-6 z-10 flex flex-col items-center text-center">
                             <div class="absolute -top-6 md:-top-10 left-1/2 -translate-x-1/2">
                                 @if($hasLogo)
-                                    <img src="{{ asset($logoPath) }}" class="w-12 h-12 md:w-20 md:h-20 rounded-xl md:rounded-2xl object-cover border-[3px] md:border-4 border-white shadow-lg bg-white" alt="Logo">
+                                    <img src="{{ $logoPath }}" class="w-12 h-12 md:w-20 md:h-20 rounded-xl md:rounded-2xl object-cover border-[3px] md:border-4 border-white shadow-lg bg-white" alt="Logo">
                                 @else
                                     <div class="w-12 h-12 md:w-20 md:h-20 rounded-xl md:rounded-2xl bg-zinc-900 text-white flex items-center justify-center font-black text-sm md:text-2xl border-[3px] md:border-4 border-white shadow-lg">
                                         {{ $initials }}

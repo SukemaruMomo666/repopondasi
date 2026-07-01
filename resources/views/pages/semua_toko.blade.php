@@ -205,12 +205,36 @@
                     $colors = ['#18181b', '#27272a', '#3f3f46', '#2563eb', '#1d4ed8'];
                     $storeColor = $colors[crc32($toko->nama_toko) % count($colors)];
 
-                    $bannerPath = 'assets/uploads/banners/' . ($toko->banner_toko ?? '');
-                    $hasBanner = !empty($toko->banner_toko) && file_exists(public_path($bannerPath));
-                    $bannerStyle = $hasBanner ? "background-image: url('".asset($bannerPath)."');" : "background-color: $storeColor;";
+                    $bannerPath = '';
+                    $hasBanner = false;
+                    if (!empty($toko->banner_toko)) {
+                        if (file_exists(public_path('assets/uploads/banners/' . $toko->banner_toko))) {
+                            $bannerPath = asset('assets/uploads/banners/' . $toko->banner_toko);
+                            $hasBanner = true;
+                        } elseif (file_exists(public_path('uploads/toko/' . $toko->banner_toko))) {
+                            $bannerPath = asset('uploads/toko/' . $toko->banner_toko);
+                            $hasBanner = true;
+                        } elseif (filter_var($toko->banner_toko, FILTER_VALIDATE_URL)) {
+                            $bannerPath = $toko->banner_toko;
+                            $hasBanner = true;
+                        }
+                    }
+                    $bannerStyle = $hasBanner ? "background-image: url('{$bannerPath}');" : "background-color: $storeColor;";
 
-                    $logoPath = 'assets/uploads/logos/' . ($toko->logo_toko ?? '');
-                    $hasLogo = !empty($toko->logo_toko) && file_exists(public_path($logoPath));
+                    $logoPath = '';
+                    $hasLogo = false;
+                    if (!empty($toko->logo_toko)) {
+                        if (file_exists(public_path('assets/uploads/logos/' . $toko->logo_toko))) {
+                            $logoPath = asset('assets/uploads/logos/' . $toko->logo_toko);
+                            $hasLogo = true;
+                        } elseif (file_exists(public_path('uploads/toko/' . $toko->logo_toko))) {
+                            $logoPath = asset('uploads/toko/' . $toko->logo_toko);
+                            $hasLogo = true;
+                        } elseif (filter_var($toko->logo_toko, FILTER_VALIDATE_URL)) {
+                            $logoPath = $toko->logo_toko;
+                            $hasLogo = true;
+                        }
+                    }
 
                     $tier = $toko->tier_toko ?? 'regular';
                     if ($tier == 'official_store') {
