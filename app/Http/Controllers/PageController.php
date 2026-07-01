@@ -93,16 +93,32 @@ class PageController extends Controller
             });
         }
 
+        $userLat = $request->query('lat');
+        $userLng = $request->query('lng');
+        
+        if ($userLat && $userLng) {
+            // Kalkulasi Jarak Haversine (KM)
+            $query->addSelect(DB::raw("( 6371 * acos( cos( radians($userLat) ) * cos( radians( CAST(t.latitude AS DECIMAL(10,8)) ) ) * cos( radians( CAST(t.longitude AS DECIMAL(11,8)) ) - radians($userLng) ) + sin( radians($userLat) ) * sin( radians( CAST(t.latitude AS DECIMAL(10,8)) ) ) ) ) AS distance"));
+        }
+
         if ($request->filled('sort')) {
             if ($request->sort == 'termurah') {
                 $query->orderBy('b.harga', 'ASC');
             } elseif ($request->sort == 'termahal') {
                 $query->orderBy('b.harga', 'DESC');
             } else {
-                $query->orderBy('b.created_at', 'DESC');
+                if ($userLat && $userLng) {
+                    $query->orderBy('distance', 'ASC');
+                } else {
+                    $query->orderBy('b.created_at', 'DESC');
+                }
             }
         } else {
-            $query->orderBy('b.created_at', 'DESC');
+            if ($userLat && $userLng) {
+                $query->orderBy('distance', 'ASC');
+            } else {
+                $query->orderBy('b.created_at', 'DESC');
+            }
         }
 
         $products = $query->paginate(12)->withQueryString();

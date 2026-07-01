@@ -524,6 +524,54 @@
                 });
             }
         });
+
+        // HYPER-LOCAL AUTO DETECTION
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            if (urlParams.has('lat') && urlParams.has('lng')) {
+                sessionStorage.setItem('user_hyper_lat', urlParams.get('lat'));
+                sessionStorage.setItem('user_hyper_lng', urlParams.get('lng'));
+                return; 
+            }
+
+            const savedLat = sessionStorage.getItem('user_hyper_lat');
+            const savedLng = sessionStorage.getItem('user_hyper_lng');
+            const hasAttempted = sessionStorage.getItem('user_hyper_attempted');
+
+            if (savedLat && savedLng && savedLat !== 'null' && savedLng !== 'null') {
+                urlParams.set('lat', savedLat);
+                urlParams.set('lng', savedLng);
+                window.location.search = urlParams.toString();
+                return;
+            }
+
+            if (!hasAttempted) {
+                sessionStorage.setItem('user_hyper_attempted', 'true');
+                
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        sessionStorage.setItem('user_hyper_lat', position.coords.latitude);
+                        sessionStorage.setItem('user_hyper_lng', position.coords.longitude);
+                        urlParams.set('lat', position.coords.latitude);
+                        urlParams.set('lng', position.coords.longitude);
+                        window.location.search = urlParams.toString();
+                    }, function(error) {
+                        fetch('https://ipapi.co/json/')
+                            .then(res => res.json())
+                            .then(data => {
+                                if(data.latitude && data.longitude) {
+                                    sessionStorage.setItem('user_hyper_lat', data.latitude);
+                                    sessionStorage.setItem('user_hyper_lng', data.longitude);
+                                    urlParams.set('lat', data.latitude);
+                                    urlParams.set('lng', data.longitude);
+                                    window.location.search = urlParams.toString();
+                                }
+                            }).catch(e => console.log('Location detection fully failed, defaulting to Indonesia'));
+                    }, { timeout: 5000 });
+                }
+            }
+        });
     </script>
 </body>
 </html>

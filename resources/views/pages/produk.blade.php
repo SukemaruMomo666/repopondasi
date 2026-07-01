@@ -571,7 +571,59 @@
                         });
                 });
             }
+        });
 
+        // HYPER-LOCAL AUTO DETECTION
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // 1. Jika URL sudah punya koordinat (misalnya di-share), simpan ke session
+            if (urlParams.has('lat') && urlParams.has('lng')) {
+                sessionStorage.setItem('user_hyper_lat', urlParams.get('lat'));
+                sessionStorage.setItem('user_hyper_lng', urlParams.get('lng'));
+                return; 
+            }
+
+            // 2. Jika URL belum punya koordinat, tapi session punya, maka reload dengan koordinat
+            const savedLat = sessionStorage.getItem('user_hyper_lat');
+            const savedLng = sessionStorage.getItem('user_hyper_lng');
+            const hasAttempted = sessionStorage.getItem('user_hyper_attempted');
+
+            if (savedLat && savedLng && savedLat !== 'null' && savedLng !== 'null') {
+                urlParams.set('lat', savedLat);
+                urlParams.set('lng', savedLng);
+                window.location.search = urlParams.toString();
+                return;
+            }
+
+            // 3. Jika belum pernah mencoba melacak, mari lacak sekarang!
+            if (!hasAttempted) {
+                sessionStorage.setItem('user_hyper_attempted', 'true'); // Tandai sudah mencoba agar tidak looping
+                
+                // Minta Izin GPS Browser
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        sessionStorage.setItem('user_hyper_lat', position.coords.latitude);
+                        sessionStorage.setItem('user_hyper_lng', position.coords.longitude);
+                        urlParams.set('lat', position.coords.latitude);
+                        urlParams.set('lng', position.coords.longitude);
+                        window.location.search = urlParams.toString();
+                    }, function(error) {
+                        // Fallback IPAPI jika Ditolak/Gagal
+                        fetch('https://ipapi.co/json/')
+                            .then(res => res.json())
+                            .then(data => {
+                                if(data.latitude && data.longitude) {
+                                    sessionStorage.setItem('user_hyper_lat', data.latitude);
+                                    sessionStorage.setItem('user_hyper_lng', data.longitude);
+                                    urlParams.set('lat', data.latitude);
+                                    urlParams.set('lng', data.longitude);
+                                    window.location.search = urlParams.toString();
+                                }
+                            }).catch(e => console.log('Location detection fully failed, defaulting to Indonesia'));
+                    }, { timeout: 5000 });
+                }
+            }
         });
     </script>
 </body>
