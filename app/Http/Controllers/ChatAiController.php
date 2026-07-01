@@ -13,6 +13,7 @@ class ChatAiController extends Controller
         $userMessage = $request->input('message');
         $chatHistory = $request->input('history', []); 
         $imageBase64 = $request->input('image');
+        $userId = auth()->id();
 
         if (!$userMessage && !$imageBase64) {
             return response()->json(['reply' => 'Pesan atau gambar tidak boleh kosong, Bos!'], 400);
@@ -57,12 +58,18 @@ class ChatAiController extends Controller
 
         $infoPencarian = "";
         
-        // Buat Query Dasar
+        // Buat Query Dasar Barang
         $query = DB::table('tb_barang')
             ->join('tb_toko', 'tb_barang.toko_id', '=', 'tb_toko.id')
             ->where('tb_barang.is_active', 1)
-            // KITA TAMBAHKAN tb_barang.id UNTUK MEMBUAT URL
             ->select('tb_barang.id', 'tb_barang.nama_barang', 'tb_barang.harga', 'tb_barang.stok', 'tb_toko.nama_toko');
+
+        // Tambahkan kriteria populer/rating
+        if (str_contains(strtolower($userMessage), 'rekomendasi') || str_contains(strtolower($userMessage), 'terlaris') || str_contains(strtolower($userMessage), 'bagus')) {
+            // Jika ada kolom terjual atau rating, kita urutkan. Jika tidak, pakai ID / Harga
+            // Karena belum tau skema pasti, kita asumsikan yang stoknya paling banyak (paling sering restock)
+            $query->orderBy('tb_barang.stok', 'desc');
+        }
 
         // Jika ada kata kunci spesifik
         if (count($cleanWords) > 0) {
@@ -100,32 +107,63 @@ class ChatAiController extends Controller
             $infoPencarian = "\n\nINFO: Maaf, barang yang dicari user saat ini sedang kosong di database.";
         }
 
+        // Cek Status Pesanan Jika Ditanya
+        $infoPesanan = "";
+        if ($userId && (str_contains(strtolower($userMessage), 'pesanan') || str_contains(strtolower($userMessage), 'order'))) {
+            try {
+                $pesanan = DB::table('tb_transaksi')
+                    ->where('user_id', $userId)
+                    ->orderBy('created_at', 'desc')
+                    ->limit(2)
+                    ->get();
+                if ($pesanan->count() > 0) {
+                    $infoPesanan = "\n\nINFO PESANAN USER SAAT INI:\n";
+                    foreach($pesanan as $p) {
+                        $infoPesanan .= "- Order ID: {$p->id} | Status: {$p->status} | Total: Rp" . number_format($p->total_harga, 0, ',', '.') . "\n";
+                    }
+                }
+            } catch(\Exception $e) {}
+        }
+
         // ====================================================================
         // GABUNGKAN PERSONA DENGAN ATURAN HTML LINK
         // ====================================================================
         
-        $systemInstruction = "Kamu adalah POTA (Pondasikita Assistant) alias 'Mandor', asisten AI pintar untuk marketplace bahan bangunan Pondasikita. Gaya bahasa ramah, asik, panggil user 'Bos' atau 'Juragan'.
+        $systemInstruction = "Kamu adalah POTA (Pondasikita Assistant) alias 'Mandor', pakar material bangunan dan arsitektur di marketplace Pondasikita. Panggil user 'Bos' atau 'Juragan'.
 
 ATURAN SANGAT PENTING:
-1. JANGAN PERNAH MENGARANG DATA. Selalu gunakan CONTEKAN DATA di bawah.
-2. JIKA kamu merekomendasikan produk dari data tersebut, KAMU WAJIB mengubah nama produknya menjadi link HTML yang bisa diklik dengan format warna biru.
-Gunakan format HTML ini: <a href=\"[LinkAsli]\" class=\"text-blue-600 font-black hover:underline\" target=\"_blank\">[Nama Barang]</a>
+1. JAWABAN HARUS SANGAT SINGKAT, PADAT, DAN TO-THE-POINT! Jangan bertele-tele. Maksimal 3 kalimat.
+2. JANGAN PERNAH MENGGUNAKAN FORMAT MATEMATIKA / LATEX (seperti $2 \\times 3$, \text{}, dll). Tulis angka biasa saja (contoh: 2 x 3 meter = 6 meter persegi).
+3. Jika ditanya soal teknis/hitung-hitungan material (contoh: berapa liter cat), langsung kasih jawaban akhirnya beserta sedikit alasan.
+4. JANGAN MENGARANG DATA. Gunakan CONTEKAN DATA di bawah ini jika relevan.
+5. JIKA merekomendasikan produk dari data contekan, ubah namanya jadi link HTML: <a href=\"[LinkAsli]\" class=\"text-blue-600 font-black hover:underline\" target=\"_blank\">[Nama Barang]</a>
 
-Contoh gaya bicaramu: 'Dari data yang POTA punya, produk paling mahal saat ini adalah <a href=\"http://localhost:8000/produk/sapu-mahal\" class=\"text-blue-600 font-black hover:underline\" target=\"_blank\">Sapu Mahal</a> harganya Rp120.000 dijual oleh Toko Ucok.'
+Contoh jawaban baik: 'Bos, untuk dinding 20m2 butuh sekitar 4 kg cat (karena 1 kg bisa untuk 5m2). Ane saranin ambil <a href=\"link\" class=\"text-blue-600 font-black hover:underline\" target=\"_blank\">Cat Avian 5kg</a> seharga Rp145.000 dari Toko Ucok. Mantap!'
 ";
 
         if ($imageBase64) {
             $systemInstruction .= "\n\nATURAN KHUSUS GAMBAR: User melampirkan sebuah gambar. TUGAS UTAMAMU SAAT INI ADALAH SEBAGAI AI INTERIOR DESIGNER. JIKA user bertanya tentang desain, warna, renovasi, atau apapun yang berkaitan dengan pengubahan gambar, KAMU WAJIB MENGHASILKAN GAMBAR BARU HASIL EDITAN. PENTING: Gunakan fitur Image Generation-mu dan usahakan mempertahankan struktur asli ruangan (letak perabotan, jendela, dll). WAJIB sertakan gambar dalam balasanmu (jangan hanya teks)!";
         }
 
-        $systemInstruction .= "\n\nCONTEKAN DATA:\n" . $infoToko . $infoPencarian;
+        $systemInstruction .= "\n\nCONTEKAN DATA:\n" . $infoToko . $infoPencarian . $infoPesanan;
 
         // Format History
         $formattedContents = [];
-        if (is_array($chatHistory)) {
+        if (is_array($chatHistory) && count($chatHistory) > 0) {
+            // Hilangkan elemen terakhir jika itu adalah pesan yang sama dengan userMessage (karena JS mengirim history yang sudah di-push userMessage)
+            $lastIndex = count($chatHistory) - 1;
+            if (isset($chatHistory[$lastIndex]['sender']) && $chatHistory[$lastIndex]['sender'] === 'user' && $chatHistory[$lastIndex]['text'] === $userMessage) {
+                array_pop($chatHistory);
+            }
+            
+            // Masukkan ke format Gemini
             foreach ($chatHistory as $chat) {
                 if (!empty(trim($chat['text']))) {
                     $role = ($chat['sender'] === 'bot') ? 'model' : 'user';
+                    // Gemini tidak suka ada 2 role yang sama berurutan. Pastikan bergantian!
+                    if (count($formattedContents) > 0 && $formattedContents[count($formattedContents) - 1]['role'] === $role) {
+                        continue; // Skip jika rolenya sama dengan sebelumnya
+                    }
                     $formattedContents[] = [
                         'role' => $role,
                         'parts' => [['text' => $chat['text']]]
@@ -150,6 +188,12 @@ Contoh gaya bicaramu: 'Dari data yang POTA punya, produk paling mahal saat ini a
                     'data' => $imageBase64
                 ]
             ];
+        }
+
+        // Pastikan isi pesan baru masuk ke role user
+        // Cegah error consecutive roles (Jika history terakhir adalah user, pop dulu)
+        if (count($formattedContents) > 0 && $formattedContents[count($formattedContents) - 1]['role'] === 'user') {
+            array_pop($formattedContents);
         }
 
         $formattedContents[] = [
