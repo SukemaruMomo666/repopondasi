@@ -371,6 +371,36 @@
             </div>
 
         </div>
+
+        {{-- ========================================== --}}
+        {{-- PRODUK REKOMENDASI TERKAIT --}}
+        {{-- ========================================== --}}
+        @if(isset($related_products) && $related_products->count() > 0)
+        <div class="mt-20 pt-16 border-t border-zinc-100">
+            <div class="flex items-center justify-between mb-8">
+                <h2 class="text-2xl sm:text-3xl font-black text-zinc-900 tracking-tight">Pilihan Lain dari Toko Ini</h2>
+                <a href="{{ url('pages/toko?slug=' . $product->slug_toko) }}" class="hidden sm:inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                    Lihat Semua <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+                @foreach($related_products as $rp)
+                <a href="{{ url('produk/' . $rp->slug) }}" class="group block bg-white rounded-3xl p-4 sm:p-5 border border-zinc-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
+                    <div class="aspect-square bg-zinc-50 rounded-2xl mb-4 overflow-hidden relative">
+                        <img src="{{ asset('assets/uploads/products/' . $rp->gambar_utama) }}" alt="{{ $rp->nama_barang }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.src='https://placehold.co/400x400?text=No+Image'">
+                    </div>
+                    <h3 class="font-bold text-zinc-900 text-sm line-clamp-2 leading-snug mb-2 group-hover:text-blue-600 transition-colors">{{ $rp->nama_barang }}</h3>
+                    <p class="font-black text-blue-600 text-lg">Rp {{ number_format($rp->harga, 0, ',', '.') }}</p>
+                </a>
+                @endforeach
+            </div>
+            <a href="{{ url('pages/toko?slug=' . $product->slug_toko) }}" class="sm:hidden mt-6 w-full inline-flex items-center justify-center gap-2 py-3 bg-zinc-50 rounded-xl text-sm font-bold text-zinc-600 hover:bg-zinc-100 transition-colors">
+                Lihat Semua <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        @endif
+
     </main>
 
     @include('partials.footer')
