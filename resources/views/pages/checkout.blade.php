@@ -1055,6 +1055,13 @@
                 }
             }
 
+            const phoneStr = final.telepon.value;
+            const phoneRegex = /^(08|\+628)[0-9]{7,12}$/;
+            if (phoneStr && !phoneRegex.test(phoneStr)) {
+                Swal.fire({ icon: 'warning', title: 'Format Telepon Tidak Valid', text: 'Nomor telepon penerima harus diawali dengan 08 atau +628, dan berisi angka (contoh: 081234567890).', customClass: { popup: 'rounded-3xl' } });
+                return;
+            }
+
             setCheckoutButtonsState(false, "Memproses Transaksi...");
 
             try {

@@ -615,6 +615,14 @@ class PageController extends Controller
 
             $user = Auth::user();
 
+            // Validasi Nomor Telepon
+            if ($request->has('shipping_telepon_penerima')) {
+                $phone = $request->input('shipping_telepon_penerima');
+                if (!preg_match('/^(08|\+628)[0-9]{7,12}$/', $phone)) {
+                    return response()->json(['success' => false, 'error' => 'Format nomor telepon tidak valid. Gunakan awalan 08 atau +628 (contoh: 081234567890).', 'message' => 'Format nomor telepon tidak valid. Gunakan awalan 08 atau +628 (contoh: 081234567890).'], 422);
+                }
+            }
+
             // PROTEKSI SOFT BAN
             if ($user->is_banned) {
                 return response()->json(['success' => false, 'error' => 'Akun Anda sedang ditangguhkan. Tidak dapat memproses pesanan.'], 403);
