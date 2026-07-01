@@ -205,7 +205,7 @@
                                     
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                                         <input type="text" class="manual-input w-full bg-white border border-zinc-300 text-sm font-semibold rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 px-4 py-3 outline-none" id="manual_nama" placeholder="Nama Penerima">
-                                        <input type="number" class="manual-input w-full bg-white border border-zinc-300 text-sm font-semibold rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 px-4 py-3 outline-none" id="manual_telepon" placeholder="081234567890">
+                                        <input type="tel" maxlength="14" oninput="this.value = this.value.replace(/[^0-9+]/g, '')" class="manual-input w-full bg-white border border-zinc-300 text-sm font-semibold rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 px-4 py-3 outline-none" id="manual_telepon" placeholder="Cth: 081234567890">
                                     </div>
 
                                     <h4 class="text-xs font-black text-zinc-500 uppercase tracking-widest mb-3 mt-6 flex items-center gap-2">
