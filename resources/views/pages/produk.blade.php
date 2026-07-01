@@ -522,9 +522,10 @@
             // ==========================================
             const urlParams = new URLSearchParams(window.location.search);
 
-            // Cek apakah parameter '?lokasi' ada di URL. 
-            // Jika TIDAK ADA, dan sesi pencarian otomatis belum dilakukan, jalankan IP Geolocation.
-            if (!urlParams.has('lokasi') && !sessionStorage.getItem('auto_lokasi_katalog_done')) {
+            // Cek apakah parameter '?lokasi' kosong atau tidak ada. 
+            // Jika KOSONG, dan sesi pencarian otomatis belum dilakukan, jalankan IP Geolocation.
+            let currentLokasi = urlParams.get('lokasi');
+            if ((currentLokasi === null || currentLokasi === '') && !sessionStorage.getItem('auto_lokasi_katalog_done')) {
                 
                 // Tandai bahwa sesi auto-lokasi sudah berjalan agar tidak terjadi infinite loop
                 sessionStorage.setItem('auto_lokasi_katalog_done', '1');

@@ -273,7 +273,10 @@ class PageController extends Controller
     // =================================================================
     public function semuaToko(Request $request)
     {
-        $filter_lokasi = $request->query('lokasi', 'semua');
+        $filter_lokasi = $request->query('lokasi');
+        if (empty($filter_lokasi)) {
+            $filter_lokasi = 'semua';
+        }
         $lat = $request->query('lat');
         $lng = $request->query('lng');
 
