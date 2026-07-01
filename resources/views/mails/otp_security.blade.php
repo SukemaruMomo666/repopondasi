@@ -10,7 +10,7 @@
         <!-- Header -->
         <tr>
             <td style="background-color: #dc2626; padding: 40px 30px; text-align: center;">
-                <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 900; letter-spacing: -1px;">Pondasikita<span style="color: #fca5a5;">.</span></h1>
+                <img src="{{ url('logopondasikita.png') }}" alt="Pondasikita Logo" height="40" style="display: block; border: 0;">
                 <p style="color: #fecaca; margin: 10px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;">Security Alert</p>
             </td>
         </tr>

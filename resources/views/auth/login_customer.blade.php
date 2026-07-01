@@ -51,7 +51,7 @@
         {{-- Cinematic Branding --}}
         <div class="relative z-10 w-full max-w-lg animate-fade-in-up">
             <div class="mb-10 inline-flex items-center justify-center p-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-xl shadow-2xl">
-                <img src="{{ asset('assets/image/Pondasikita.com.png') }}" alt="Logo" class="h-12 w-auto object-contain drop-shadow-lg" onerror="this.outerHTML='<div class=\'text-white font-black text-2xl px-2\'>P<span class=\'text-blue-500\'>.</span></div>'">
+                <img src="{{ asset('logopondasikita.png') }}" alt="Logo" class="h-12 w-auto object-contain drop-shadow-lg">
             </div>
             <h1 class="text-5xl font-black text-white leading-[1.1] tracking-tight mb-6">
                 Gerbang Utama<br>
@@ -88,7 +88,7 @@
                     <i class="fas fa-arrow-left text-sm"></i>
                 </a>
                 
-                <img src="{{ asset('assets/image/Pondasikita.com.png') }}" alt="Logo" class="h-8 w-auto object-contain" onerror="this.outerHTML='<div class=\'text-black font-black text-2xl tracking-tight\'>Pondasikita<span class=\'text-blue-600\'>.</span></div>'">
+                <img src="{{ asset('logopondasikita.png') }}" alt="Logo" class="h-8 w-auto object-contain">
             </div>
 
             <div class="mb-10">

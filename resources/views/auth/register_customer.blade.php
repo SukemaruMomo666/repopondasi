@@ -95,7 +95,7 @@
                     <i class="fas fa-arrow-left text-sm"></i>
                 </a>
                 
-                <img src="{{ asset('assets/image/Pondasikita.com.png') }}" alt="Logo" class="h-8 w-auto object-contain" onerror="this.outerHTML='<div class=\'text-black font-black text-2xl tracking-tight\'>Pondasikita<span class=\'text-blue-600\'>.</span></div>'">
+                <img src="{{ asset('logopondasikita.png') }}" alt="Logo" class="h-8 w-auto object-contain">
             </div>
 
             <div class="mb-8 mt-4 lg:mt-0">
