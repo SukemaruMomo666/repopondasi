@@ -441,11 +441,18 @@
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    "Accept": "application/json",
                     "X-CSRF-TOKEN": "{{ csrf_token() }}"
                 },
                 body: JSON.stringify({ email: email })
             })
-            .then(response => response.json())
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) {
+                    throw data;
+                }
+                return data;
+            })
             .then(data => {
                 if (data.success) {
                     Swal.fire({ icon: 'success', title: 'OTP Terkirim', text: data.message, customClass: { popup: 'rounded-3xl' } });
@@ -482,7 +489,14 @@
                 spinner.classList.add('hidden');
                 btn.disabled = false;
                 btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                Swal.fire({ icon: 'error', title: 'Error', text: 'Terjadi kesalahan sistem.', customClass: { popup: 'rounded-3xl' } });
+                
+                let errorMsg = 'Terjadi kesalahan sistem.';
+                if (error.errors && error.errors.email) {
+                    errorMsg = error.errors.email[0];
+                } else if (error.message) {
+                    errorMsg = error.message;
+                }
+                Swal.fire({ icon: 'error', title: 'Oops!', text: errorMsg, customClass: { popup: 'rounded-3xl' } });
             });
         }
     </script>
