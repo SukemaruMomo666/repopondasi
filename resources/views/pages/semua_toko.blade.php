@@ -448,7 +448,7 @@
                     if(cityStr.startsWith('IDN')) cityStr = 'Lokasi Terverifikasi';
 
                     const slugUrl = `{{ url('pages/toko') }}?slug=${store.slug}`;
-                    const imgUrl = store.banner_toko ? `{{ asset('assets/uploads/banners/') }}/${store.banner_toko}` : `https://images.unsplash.com/photo-1541888086925-920a0b3efb98?w=500&q=80`;
+                    const imgUrl = store.banner_toko ? `{{ asset('assets/uploads/banners/') }}/${store.banner_toko}` : `{{ asset('assets/uploads/banners/default_banner.png') }}`;
                     
                     const badgeHtml = store.tier_toko === 'official_store' 
                         ? `<div class="absolute top-3 right-3 bg-[#7e22ce] text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg border border-[#a855f7]">OFFICIAL</div>` 
