@@ -518,58 +518,7 @@
                 });
             });
 
-            // ==========================================
-            // C. AUTO DETECT LOCATION (HYPERLOCAL) - DIPERBAIKI
-            // ==========================================
-            const urlParams = new URLSearchParams(window.location.search);
 
-            // Cek apakah parameter '?lokasi' kosong atau tidak ada. 
-            // Jika KOSONG, dan sesi pencarian otomatis belum dilakukan, jalankan IP Geolocation.
-            let currentLokasi = urlParams.get('lokasi');
-            if ((currentLokasi === null || currentLokasi === '') && !sessionStorage.getItem('auto_lokasi_katalog_done')) {
-                
-                // Tandai bahwa sesi auto-lokasi sudah berjalan agar tidak terjadi infinite loop
-                sessionStorage.setItem('auto_lokasi_katalog_done', '1');
-
-                // Gunakan IP API untuk melacak kota user saat ini secara diam-diam
-                fetch('https://ipapi.co/json/')
-                    .then(res => res.ok ? res.json() : fetch('http://ip-api.com/json').then(r => r.json()))
-                    .then(data => {
-                        let detectedCity = (data.city || "").toLowerCase();
-                        
-                        // Bersihkan kata-kata tambahan agar mudah dicocokkan
-                        let cleanCity = detectedCity.replace(/kabupaten|kota|kab\./g, '').trim();
-
-                        if (cleanCity) {
-                            let selectLokasi = document.getElementById('lokasi-select');
-                            let options = selectLokasi.options;
-                            let matchFound = false;
-
-                            for (let i = 0; i < options.length; i++) {
-                                let optionText = options[i].text.toLowerCase().replace(/kabupaten|kota|kab\./g, '').trim();
-
-                                if (optionText === cleanCity || optionText.includes(cleanCity) || cleanCity.includes(optionText)) {
-                                    selectLokasi.selectedIndex = i;
-                                    matchFound = true;
-                                    break;
-                                }
-                            }
-
-                            // Jika kotanya tidak ada di daftar dropdown (belum ada toko dari sana), 
-                            // kita buatkan opsi baru agar filter tetap mencerminkan kota dia.
-                            if (!matchFound) {
-                                // Huruf pertama kapital untuk estetika
-                                let formattedCity = cleanCity.charAt(0).toUpperCase() + cleanCity.slice(1);
-                                let newOption = new Option(formattedCity, formattedCity, true, true);
-                                selectLokasi.add(newOption);
-                            }
-
-                            // Submit otomatis ke kota tersebut!
-                            document.getElementById('filterForm').submit();
-                        }
-                    })
-                    .catch(error => console.log('Sistem gagal melacak lokasi otomatis.', error));
-            }
 
             // ==========================================
             // D. LOAD MORE LOGIC (AJAX) - ESTETIK

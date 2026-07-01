@@ -473,34 +473,7 @@
                 }
             };
 
-            // ==========================================
-            // 5. AUTO DETECT LOCATION
-            // ==========================================
-            const urlParams = new URLSearchParams(window.location.search);
-            if (!urlParams.has('lokasi') && !urlParams.has('lat') && !sessionStorage.getItem('auto_lokasi_semuatoko_done')) {
-                sessionStorage.setItem('auto_lokasi_semuatoko_done', '1');
-                fetch('https://ipapi.co/json/')
-                    .then(res => res.ok ? res.json() : fetch('http://ip-api.com/json').then(r => r.json()))
-                    .then(data => {
-                        let cleanCity = (data.city || "").toLowerCase().replace(/kabupaten|kota|kab\./g, '').trim();
-                        if (cleanCity) {
-                            let selectLokasi = document.getElementById('lokasi-select');
-                            let matchFound = false;
-                            for (let i = 0; i < selectLokasi.options.length; i++) {
-                                let optionText = selectLokasi.options[i].text.toLowerCase().replace(/kabupaten|kota|kab\./g, '').trim();
-                                if (optionText === cleanCity || optionText.includes(cleanCity) || cleanCity.includes(optionText)) {
-                                    selectLokasi.selectedIndex = i; matchFound = true; break;
-                                }
-                            }
-                            if (!matchFound) {
-                                let formattedCity = cleanCity.charAt(0).toUpperCase() + cleanCity.slice(1);
-                                selectLokasi.add(new Option(formattedCity, formattedCity, true, true));
-                            }
-                            document.getElementById('filterForm').submit();
-                        }
-                    })
-                    .catch(e => console.log('Gagal IP Geolocation'));
-            }
+
             // ==========================================
             // 6. LOAD MORE LOGIC (AJAX) - ESTETIK
             // ==========================================
