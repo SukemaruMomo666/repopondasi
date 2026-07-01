@@ -9,6 +9,8 @@ use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\File;
 use App\Models\User;
 use App\Models\Toko;
 
@@ -414,29 +416,47 @@ class AuthController extends Controller
     {
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
-
-            $existingUser = DB::table('tb_user')
-                                ->where('email', $googleUser->getEmail())
-                                ->first();
+            $existingUser = User::where('email', $googleUser->getEmail())->first();
 
             if ($existingUser) {
-                DB::table('tb_user')
-                    ->where('id', $existingUser->id)
-                    ->update(['google_id' => $googleUser->getId()]);
+                // CEK STATUS BAN
+                if ($existingUser->is_banned) {
+                    if ($existingUser->banned_until && $existingUser->banned_until->isPast()) {
+                        $existingUser->update(['is_banned' => false, 'ban_type' => 'none', 'ban_reason' => null, 'banned_until' => null]);
+                    } elseif ($existingUser->ban_type === 'berat') {
+                        $reason = $existingUser->ban_reason ?? 'Pelanggaran ketentuan layanan.';
+                        $until = $existingUser->banned_until ? " hingga " . $existingUser->banned_until->format('d M Y H:i') : " (Permanen)";
+                        return redirect()->route('login')->with('error', "AKUN DIBLOKIR BERAT! {$until}. Alasan: {$reason}");
+                    }
+                }
+
+                $updateData = ['google_id' => $googleUser->getId(), 'is_verified' => 1];
                 
+                // Jika user belum punya foto profil, download dari Google
+                if (empty($existingUser->profile_picture_url) || $existingUser->profile_picture_url === 'person.png') {
+                    $avatar = $this->downloadGoogleAvatar($googleUser->getAvatar(), $googleUser->getId());
+                    if ($avatar) {
+                        $updateData['profile_picture_url'] = $avatar;
+                    }
+                }
+
+                $existingUser->update($updateData);
                 Auth::loginUsingId($existingUser->id);
             } else {
-                $baseUsername = Str::slug($googleUser->getName());
-                $randomString = Str::random(4);
-                $finalUsername = $baseUsername . '-' . $randomString;
+                $avatar = $this->downloadGoogleAvatar($googleUser->getAvatar(), $googleUser->getId());
+                $cleanUsername = $this->generateCleanUsername($googleUser->getName());
 
                 $newUserId = DB::table('tb_user')->insertGetId([
                     'nama' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
-                    'username' => $finalUsername,
+                    'username' => $cleanUsername,
                     'google_id' => $googleUser->getId(),
+                    'profile_picture_url' => $avatar,
                     'level' => 'customer',
-                    'password' => Hash::make(Str::random(16)),
+                    'password' => Hash::make(Str::random(24)),
+                    'status' => 'online',
+                    'is_verified' => 1,
+                    'is_banned' => 0,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
@@ -447,7 +467,7 @@ class AuthController extends Controller
             return redirect()->route('home')->with('success', 'Berhasil masuk menggunakan Google!');
 
         } catch (\Exception $e) {
-            dd('TANGKAPAN ERROR BOS: ' . $e->getMessage());
+            return redirect()->route('login')->with('error', 'Login Google dibatalkan atau gagal.');
         }
     }
 
@@ -540,42 +560,49 @@ class AuthController extends Controller
     public function googleLoginApi(Request $request)
     {
         $request->validate([
-            'token' => 'required' // Token akses yang dikirim dari React Native
+            'token' => 'required'
         ]);
 
         try {
-            // 1. Validasi token langsung ke server Google menggunakan Socialite
             $googleUser = Socialite::driver('google')->stateless()->userFromToken($request->token);
-
-            // 2. Cek apakah email sudah terdaftar di database
             $user = User::where('email', $googleUser->getEmail())->first();
 
             if ($user) {
-                // Jika user ada tapi belum punya google_id, update datanya
-                if (!$user->google_id) {
-                    $user->update(['google_id' => $googleUser->getId()]);
+                // CEK STATUS BAN
+                if ($user->is_banned) {
+                    if ($user->banned_until && $user->banned_until->isPast()) {
+                        $user->update(['is_banned' => false, 'ban_type' => 'none', 'ban_reason' => null, 'banned_until' => null]);
+                    } elseif ($user->ban_type === 'berat') {
+                        return response()->json(['status' => 'error', 'message' => 'Akun Anda telah ditangguhkan.'], 403);
+                    }
                 }
+
+                $updateData = ['google_id' => $googleUser->getId(), 'is_verified' => 1];
+                if (empty($user->profile_picture_url) || $user->profile_picture_url === 'person.png') {
+                    $avatar = $this->downloadGoogleAvatar($googleUser->getAvatar(), $googleUser->getId());
+                    if ($avatar) {
+                        $updateData['profile_picture_url'] = $avatar;
+                    }
+                }
+                $user->update($updateData);
             } else {
-                // 3. Jika user belum ada, buat akun baru (Register Otomatis)
-                $baseUsername = Str::slug($googleUser->getName());
-                $randomString = Str::random(4);
-                $finalUsername = $baseUsername . '-' . $randomString;
+                $avatar = $this->downloadGoogleAvatar($googleUser->getAvatar(), $googleUser->getId());
+                $cleanUsername = $this->generateCleanUsername($googleUser->getName());
 
                 $user = User::create([
                     'nama'        => $googleUser->getName(),
                     'email'       => $googleUser->getEmail(),
-                    'username'    => $finalUsername,
+                    'username'    => $cleanUsername,
                     'google_id'   => $googleUser->getId(),
-                    'password'    => Hash::make(Str::random(16)), // Password acak karena login via Google
+                    'profile_picture_url' => $avatar,
+                    'password'    => Hash::make(Str::random(24)),
                     'level'       => 'customer',
                     'status'      => 'online',
                     'is_verified' => 1,
                     'is_banned'   => 0
-                    // no_telepon dibiarkan NULL dulu, nanti user bisa isi di Edit Profil
                 ]);
             }
 
-            // 4. Buatkan Token Sanctum untuk akses Mobile
             $token = $user->createToken('MobileAppToken')->plainTextToken;
 
             return response()->json([
@@ -587,7 +614,8 @@ class AuthController extends Controller
                     'nama'     => $user->nama,
                     'email'    => $user->email,
                     'username' => $user->username,
-                    'level'    => $user->level
+                    'level'    => $user->level,
+                    'profile_picture_url' => $user->profile_picture_url
                 ]
             ], 200);
 
@@ -598,5 +626,46 @@ class AuthController extends Controller
                 'error'   => $e->getMessage()
             ], 401);
         }
+    }
+
+    // ==========================================================
+    // HELPER FUNCTIONS UNTUK GOOGLE OAUTH
+    // ==========================================================
+    private function downloadGoogleAvatar($avatarUrl, $googleId)
+    {
+        if (!$avatarUrl) return null;
+
+        try {
+            $contents = Http::get($avatarUrl)->body();
+            $filename = 'google_' . $googleId . '_' . time() . '.jpg';
+            $path = public_path('assets/uploads/avatars/' . $filename);
+            
+            if (!File::exists(public_path('assets/uploads/avatars'))) {
+                File::makeDirectory(public_path('assets/uploads/avatars'), 0755, true);
+            }
+
+            File::put($path, $contents);
+            return $filename;
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    private function generateCleanUsername($name)
+    {
+        $baseUsername = Str::slug($name);
+        if (empty($baseUsername)) {
+            $baseUsername = 'user';
+        }
+        
+        $username = $baseUsername;
+        $counter = 1;
+
+        while (DB::table('tb_user')->where('username', $username)->exists()) {
+            $username = $baseUsername . '-' . $counter;
+            $counter++;
+        }
+
+        return $username;
     }
 }
