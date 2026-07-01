@@ -82,6 +82,7 @@
                 <button class="tab-btn snap-start px-6 py-2.5 rounded-full text-[13px] font-black whitespace-nowrap transition-all duration-300 border border-transparent" data-target="semua">Semua</button>
                 <button class="tab-btn snap-start px-6 py-2.5 rounded-full text-[13px] font-black whitespace-nowrap transition-all duration-300 border border-transparent" data-target="menunggu_pembayaran">Belum Dibayar</button>
                 <button class="tab-btn snap-start px-6 py-2.5 rounded-full text-[13px] font-black whitespace-nowrap transition-all duration-300 border border-transparent" data-target="dikemas">Dikemas</button>
+                <button class="tab-btn snap-start px-6 py-2.5 rounded-full text-[13px] font-black whitespace-nowrap transition-all duration-300 border border-transparent" data-target="siap_diambil">Siap Diambil</button>
                 <button class="tab-btn snap-start px-6 py-2.5 rounded-full text-[13px] font-black whitespace-nowrap transition-all duration-300 border border-transparent" data-target="dikirim">Dikirim</button>
                 <button class="tab-btn snap-start px-6 py-2.5 rounded-full text-[13px] font-black whitespace-nowrap transition-all duration-300 border border-transparent" data-target="selesai">Selesai</button>
                 <button class="tab-btn snap-start px-6 py-2.5 rounded-full text-[13px] font-black whitespace-nowrap transition-all duration-300 border border-transparent" data-target="komplain">Pengembalian</button>
@@ -128,8 +129,14 @@
                         
                         if ($rawStatus == 'menunggu_pembayaran') { 
                             $filterGroup = 'menunggu_pembayaran'; 
-                        } elseif (in_array($rawStatus, ['diproses', 'siap_kirim'])) { 
+                        } elseif ($rawStatus == 'diproses') { 
                             $filterGroup = 'dikemas'; 
+                        } elseif ($rawStatus == 'siap_kirim') {
+                            if ($row->tipe_pengambilan == 'ambil_di_toko') {
+                                $filterGroup = 'siap_diambil';
+                            } else {
+                                $filterGroup = 'dikemas';
+                            }
                         } elseif (in_array($rawStatus, ['dikirim', 'sampai_tujuan'])) { 
                             $filterGroup = 'dikirim'; 
                         } elseif ($rawStatus == 'selesai') { 
