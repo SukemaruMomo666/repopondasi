@@ -286,14 +286,25 @@
     let pendingMedia = null;
     let smartPollingInterval = null; 
 
+    const potaUserId = '{{ auth()->id() ?? 'guest' }}';
+    const potaDomKey = 'pota_ai_dom_' + potaUserId;
+    const potaHistoryKey = 'pota_ai_history_' + potaUserId;
+
     document.addEventListener('DOMContentLoaded', () => {
         const isOpen = sessionStorage.getItem('pota_chat_open') === 'true';
         const activeTab = sessionStorage.getItem('pota_chat_tab') || 'seller';
 
-        const savedAIDom = sessionStorage.getItem('pota_ai_dom');
+        const savedAIDom = sessionStorage.getItem(potaDomKey);
         if(savedAIDom && document.getElementById('ai-chat-messages')) {
             document.getElementById('ai-chat-messages').innerHTML = savedAIDom;
             document.getElementById('ai-chat-messages').scrollTop = document.getElementById('ai-chat-messages').scrollHeight;
+        }
+        
+        const savedHistory = sessionStorage.getItem(potaHistoryKey);
+        if(savedHistory) {
+            try {
+                aiChatHistory = JSON.parse(savedHistory);
+            } catch(e) {}
         }
 
         const savedStoreId = sessionStorage.getItem('pota_active_store');
@@ -917,8 +928,8 @@
 
     function saveAIState() {
         if(aiMessagesContainer) {
-            sessionStorage.setItem('pota_ai_dom', aiMessagesContainer.innerHTML);
-            sessionStorage.setItem('pota_ai_history', JSON.stringify(aiChatHistory));
+            sessionStorage.setItem(potaDomKey, aiMessagesContainer.innerHTML);
+            sessionStorage.setItem(potaHistoryKey, JSON.stringify(aiChatHistory));
         }
     }
 
