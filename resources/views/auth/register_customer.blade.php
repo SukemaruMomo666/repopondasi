@@ -451,6 +451,15 @@
             const form = document.getElementById('registerForm');
 
             form.addEventListener('submit', function(e) {
+                const pass = document.getElementById('reg-password').value;
+                const isStrong = pass.length >= 8 && pass.match(/[a-z]+/) && pass.match(/[A-Z]+/) && pass.match(/[0-9]+/) && pass.match(/[\W_]+/);
+
+                if (!isStrong) {
+                    e.preventDefault();
+                    Swal.fire({ icon: 'warning', title: 'Kata Sandi Lemah', text: 'Kata sandi harus minimal 8 karakter, serta mengandung kombinasi huruf besar, huruf kecil, angka, dan simbol.', customClass: { popup: 'rounded-3xl' } });
+                    return;
+                }
+
                 if(!mainAgreeCb.checked) {
                     e.preventDefault();
                     Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Silakan baca dan setujui Syarat Ketentuan terlebih dahulu.', customClass: { popup: 'rounded-3xl' } });
