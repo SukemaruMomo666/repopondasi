@@ -1,5 +1,5 @@
 {{-- NAVBAR TOP (DARK MODE) --}}
-<header class="sticky top-0 z-30 flex items-center justify-between w-full h-[70px] px-4 md:px-6 bg-slate-900 border-b border-slate-800 shadow-sm">
+<header class="sticky top-0 z-40 flex items-center justify-between w-full h-[70px] px-4 md:px-6 bg-slate-900 border-b border-slate-800 shadow-sm">
 
     {{-- KIRI: Hamburger Menu (Muncul di Mobile/Tablet) --}}
     <div class="flex items-center gap-4">

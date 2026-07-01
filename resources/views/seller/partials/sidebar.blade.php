@@ -1,7 +1,7 @@
-<aside class="w-[260px] h-screen bg-slate-900 border-r border-slate-800 flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0" id="sidebar">
+<aside class="w-[260px] h-screen bg-slate-900 border-r border-slate-800 flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300" id="sidebar">
 
     {{-- 1. BRAND LOGO --}}
-    <div class="px-6 py-5 border-b border-slate-800 flex-shrink-0 flex items-center justify-between">
+    <div class="px-6 py-5 border-b border-slate-800 flex-shrink-0">
         <a href="{{ route('home') }}" class="flex items-center gap-3 group" title="Lihat Tampilan Toko">
             {{-- Aksen biru terang untuk logo di dark mode --}}
             <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-900/50 group-hover:scale-105 transition-transform">
@@ -12,17 +12,12 @@
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Seller Center</span>
             </div>
         </a>
-
-        {{-- Tombol Close Sidebar (Mobile Only) --}}
-        <button id="sidebarClose" class="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition-colors focus:outline-none">
-            <i class="mdi mdi-close text-xl"></i>
-        </button>
     </div>
 
     {{-- 2. USER PROFILE CARD --}}
     <div class="px-6 py-4 border-b border-slate-800 flex-shrink-0">
         <div class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer border border-transparent hover:border-slate-700">
-            <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-md shadow-blue-900/50">
+            <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center font-bold text-white shadow-sm">
                 {{ strtoupper(substr(Auth::user()->nama ?? 'S', 0, 1)) }}
             </div>
             <div class="flex-1 min-w-0">
