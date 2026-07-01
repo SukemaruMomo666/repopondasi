@@ -1115,19 +1115,25 @@ class PageController extends Controller
         }
 
         $order = DB::table('tb_transaksi')
-            ->leftJoin('tb_toko', 'tb_transaksi.toko_id', '=', 'tb_toko.id')
-            ->where('tb_transaksi.kode_invoice', $kode_invoice)
-            ->where('tb_transaksi.user_id', Auth::id())
-            ->select('tb_transaksi.*', 'tb_toko.latitude as toko_lat', 'tb_toko.longitude as toko_lng')
+            ->where('kode_invoice', $kode_invoice)
+            ->where('user_id', Auth::id())
             ->first();
 
         if (!$order) { abort(404, 'Pesanan tidak ditemukan.'); }
 
         $items = DB::table('tb_detail_transaksi as dt')
             ->leftJoin('tb_barang as b', 'dt.barang_id', '=', 'b.id')
-            ->select('dt.*', 'b.gambar_utama')
+            ->select('dt.*', 'b.gambar_utama', 'b.toko_id')
             ->where('dt.transaksi_id', $order->id)
             ->get();
+
+        if ($items->isNotEmpty()) {
+            $toko = DB::table('tb_toko')->where('id', $items->first()->toko_id)->first();
+            if ($toko) {
+                $order->toko_lat = $toko->latitude;
+                $order->toko_lng = $toko->longitude;
+            }
+        }
 
         $clientKey = DB::table('tb_pengaturan')
             ->where('setting_nama', 'midtrans_client_key')
