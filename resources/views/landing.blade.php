@@ -520,6 +520,11 @@
                                 $bannerPath = $toko->banner_toko; $hasBanner = true;
                             }
                         }
+                        // Fallback: gunakan default banner
+                        if (!$hasBanner) {
+                            $bannerPath = asset('assets/uploads/banners/default_banner.png');
+                            $hasBanner = true;
+                        }
                         $initials = strtoupper(substr($toko->nama_toko ?? 'TK', 0, 2));
                         $logoPath = ''; $hasLogo = false;
                         if (!empty($toko->logo_toko)) {
@@ -674,6 +679,11 @@
                             } elseif (filter_var($toko->banner_toko, FILTER_VALIDATE_URL)) {
                                 $bannerPath = $toko->banner_toko; $hasBanner = true;
                             }
+                        }
+                        // Fallback: gunakan default banner
+                        if (!$hasBanner) {
+                            $bannerPath = asset('assets/uploads/banners/default_banner.png');
+                            $hasBanner = true;
                         }
                         $initials = strtoupper(substr($toko->nama_toko ?? 'TK', 0, 2));
                         $logoPath = ''; $hasLogo = false;

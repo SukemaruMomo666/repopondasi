@@ -219,7 +219,12 @@
                             $hasBanner = true;
                         }
                     }
-                    $bannerStyle = $hasBanner ? "background-image: url('{$bannerPath}');" : "background-color: $storeColor;";
+                    // Fallback: gunakan default banner
+                    if (!$hasBanner) {
+                        $bannerPath = asset('assets/uploads/banners/default_banner.png');
+                        $hasBanner = true;
+                    }
+                    $bannerStyle = "background-image: url('{$bannerPath}');";
 
                     $logoPath = '';
                     $hasLogo = false;

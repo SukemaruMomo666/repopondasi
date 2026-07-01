@@ -72,8 +72,26 @@
         // =====================================================================
 
         // 1. Data Banner & Logo Anti-Error Hosting
-        $bgBanner = !empty($toko->banner_toko) ? asset('assets/uploads/banners/' . $toko->banner_toko) : 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=2000&auto=format&fit=crop';
-        $logoPath = !empty($toko->logo_toko) ? asset('assets/uploads/logos/' . $toko->logo_toko) : '';
+        $bgBanner = asset('assets/uploads/banners/default_banner.png');
+        if (!empty($toko->banner_toko)) {
+            if (file_exists(public_path('assets/uploads/banners/' . $toko->banner_toko))) {
+                $bgBanner = asset('assets/uploads/banners/' . $toko->banner_toko);
+            } elseif (file_exists(public_path('uploads/toko/' . $toko->banner_toko))) {
+                $bgBanner = asset('uploads/toko/' . $toko->banner_toko);
+            } elseif (filter_var($toko->banner_toko, FILTER_VALIDATE_URL)) {
+                $bgBanner = $toko->banner_toko;
+            }
+        }
+        $logoPath = '';
+        if (!empty($toko->logo_toko)) {
+            if (file_exists(public_path('assets/uploads/logos/' . $toko->logo_toko))) {
+                $logoPath = asset('assets/uploads/logos/' . $toko->logo_toko);
+            } elseif (file_exists(public_path('uploads/toko/' . $toko->logo_toko))) {
+                $logoPath = asset('uploads/toko/' . $toko->logo_toko);
+            } elseif (filter_var($toko->logo_toko, FILTER_VALIDATE_URL)) {
+                $logoPath = $toko->logo_toko;
+            }
+        }
         $colors = ['#18181b', '#27272a', '#3f3f46', '#09090b', '#1e3a8a'];
         $storeColor = $colors[crc32($toko->nama_toko) % count($colors)];
         $acronym = ""; foreach (explode(" ", $toko->nama_toko) as $w) { $acronym .= mb_substr($w, 0, 1); }
