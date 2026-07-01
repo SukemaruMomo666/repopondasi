@@ -135,7 +135,7 @@
                     {{-- Tombol GPS & Cari (Row 2 - Bersebelahan di Mobile) --}}
                     <div class="flex gap-2">
                         @if(!($lat ?? false))
-                            <button onclick="requestGPS()" type="button" class="w-12 h-11 md:w-full md:h-12 shrink-0 rounded-[1rem] flex items-center justify-center gap-2 text-sm font-bold transition-all duration-300 relative bg-zinc-50 hover:bg-blue-50 text-blue-600 border border-zinc-200 hover:border-blue-200" title="Gunakan Lokasi Saya">
+                            <button onclick="requestGPS()" type="button" class="w-12 h-11 md:w-auto md:px-6 md:flex-1 md:h-12 shrink-0 rounded-[1rem] flex items-center justify-center gap-2 text-sm font-bold transition-all duration-300 relative bg-zinc-50 hover:bg-blue-50 text-blue-600 border border-zinc-200 hover:border-blue-200" title="Gunakan Lokasi Saya">
                                 <i class="fas fa-crosshairs"></i>
                                 <span class="hidden md:inline">Gunakan Lokasi Saya</span>
                             </button>
@@ -144,7 +144,7 @@
                                 Cari Toko
                             </button>
                         @else
-                            <button onclick="requestGPS()" type="button" class="w-12 h-11 md:w-full md:h-12 shrink-0 rounded-[1rem] flex items-center justify-center gap-2 text-sm font-bold transition-all duration-300 relative bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-500" title="GPS Sedang Aktif">
+                            <button onclick="requestGPS()" type="button" class="w-12 h-11 md:w-auto md:px-6 md:flex-1 md:h-12 shrink-0 rounded-[1rem] flex items-center justify-center gap-2 text-sm font-bold transition-all duration-300 relative bg-blue-600 text-white shadow-lg shadow-blue-600/30 border border-blue-500" title="GPS Sedang Aktif">
                                 <span class="absolute inset-0 rounded-[1rem] border border-blue-400 animate-ping opacity-50"></span>
                                 <i class="fas fa-crosshairs animate-spin-slow text-blue-200"></i>
                                 <span class="hidden md:inline">GPS Sedang Aktif</span>
