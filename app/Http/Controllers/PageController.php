@@ -1115,8 +1115,10 @@ class PageController extends Controller
         }
 
         $order = DB::table('tb_transaksi')
-            ->where('kode_invoice', $kode_invoice)
-            ->where('user_id', Auth::id())
+            ->leftJoin('tb_toko', 'tb_transaksi.toko_id', '=', 'tb_toko.id')
+            ->where('tb_transaksi.kode_invoice', $kode_invoice)
+            ->where('tb_transaksi.user_id', Auth::id())
+            ->select('tb_transaksi.*', 'tb_toko.latitude as toko_lat', 'tb_toko.longitude as toko_lng')
             ->first();
 
         if (!$order) { abort(404, 'Pesanan tidak ditemukan.'); }

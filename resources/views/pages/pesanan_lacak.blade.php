@@ -455,15 +455,20 @@
                                 <div class="flex items-center justify-between mb-3">
                                     <div>
                                         <p class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Metode Logistik</p>
-                                        <p class="text-xs font-bold text-zinc-800">
+                                        <div class="text-xs font-bold text-zinc-800 flex items-center flex-wrap gap-2">
                                             @if($order->tipe_pengambilan == 'ambil_di_toko')
                                                 <span class="text-emerald-600"><i class="fas fa-store mr-1"></i> Ambil di Toko</span>
+                                                @if(!empty($order->toko_lat) && !empty($order->toko_lng))
+                                                    <a href="https://www.google.com/maps/dir/?api=1&destination={{ $order->toko_lat }},{{ $order->toko_lng }}" target="_blank" class="bg-blue-50 text-blue-600 text-[9px] font-black px-2 py-0.5 rounded border border-blue-100 hover:bg-blue-600 hover:text-white transition-colors flex items-center gap-1 uppercase tracking-wider shadow-sm">
+                                                        <i class="fas fa-route"></i> Rute ke Toko
+                                                    </a>
+                                                @endif
                                             @elseif($order->tipe_pengambilan == 'armada')
                                                 <span class="text-blue-600"><i class="fas fa-truck-pickup mr-1"></i> Armada Internal Toko</span>
                                             @else
                                                 <span class="text-indigo-600"><i class="fas fa-box-fast mr-1"></i> Kurir Ekspedisi Nasional</span>
                                             @endif
-                                        </p>
+                                        </div>
                                     </div>
                                     @if(!empty($order->nomor_resi))
                                     <div class="text-right">
