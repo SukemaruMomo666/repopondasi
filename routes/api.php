@@ -113,6 +113,33 @@ Route::get('/biteship/areas', [App\Http\Controllers\Api\BiteshipController::clas
         // ========================================================
         Route::post('/profile/update', [MobileUserController::class, 'updateProfile']);
         Route::post('/profile/request-otp', [MobileUserController::class, 'requestPasswordOtp']);
-        Route::post('/profile/password-otp', [MobileUserController::class, 'updatePasswordWithOtp']);
-
+        Route::post('/profile/password-otp', [MobileUserController::class, 'updatePasswordWithOtp']);  
     });
+
+    // RUTE SEMENTARA UNTUK CEK DATABASE
+Route::get('/cek-db-sanctum', function () {
+    try {
+        // 1. Cek apakah tabel personal_access_tokens benar-benar ada
+        $hasSanctumTable = \Illuminate\Support\Facades\Schema::hasTable('personal_access_tokens');
+        
+        // 2. Intip 5 token terakhir yang dibuat (jika tabelnya ada)
+        $tokens = [];
+        if ($hasSanctumTable) {
+            $tokens = \Illuminate\Support\Facades\DB::table('personal_access_tokens')
+                        ->orderBy('id', 'desc')
+                        ->limit(5)
+                        ->get();
+        }
+
+        return response()->json([
+            'status' => 'Berhasil konek ke DB',
+            'tabel_sanctum_tersedia' => $hasSanctumTable,
+            'data_token_terbaru' => $tokens
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'Error',
+            'pesan' => $e->getMessage()
+        ]);
+    }
+});

@@ -16,14 +16,12 @@ return [
     */
 
 'paths' => ['api/*', 'sanctum/csrf-cookie'],
-'allowed_methods' => ['*'],
-'allowed_origins' => ['*'], // Izinkan semua akses
-'allowed_origins_patterns' => [],
-'allowed_headers' => ['*'],
-// ... sisanya biarkan bawaan
-
+    'allowed_methods' => ['*'], // Izinkan semua (GET, POST, dll)
+    'allowed_origins' => ['*'], // Izinkan dari mana saja (Mobile app tidak punya domain origin)
+    'allowed_origins_patterns' => [],
+    'allowed_headers' => ['*'], // WAJIB: Izinkan header 'Authorization' dan 'Accept'
+    'exposed_headers' => [],
     'max_age' => 0,
-
-    'supports_credentials' => false,
+    'supports_credentials' => false, // Set false untuk token murni
 
 ];
