@@ -1,33 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <style>
-        body { font-family: 'Helvetica', sans-serif; background-color: #f4f6f8; margin: 0; padding: 20px; }
-        .container { max-w-md; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .header { text-align: center; margin-bottom: 20px; }
-        .logo { font-size: 24px; font-weight: 900; color: #2563eb; }
-        .content { color: #334155; line-height: 1.6; font-size: 14px; }
-        .otp-box { background: #eff6ff; border: 1px dashed #60a5fa; padding: 15px; text-align: center; font-size: 28px; font-weight: 900; color: #1d4ed8; letter-spacing: 5px; margin: 20px 0; border-radius: 8px; }
-        .footer { margin-top: 30px; font-size: 11px; color: #94a3b8; text-align: center; border-top: 1px solid #f1f5f9; padding-top: 15px; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peringatan Keamanan - Pondasikita</title>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">Pondasikita</div>
-        </div>
-        <div class="content">
-            <p>Halo <strong>{{ $userName }}</strong>,</p>
-            <p>Kami menerima permintaan untuk mengubah kata sandi akun toko Anda. Untuk memastikan keamanan akun Anda, silakan gunakan kode One-Time Password (OTP) berikut:</p>
-            
-            <div class="otp-box">{{ $otpCode }}</div>
-            
-            <p><em>Kode ini hanya berlaku selama 5 menit. Jangan pernah memberikan kode ini kepada siapapun, termasuk pihak Pondasikita.</em></p>
-            <p>Jika Anda tidak meminta perubahan kata sandi ini, abaikan email ini dan pastikan akun Anda tetap aman.</p>
-        </div>
-        <div class="footer">
-            &copy; {{ date('Y') }} Pondasikita. All rights reserved.
-        </div>
-    </div>
+<body style="font-family: 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f3f4f6; margin: 0; padding: 40px 20px; color: #1f2937;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+        <!-- Header -->
+        <tr>
+            <td style="background-color: #dc2626; padding: 40px 30px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 32px; font-weight: 900; letter-spacing: -1px;">Pondasikita<span style="color: #fca5a5;">.</span></h1>
+                <p style="color: #fecaca; margin: 10px 0 0 0; font-size: 14px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;">Security Alert</p>
+            </td>
+        </tr>
+        
+        <!-- Content -->
+        <tr>
+            <td style="padding: 40px 30px;">
+                <h2 style="margin: 0 0 20px 0; font-size: 22px; font-weight: 800; color: #111827;">Halo {{ $userName }},</h2>
+                <p style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6; color: #4b5563;">
+                    Kami menerima permintaan untuk melakukan <strong>perubahan pada keamanan akun Anda (Ubah Sandi)</strong>. Untuk melanjutkan, silakan masukkan kode verifikasi (OTP) berikut:
+                </p>
+                
+                <!-- OTP Box -->
+                <div style="background-color: #fef2f2; border: 2px dashed #fca5a5; border-radius: 16px; padding: 30px 20px; text-align: center; margin-bottom: 30px;">
+                    <div style="font-size: 48px; font-weight: 900; letter-spacing: 16px; color: #dc2626; margin-left: 16px;">
+                        {{ $otpCode }}
+                    </div>
+                </div>
+                
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #fef2f2; border-radius: 12px; padding: 15px;">
+                    <tr>
+                        <td width="30" style="vertical-align: top; padding-right: 10px; color: #ef4444; font-size: 20px;">
+                            &#9888;
+                        </td>
+                        <td style="font-size: 13px; line-height: 1.5; color: #991b1b;">
+                            <strong>Perhatian:</strong> Kode ini hanya berlaku selama <strong style="color: #dc2626;">5 menit</strong>. Jika Anda <strong>tidak pernah meminta</strong> perubahan sandi ini, segera abaikan email ini dan pastikan akun Anda tetap aman.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        
+        <!-- Footer -->
+        <tr>
+            <td style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #f3f4f6;">
+                <p style="margin: 0 0 10px 0; font-size: 12px; color: #9ca3af;">
+                    Email ini dikirimkan otomatis dari sistem keamanan Pondasikita.
+                </p>
+                <p style="margin: 0; font-size: 12px; font-weight: 700; color: #6b7280;">
+                    &copy; {{ date('Y') }} Pondasikita Enterprise.
+                </p>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
